@@ -8,7 +8,7 @@ var db = require('./database.js');
 
 const app = express();
 
-module.exports = function(port, skipIndex) {
+module.exports = function(port, appName) {
     ///////////////////// CONFIGURATION /////////////////////
     app.set('views', path.join(__dirname, './views'));
     app.set('view engine', 'pug');
