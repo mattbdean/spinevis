@@ -1,0 +1,22 @@
+sudo: false
+language: "node_js"
+node_js:
+  - node
+  - 6
+services:
+  - mongodb
+before_script:
+  # Virtual screen for firefox to execute Karma tests
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+script: grunt testCoverage
+after_success: grunt uploadCoverage; grunt jshint
+addons:
+  firefox: latest
+  apt:
+    sources:
+      - mongodb-upstart
+      - mongodb-3.2-precise
+    packages:
+      - mongodb-org-server
+      - mongodb-org-shell

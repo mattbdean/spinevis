@@ -1,0 +1,6 @@
+node_modules/
+npm-debug.log
+todo.txt
+.cache/
+build/
+app/server/public/

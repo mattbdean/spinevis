@@ -1,0 +1,29 @@
+doctype html
+html(ng-app=appName)
+    head
+        //- These 3 <meta> headers must come first
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+
+        block title
+            title= appName
+
+        block stylesheets
+
+        block scripts
+            script(src='/scripts/app.min.js')
+
+
+    body
+        block header
+            header: a.text-center(href='/')= appname
+
+        main
+            block content
+
+        block footer
+            footer
+              div.container
+                span.text-muted
+                 | Copyright &copy; Matthew Dean #{year}
