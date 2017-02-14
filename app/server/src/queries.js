@@ -3,6 +3,16 @@ let db = require('./database.js');
 const COLL_META = 'meta';
 const COLL_TIME = 'time';
 
+function ResultError(msg, data, errType) {
+    this.msg = msg;
+    this.data = data;
+    this.type = errType;
+}
+
+let resultMissing = function(msg, data) {
+    return new ResultError(msg, data, 'missing');
+}
+
 /**
  * Get simple, descriptive, metadata from all trials. No 'heavy' data is
  * included (e.g. Polys/Pts). Returns an array.
@@ -28,6 +38,6 @@ module.exports.getTrialMeta = function(id) {
         if (trials.length > 0)
             return trials[0];
 
-        return Promise.reject(`No trials for ID '${id}'`);
+        return Promise.reject(resultMissing(`No trials for ID '${id}'`, {_id: id}));
     });
 };
