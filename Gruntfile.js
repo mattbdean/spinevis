@@ -7,8 +7,6 @@ module.exports = function(grunt) {
     let buildStaging = build + 'staging/';
     let buildDist = build + 'dist/';
 
-    let cssBuilds = ['index'];
-
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         clean: {
@@ -161,11 +159,13 @@ module.exports = function(grunt) {
         }
     });
 
+    let conf = require('./build.conf.json');
+
     // Created a .min.css file for every CSS file in the style directory that
     // isn't base.css
     let cssminProp = 'cssmin.build.files';
     let files = [];
-    cssBuilds.forEach(css => {
+    conf.cssBuilds.forEach(css => {
         files.push({
             src: [
                 'app/client/_assets/style/base.css',
@@ -210,14 +210,12 @@ module.exports = function(grunt) {
 
     // All views that can't be rendered statically or shouldn't be rendered
     // directly
-    let excludeViews = ['error.pug', 'layout.pug'];
-
     walkTree(srcDir).forEach(view => {
         // Get the file name relative to srcDir
         let relativeName = view.slice(srcDir.length);
 
         // Ignore dynamic views
-        if (excludeViews.includes(relativeName)) {
+        if (conf.excludedTemplates.includes(relativeName)) {
             return;
         }
 
