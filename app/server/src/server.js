@@ -19,7 +19,7 @@ module.exports = function(port) {
     app.use(express.static(path.join(__dirname, '../public')));
 
     //////////////////////// ROUTING ////////////////////////
-    app.use('/api', require('./routes/api')());
+    app.use('/api/v1', require('./routes/api')());
     app.use('/', require('./routes/front.js'));
 
     ///////////////////// ERROR HANDLING ////////////////////
