@@ -1,5 +1,5 @@
 var MongoClient = require('mongodb').MongoClient;
-let appName = require('./server.js').appName;
+let appName = require('../../../package.json').name;
 
 var state = {
     db: null,
@@ -18,8 +18,7 @@ module.exports.MODE_PRODUCTION = 'mode_production';
 module.exports.connect = function(mode) {
     return new Promise(function(fulfill, reject) {
         if (state.db) return reject('Already connected');
-
-        fulfill(mode === exports.MODE_PRODUCTION ? PRODUCTION_URI : TEST_URI);
+        return fulfill(mode === exports.MODE_PRODUCTION ? PRODUCTION_URI : TEST_URI);
     }).then(MongoClient.connect)
     .then(function(result) {
         state.db = result;

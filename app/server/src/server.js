@@ -8,7 +8,7 @@ var db = require('./database.js');
 
 const app = express();
 
-module.exports = function(port, appName) {
+module.exports = function(port) {
     ///////////////////// CONFIGURATION /////////////////////
     app.set('views', path.join(__dirname, './views'));
     app.set('view engine', 'pug');
@@ -18,9 +18,8 @@ module.exports = function(port, appName) {
     app.use(bodyParser.json());
     app.use(express.static(path.join(__dirname, '../public')));
 
-
     //////////////////////// ROUTING ////////////////////////
-    app.use('/api', require('./routes/api.js'));
+    app.use('/api', require('./routes/api')());
     app.use('/', require('./routes/front.js'));
 
     ///////////////////// ERROR HANDLING ////////////////////
@@ -54,7 +53,7 @@ module.exports = function(port, appName) {
 
     ///////////////////////// START /////////////////////////
     // Connect to MongoDB
-    db.connect(db.MODE_PRODUCTION).then(function() {
+    return db.connect(db.MODE_PRODUCTION).then(function() {
         app.listen(port);
         console.log('Magic is happening on port ' + port);
     }).catch(function(reason) {
