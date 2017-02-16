@@ -31,7 +31,7 @@ router.get('/', function(req, res, next) {
     // JavaScript sees this as a "falsey" value and will use the default value
     // instead.
     let start = validateInteger(req.query.start, 0);
-    let limit = validateInteger(req.query.limit, 20, MAX_PAGINATED_DATA)
+    let limit = validateInteger(req.query.limit, 20, MAX_TRIAL_DATA)
 
     queries.findAllTrials(start, limit).then(function(trialInfo) {
         // Return the data in a format that lets the user know that this
