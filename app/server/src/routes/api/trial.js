@@ -20,7 +20,7 @@ router.get('/', function(req, res, next) {
     // One might assume that we could do something like this:
     //
     //     let whatever = parseInt(req.query.whatever) || defaultValue;
-    // 
+    //
     // but this does not account for the fact that if the user input is '0',
     // JavaScript sees this as a "falsey" value and will use the default value
     // instead.
@@ -45,14 +45,14 @@ router.get('/:id', function(req, res, next) {
     let id = req.params.id;
 
     if (id === undefined || id === null || id.trim().length === 0) {
-        return next(responses.error('Invalid ID', {id: id}, 400));
+        return next(responses.error('Trial not found', {id: id}, 404));
     }
 
     queries.getTrialMeta(id).then(function(trial) {
         res.json(responses.success(trial));
     }).catch(function(err) {
         if (err.type && err.type === queries.ERROR_MISSING) {
-            return next(responses.error(err.msg, err.data));
+            return next(responses.error(err.msg, err.data, 404));
         }
 
         return next(response.error());

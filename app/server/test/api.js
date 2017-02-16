@@ -37,7 +37,7 @@ describe('API v1', function() {
                             'unexpected "size" property on paginated JSON data');
 
                         // HTTP status code should be mirrored in response body
-                        assert.equal(res.status, expectedStatus);
+                        assert.equal(res.body.status, expectedStatus);
                         // 'start' must be a positive integer
                         assert.ok(res.body.start >= 0, 'start was negative');
                     });
@@ -66,6 +66,18 @@ describe('API v1', function() {
                             assert.ok(typeof res.body.data === 'object');
                         });
                 });
+            });
+
+            it('should respond with a 404 when a non-existant ID is passed', function() {
+                let expectedStatus = 404;
+                return request(app)
+                    .get(`${routePrefix}/trial/i_dont_exist`)
+                    .expect('Content-Type', /json/)
+                    .expect(expectedStatus)
+                    .expect(function(res) {
+                        assert.ok(res.body.status, expectedStatus);
+                        validateError(res.body.error);
+                    });
             });
         });
     });
