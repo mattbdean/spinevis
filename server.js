@@ -10,6 +10,9 @@ process.on('unhandledRejection', function(reason, p) {
 // Define a port to host the server on
 const port = process.env.PORT || 8080;
 
-let appName = require('./package.json').name;
-
-require('./app/server/src/server.js')(port, appName);
+require('./app/server/src/server.js')().then(function(app) {
+    app.listen(port);
+    console.log('Magic is happening on port ' + port);
+}).catch(function(err) {
+    throw err;
+});

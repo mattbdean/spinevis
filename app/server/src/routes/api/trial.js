@@ -3,12 +3,40 @@ let router = express.Router();
 let queries = require('../../queries.js');
 let responses = require('./responses.js');
 
+let validateInteger = function(input, defaultValue) {
+    // Assume that defaultValue is a positive integer
+    let result = defaultValue;
+
+    if (input !== undefined && !isNaN(input)) {
+        // Round down to remove decimals
+        result = Math.floor(parseInt(input));
+    }
+
+    return result;
+}
+
 // Get 'light' trial metadata for all trials
 router.get('/', function(req, res, next) {
-    queries.findAllTrials().then(function(trialInfo) {
-        res.json(new responses.ApiSuccess(trialInfo));
+    // One might assume that we could do something like this:
+    //
+    //     let whatever = parseInt(req.query.whatever) || defaultValue;
+    // 
+    // but this does not account for the fact that if the user input is '0',
+    // JavaScript sees this as a "falsey" value and will use the default value
+    // instead.
+    let start = validateInteger(req.query.start, 0);
+    let limit = validateInteger(req.query.limit, 20)
+
+    queries.findAllTrials(start, limit).then(function(trialInfo) {
+        // Return the data in a format that lets the user know that this
+        // endpoint is iterable
+        res.json(responses.paginatedSuccess(trialInfo, limit, start));
     }).catch(function(err) {
-        next(new responses.ApiError());
+        if (err.type && err.type === queries.ERROR_PAGINATION) {
+            return next(responses.error(err.msg, err.data, 400));
+        } else {
+            return next(responses.error());
+        }
     });
 });
 
@@ -17,17 +45,17 @@ router.get('/:id', function(req, res, next) {
     let id = req.params.id;
 
     if (id === undefined || id === null || id.trim().length === 0) {
-        return next(new responses.ApiError('Invalid ID', {id: id}, 400));
+        return next(responses.error('Invalid ID', {id: id}, 400));
     }
 
     queries.getTrialMeta(id).then(function(trial) {
-        res.json(new responses.ApiSuccess(trial));
+        res.json(responses.success(trial));
     }).catch(function(err) {
-        if (err.type && err.type === 'missing') {
-            return next(new responses.ApiError('Unknown ID', {id: id}, 404))
+        if (err.type && err.type === queries.ERROR_MISSING) {
+            return next(responses.error(err.msg, err.data));
         }
-        // Generic response
-        return next(new responses.ApiError());
+
+        return next(response.error());
     });
 });
 

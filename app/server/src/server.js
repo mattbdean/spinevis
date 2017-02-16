@@ -8,7 +8,7 @@ var db = require('./database.js');
 
 const app = express();
 
-module.exports = function(port) {
+module.exports = function() {
     ///////////////////// CONFIGURATION /////////////////////
     app.set('views', path.join(__dirname, './views'));
     app.set('view engine', 'pug');
@@ -19,13 +19,16 @@ module.exports = function(port) {
     app.use(express.static(path.join(__dirname, '../public')));
 
     //////////////////////// ROUTING ////////////////////////
-    app.use('/api/v1', require('./routes/api')());
+    // let errorLogger = console.error;
+    errorLogger = () => {};
+    let api = require('./routes/api')(errorLogger);
+    app.use('/api/v1', require('./routes/api')(console.error));
     app.use('/', require('./routes/front.js'));
 
     ///////////////////// ERROR HANDLING ////////////////////
     // Catch 404 and forward to error handler
     app.use(function(req, res, next) {
-        var err = new Error('Not Found');
+        let err = new Error('Not Found');
         err.status = 404;
         next(err);
     });
@@ -52,11 +55,9 @@ module.exports = function(port) {
 
 
     ///////////////////////// START /////////////////////////
-    // Connect to MongoDB
+    // Connect to MongoDB and return app object which can be
+    // listen()'d to
     return db.connect(db.MODE_PRODUCTION).then(function() {
-        app.listen(port);
-        console.log('Magic is happening on port ' + port);
-    }).catch(function(reason) {
-        throw reason;
+        return app;
     });
 };

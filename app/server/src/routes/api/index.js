@@ -1,3 +1,7 @@
+/**
+ * api module -- lets the user communicate with the server using a JSON API.
+ */
+
 let express = require('express');
 let router = express.Router();
 
