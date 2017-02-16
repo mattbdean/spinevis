@@ -20,7 +20,7 @@ module.exports = function() {
 
     //////////////////////// ROUTING ////////////////////////
     // let errorLogger = console.error;
-    errorLogger = () => {};
+    let errorLogger = () => {};
     let api = require('./routes/api')(errorLogger);
     app.use('/api/v1', require('./routes/api')(console.error));
     app.use('/', require('./routes/front.js'));
