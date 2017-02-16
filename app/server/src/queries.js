@@ -1,6 +1,7 @@
 /**
- * queries.js -- abstraction layer between database and server. For all input
- * to exported functions, variables are expected to be of the correct type.
+ * queries.js -- abstraction layer between database and server. All input is
+ * expected to be valid. Errors returned in this module are only related to
+ * retrieving data from the database.
  */
 
 let db = require('./database.js');
@@ -48,6 +49,7 @@ module.exports.findAllTrials = function(start, limit) {
     if (paginationError !== null) {
         return Promise.reject(errorPagination(paginationError, start, limit))
     }
+
     let identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'nSamples'];
 
     let projection = {};
@@ -73,6 +75,6 @@ module.exports.getTrialMeta = function(id) {
         if (trials.length > 0)
             return trials[0];
 
-        return Promise.reject(errorMissing(`No trials for ID '${id}'`, {_id: id}));
+        return Promise.reject(errorMissing(`No trials for ID '${id}'`, {id: id}));
     });
 };

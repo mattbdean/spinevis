@@ -3,7 +3,10 @@ let router = express.Router();
 let queries = require('../../queries.js');
 let responses = require('./responses.js');
 
-let validateInteger = function(input, defaultValue) {
+/** Maximum trials returned at one time */
+const MAX_TRIAL_DATA = 100;
+
+let validateInteger = function(input, defaultValue, maxValue = Infinity) {
     // Assume that defaultValue is a positive integer
     let result = defaultValue;
 
@@ -11,6 +14,9 @@ let validateInteger = function(input, defaultValue) {
         // Round down to remove decimals
         result = Math.floor(parseInt(input));
     }
+
+    if (result > maxValue)
+        result = maxValue;
 
     return result;
 }
@@ -25,7 +31,7 @@ router.get('/', function(req, res, next) {
     // JavaScript sees this as a "falsey" value and will use the default value
     // instead.
     let start = validateInteger(req.query.start, 0);
-    let limit = validateInteger(req.query.limit, 20)
+    let limit = validateInteger(req.query.limit, 20, MAX_PAGINATED_DATA)
 
     queries.findAllTrials(start, limit).then(function(trialInfo) {
         // Return the data in a format that lets the user know that this
