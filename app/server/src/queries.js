@@ -20,7 +20,7 @@ function QueryError(msg, data, errType) {
 
 let errorMissing = function(msg, data) {
     return new QueryError(msg, data, module.exports.ERROR_MISSING);
-}
+};
 
 let errorPagination = function(msg, start, limit) {
     let paginationData = {
@@ -28,7 +28,7 @@ let errorPagination = function(msg, start, limit) {
         limit: limit
     };
     return new QueryError(msg, paginationData, module.exports.ERROR_PAGINATION);
-}
+};
 
 let verifyPaginationData = function(start, limit) {
     let err = null;
@@ -38,7 +38,7 @@ let verifyPaginationData = function(start, limit) {
     if (start < 0) err = 'start must be greater than or equal to 0';
 
     return err;
-}
+};
 
 /**
  * Get simple, descriptive, metadata from all trials. No 'heavy' data is
@@ -47,7 +47,7 @@ let verifyPaginationData = function(start, limit) {
 module.exports.findAllTrials = function(start, limit) {
     let paginationError = verifyPaginationData(start, limit);
     if (paginationError !== null) {
-        return Promise.reject(errorPagination(paginationError, start, limit))
+        return Promise.reject(errorPagination(paginationError, start, limit));
     }
 
     let identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'nSamples'];

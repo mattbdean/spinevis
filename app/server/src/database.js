@@ -19,7 +19,7 @@ module.exports.connect = function(mode) {
     return new Promise(function(fulfill, reject) {
         if (state.db && state.mode !== mode)
             return reject(new Error('Already connected'));
-        
+
         return fulfill(mode === exports.MODE_PRODUCTION ? PRODUCTION_URI : TEST_URI);
     }).then(MongoClient.connect)
     .then(function(result) {
@@ -30,7 +30,7 @@ module.exports.connect = function(mode) {
 
 module.exports.close = function() {
     return state.db.close();
-}
+};
 
 module.exports.mongo = function() {
     return state.db;

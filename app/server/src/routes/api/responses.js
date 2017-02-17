@@ -20,8 +20,8 @@ exports.paginatedSuccess = function(data, limit, start, httpCode = 200) {
         size: size,
         start: start,
         data: data
-    }
-}
+    };
+};
 
 exports.error = function(errMsg = 'Unable to execute request', errData = {}, httpCode = 500) {
     return {
@@ -30,5 +30,5 @@ exports.error = function(errMsg = 'Unable to execute request', errData = {}, htt
             msg: errMsg,
             data: errData
         }
-    }
-}
+    };
+};

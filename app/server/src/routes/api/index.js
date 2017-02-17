@@ -27,4 +27,4 @@ module.exports = function(errorLogger = () => {}) {
     });
 
     return router;
-}
+};
