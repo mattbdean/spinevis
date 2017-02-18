@@ -1,4 +1,4 @@
 {
     "cssBuilds": ["index", "trial"],
-    "excludedTemplates": ["error.pug", "layout.pug"]
+    "excludedTemplates": ["error.pug", "layout.pug", "trial.pug"]
 }
