@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "",
   "main": "server.js",
+  "repository": "thatJavaNerd/spinevis",
+  "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "postinstall": "node_modules/.bin/grunt build",
     "start": "node server --use-strict"
