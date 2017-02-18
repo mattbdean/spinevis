@@ -2,7 +2,7 @@ let assert = require('assert');
 let request = require('supertest');
 let db = require('../src/database.js');
 let queries = require('../src/queries.js');
-const TESTING_PORT = 8081;
+let util = require('./_util.js');
 
 // NOTE: We are making sure that the response decoration (general response
 // structure, HTTP status codes) are being sent as expected. This is NOT for
@@ -12,14 +12,12 @@ const TESTING_PORT = 8081;
 describe('API v1', function() {
     let app;
     beforeEach(function createServer() {
-        return require('../src/server.js')().then(function(serverApp) {
-            app = serverApp.listen(TESTING_PORT);
+        return util.serverFactory().then(function(serverApp) {
+            app = serverApp.listen(util.TESTING_PORT);
         });
     });
     afterEach(function closeConnections(done) {
-        db.close().then(function() {
-            app.close(done)
-        });
+        util.closeConnections(app, done);
     });
 
     let routePrefix = '/api/v1';

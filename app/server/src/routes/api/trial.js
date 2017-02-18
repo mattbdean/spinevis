@@ -2,6 +2,7 @@ let express = require('express');
 let router = express.Router();
 let queries = require('../../queries.js');
 let responses = require('./responses.js');
+let validation = require('../validation.js');
 
 /** Maximum trials returned at one time */
 const MAX_TRIAL_DATA = 100;
@@ -50,7 +51,7 @@ router.get('/', function(req, res, next) {
 router.get('/:id', function(req, res, next) {
     let id = req.params.id;
 
-    if (id === undefined || id === null || id.trim().length === 0) {
+    if (!validation.trialId(id)) {
         return next(responses.error('Trial not found', {id: id}, 404));
     }
 

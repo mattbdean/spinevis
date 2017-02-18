@@ -45,6 +45,7 @@ let verifyPaginationData = function(start, limit) {
  * included (e.g. Polys/Pts). Returns an array.
  */
 module.exports.findAllTrials = function(start, limit) {
+
     let paginationError = verifyPaginationData(start, limit);
     if (paginationError !== null) {
         return Promise.reject(errorPagination(paginationError, start, limit));
@@ -77,4 +78,21 @@ module.exports.getTrialMeta = function(id) {
 
         return Promise.reject(errorMissing(`No trials for ID '${id}'`, {id: id}));
     });
+};
+
+/**
+ * Checks if a trial exists by checking if a document in the metadata collection
+ * has an ID equal to the one specified.
+ */
+module.exports.trialExists = function(id) {
+    return db.mongo().collection(COLL_META)
+        .find({_id: id})
+        .project({_id: 1})
+        .limit(1)
+        .toArray()
+        .then(function(results) {
+            if (results.length === 0)
+                return false;
+            return true;
+        });
 };

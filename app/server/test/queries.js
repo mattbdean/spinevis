@@ -43,4 +43,21 @@ describe('queries', function() {
             });
         });
     });
+
+    describe('trialExists()', function() {
+        it('should return true for existing IDs', function() {
+            return queries.findAllTrials(0, 1)
+            .then(function(trials) {
+                return queries.trialExists(trials[0]._id);
+            }).then(function(exists) {
+                assert.ok(exists, 'Did not find existing file');
+            });
+        });
+
+        it('should return false for non-existant IDs', function() {
+            return queries.trialExists('i_dont_exist').then(function(exists) {
+                assert.ok(!exists, 'Found non-existent trial');
+            });
+        });
+    });
 });
