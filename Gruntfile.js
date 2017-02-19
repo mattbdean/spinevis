@@ -102,8 +102,8 @@ module.exports = function(grunt) {
                 expand: true
             },
             scripts: {
-                cwd: build,
-                src: 'app.min.js',
+                cwd: build + 'scripts',
+                src: '**',
                 dest: finalDist + 'scripts',
                 expand: true
             },
