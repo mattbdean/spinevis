@@ -3,7 +3,9 @@ extends layout.pug
 block append stylesheets
     link(rel='stylesheet', href='/style/trial.min.css')
 
-block append scripts
+block prepend scripts
     script.
         var trialId = "#{id}";
-        console.log(trialId)
+
+block content
+    trial-vis
