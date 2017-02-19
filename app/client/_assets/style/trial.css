@@ -1,0 +1,9 @@
+ul.trial-meta {
+    margin: 10px 0;
+}
+
+ul.trial-meta li {
+    display: inline;
+    list-style-type: none;
+    padding: 0 10px;
+}

@@ -1,1 +1,7 @@
-p {{$ctrl.trialId}}
+div.container-fluid
+    ul.trial-meta.text-center(ng-repeat="(key, value) in $ctrl.trialFormattedMeta")
+        li {{key}}: {{value}}
+
+
+div.container
+    p Graphs go here
