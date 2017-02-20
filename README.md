@@ -5,6 +5,15 @@
 
 Analyze dendritic activity in the web browser
 
+## Getting Started
+
+Getting the website up and running is simple. Make sure to install [jspm](http://jspm.io/) globally (`npm i jspm --global`).
+
+```sh
+$ jspm install && npm install
+$ node server.js
+```
+
 ## Building
 
 spinevis is built with the [Grunt](http://gruntjs.com/) task runner.
