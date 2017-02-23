@@ -21,7 +21,7 @@ module.exports = function(grunt) {
         jshint: {
             all: [
                 'Gruntfile.js',
-                'app/client/!(build)/**/*.js',
+                'app/client/!(build|jspm_packages)/**/*.js',
                 'app/server/src/**/*.js'
             ],
             options: {
