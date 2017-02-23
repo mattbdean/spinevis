@@ -4,6 +4,7 @@ block append stylesheets
     link(rel='stylesheet', href='/style/trial.min.css')
 
 block prepend scripts
+    script(src='https://cdn.plot.ly/plotly-latest.min.js')
     script.
         var trialId = "#{id}";
 
