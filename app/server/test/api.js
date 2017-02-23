@@ -52,34 +52,47 @@ describe('API v1', function() {
 
         describe(`GET ${routePrefix}/trial/:id`, function() {
             it('should respond with a body whose data field is an object', function() {
+                return testIdEndpoint(app, (id) => `${routePrefix}/trial/${id}`);
+            });
+
+            it('should respond with a 404 when a non-existant ID is passed', function() {
+                return expectErrorResponse(app, `${routePrefix}/trial/i_dont_exist`, 404);
+            });
+        });
+
+        describe(`GET ${routePrefix}/trial/:id/timeline`, function() {
+            it('should respond successfully with a valid ID', function() {
                 let expectedStatus = 200;
 
                 // Retrieve the very first trial and test the API using that ID
                 return queries.findAllTrials(0, 1).then(function(trials) {
                     let id = trials[0]._id;
                     return request(app)
-                        .get(`${routePrefix}/trial/${id}`)
+                        .get(`${routePrefix}/trial/${id}/timeline`)
                         .expect(expectedStatus)
                         .expect(function(res) {
                             assert.ok(typeof res.body.data === 'object');
                         });
                 });
             });
-
-            it('should respond with a 404 when a non-existant ID is passed', function() {
-                let expectedStatus = 404;
-                return request(app)
-                    .get(`${routePrefix}/trial/i_dont_exist`)
-                    .expect('Content-Type', /json/)
-                    .expect(expectedStatus)
-                    .expect(function(res) {
-                        assert.ok(res.body.status, expectedStatus);
-                        validateError(res.body.error);
-                    });
-            });
         });
     });
 });
+
+let testIdEndpoint = function(app, formatEndpoint) {
+    let expectedStatus = 200;
+
+    // Retrieve the very first trial and test the API using that ID
+    return queries.findAllTrials(0, 1).then(function(trials) {
+        let id = trials[0]._id;
+        return request(app)
+            .get(formatEndpoint(id))
+            .expect(expectedStatus)
+            .expect(function(res) {
+                assert.ok(typeof res.body.data === 'object');
+            });
+    });
+}
 
 let expectErrorResponse = function(app, path, expectedStatus) {
     return request(app)

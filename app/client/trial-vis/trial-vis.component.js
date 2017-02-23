@@ -17,7 +17,7 @@ let ctrlDef = ['$http', '$window', function TrialVisController($http, $window) {
         let diffInMillis = new Date(end).getTime() - new Date(start).getTime();
         let diffInMinutes = diffInMillis / (60 * 1000);
         return moment.duration(diffInMinutes, "minutes").format();
-    }
+    };
 
     $http.get('/api/v1/trial/' + $ctrl.trialId).then(function(result) {
         // result is an XHR response, result.data is our JSON data, including
@@ -30,7 +30,7 @@ let ctrlDef = ['$http', '$window', function TrialVisController($http, $window) {
             Animal: $ctrl.trialMeta.Animal,
             ["Start time"]: $ctrl.trialMeta.start_time,
             Length: calculateDifference($ctrl.trialMeta.start_time, $ctrl.trialMeta.end_time)
-        }
+        };
         console.log($ctrl.trialMeta);
     });
 }];

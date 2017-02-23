@@ -96,3 +96,21 @@ module.exports.trialExists = function(id) {
             return true;
         });
 };
+
+module.exports.getTimeline = function(id) {
+    return db.mongo().collection(COLL_TIME).aggregate([
+        {$match: {
+            srcID: id,
+            evtType: 'vol'
+        }},
+        {$sort: {absTime: 1}},
+        {$project: {
+            absTime: 1, globalF: 1, _id: 0
+        }}
+    ]).toArray().then(function(result) {
+        if (result.length === 0) {
+            return Promise.reject(errorMissing(`No timeline data for ID ${id}`, {id: id}));
+        }
+        return result;
+    });
+};

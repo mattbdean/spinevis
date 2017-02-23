@@ -66,4 +66,22 @@ router.get('/:id', function(req, res, next) {
     });
 });
 
+router.get('/:id/timeline', function(req, res, next) {
+    let id = req.params.id;
+
+    if (!validation.trialId(id)) {
+        return next(responses.error('Trial not found', {id: id}, 404));
+    }
+
+    queries.getTimeline(id).then(function(result) {
+        res.json(responses.success(result));
+    }).catch(function(err) {
+        if (err.type && err.type === queries.ERROR_MISSING) {
+            return next(responses.error(err.msg, err.data, 404));
+        }
+
+        return next;
+    });
+});
+
 module.exports = router;

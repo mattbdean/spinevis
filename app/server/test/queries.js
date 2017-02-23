@@ -60,4 +60,19 @@ describe('queries', function() {
             });
         });
     });
+
+    describe('getTimeline()', function() {
+        it('should return only imaging events', function() {
+            this.timeout(500000)
+            return queries.findAllTrials(0, 2).then(function(trials) {
+                let id = trials[1]._id;
+                return queries.getTimeline(id).then(function(timelineData) {
+                    for (let i = 0; i < timelineData; i++) {
+                        assert.notEqual(timelineData[i].globalF, undefined);
+                        assert.notEqual(timelienData[i].absTime, undefined);
+                    }
+                });
+            });
+        })
+    })
 });

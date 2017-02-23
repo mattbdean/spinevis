@@ -4,7 +4,7 @@ let path = require('path');
 module.exports = function(grunt) {
     let pkg = grunt.file.readJSON('package.json');
 
-    let clientBase = 'app/client/'
+    let clientBase = 'app/client/';
     let build = clientBase + 'build/';
     let finalDist = 'app/server/public/';
 
