@@ -54,7 +54,7 @@ describe('queries', function() {
             });
         });
 
-        it('should return false for non-existant IDs', function() {
+        it('should return false for non-existent IDs', function() {
             return queries.trialExists('i_dont_exist').then(function(exists) {
                 assert.ok(!exists, 'Found non-existent trial');
             });
