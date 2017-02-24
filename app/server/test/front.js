@@ -44,4 +44,19 @@ describe('Public HTML endpoints', function() {
             });
         });
     });
+
+    describe('partials', function() {
+        // Dynamically create tests for partials, make sure every partial in the
+        // list responds withi 200 OK
+        for (let partial of ['session-list', 'session-vis']) {
+            describe('GET /partial/' + partial, function() {
+                it('should respond with 200 OK', function() {
+                    return request(app)
+                        .get('/partial/' + partial)
+                        .expect('Content-Type', /html/)
+                        .expect(200)
+                });
+            });
+        }
+    });
 });
