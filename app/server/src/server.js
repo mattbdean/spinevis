@@ -22,7 +22,7 @@ module.exports = function(logToStdout = true) {
     // let errorLogger = console.error;
     let errorLogger = () => {};
     let api = require('./routes/api')(errorLogger);
-    app.use('/api/v1', require('./routes/api')(console.error));
+    app.use('/api/v1', api);
     app.use('/', require('./routes/front.js'));
 
     ///////////////////// ERROR HANDLING ////////////////////
