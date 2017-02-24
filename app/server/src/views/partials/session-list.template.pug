@@ -7,11 +7,8 @@ table.table.table-hover.table-striped
         th Run
         th Samples
         th Imaging Rate
-    tr(ng-repeat="session in $ctrl.sessions")
-        td {{session.Animal}}
-        td {{session.start_time}}
-        td {{session.duration}}
-        //- td {{session.fieldOfView}}
-        td {{session.Run}}
-        td {{session.nSamples}}
-        td {{session.volRate}}
+    tr(ng-repeat="session in $ctrl.sessions" ng-click="$ctrl.goToSession(session._id)")
+        //- Nest an <a> in each <td> so that the row will be clickable when
+        //- combined with some CSS magic
+        td(ng-repeat="key in ['Animal', 'start_time', 'duration', 'Run', 'nSamples', 'volRate']")
+            a(href='/trial/{{session._id}}') {{session[key]}}
