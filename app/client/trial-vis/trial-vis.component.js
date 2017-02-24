@@ -24,7 +24,7 @@ let ctrlDef = ['$http', '$window', function TrialVisController($http, $window) {
             Run: $ctrl.trialMeta.Run,
             Animal: $ctrl.trialMeta.Animal,
             ["Start time"]: $ctrl.trialMeta.start_time,
-            Length: util.calculateDifference($ctrl.trialMeta.start_time, $ctrl.trialMeta.end_time)
+            Length: util.formatDifference($ctrl.trialMeta.start_time, $ctrl.trialMeta.end_time)
         };
         console.log($ctrl.trialMeta);
     });

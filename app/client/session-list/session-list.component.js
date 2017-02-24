@@ -18,7 +18,7 @@ let ctrlDef = ['$http', function($http) {
 
             // Add new property 'duration', difference between start and end
             // time formatted in the format 'h:mm'
-            sessions[i].duration = util.calculateDifference(s.start_time, s.end_time);
+            sessions[i].duration = util.formatDifference(s.start_time, s.end_time);
             // Format start time as a date, eg. 6 January 2016
             sessions[i].start_time = moment(s.start_time).format(outputDateFormat);
             // Reduce the amount of significant figures in nSamples, format with
