@@ -4,8 +4,8 @@ let queries = require('../../queries.js');
 let responses = require('./responses.js');
 let validation = require('../validation.js');
 
-/** Maximum trials returned at one time */
-const MAX_TRIAL_DATA = 100;
+/** Maximum sessions returned at one time */
+const MAX_SESSION_DATA = 100;
 
 let validateInteger = function(input, defaultValue, maxValue = Infinity) {
     // Assume that defaultValue is a positive integer
@@ -22,7 +22,7 @@ let validateInteger = function(input, defaultValue, maxValue = Infinity) {
     return result;
 };
 
-// Get 'light' trial metadata for all trials
+// Get 'light' session metadata for all sessions
 router.get('/', function(req, res, next) {
     // One might assume that we could do something like this:
     //
@@ -32,12 +32,12 @@ router.get('/', function(req, res, next) {
     // JavaScript sees this as a "falsey" value and will use the default value
     // instead.
     let start = validateInteger(req.query.start, 0);
-    let limit = validateInteger(req.query.limit, 20, MAX_TRIAL_DATA);
+    let limit = validateInteger(req.query.limit, 20, MAX_SESSION_DATA);
 
-    queries.findAllTrials(start, limit).then(function(trialInfo) {
+    queries.findAllSessions(start, limit).then(function(sessionInfo) {
         // Return the data in a format that lets the user know that this
         // endpoint is iterable
-        res.json(responses.paginatedSuccess(trialInfo, limit, start));
+        res.json(responses.paginatedSuccess(sessionInfo, limit, start));
     }).catch(function(err) {
         if (err.type && err.type === queries.ERROR_PAGINATION) {
             return next(responses.error(err.msg, err.data, 400));
@@ -47,16 +47,16 @@ router.get('/', function(req, res, next) {
     });
 });
 
-// Get 'heavy' trial metadata for a specific trial
+// Get 'heavy' session metadata for a specific session
 router.get('/:id', function(req, res, next) {
     let id = req.params.id;
 
-    if (!validation.trialId(id)) {
-        return next(responses.error('Trial not found', {id: id}, 404));
+    if (!validation.sessionId(id)) {
+        return next(responses.error('Session not found', {id: id}, 404));
     }
 
-    queries.getTrialMeta(id).then(function(trial) {
-        res.json(responses.success(trial));
+    queries.getSessionMeta(id).then(function(session) {
+        res.json(responses.success(session));
     }).catch(function(err) {
         if (err.type && err.type === queries.ERROR_MISSING) {
             return next(responses.error(err.msg, err.data, 404));
@@ -69,8 +69,8 @@ router.get('/:id', function(req, res, next) {
 router.get('/:id/timeline', function(req, res, next) {
     let id = req.params.id;
 
-    if (!validation.trialId(id)) {
-        return next(responses.error('Trial not found', {id: id}, 404));
+    if (!validation.sessionId(id)) {
+        return next(responses.error('Session not found', {id: id}, 404));
     }
 
     queries.getTimeline(id).then(function(result) {

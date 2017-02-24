@@ -13,15 +13,15 @@ router.get('/', function(req, res, next) {
     });
 });
 
-router.get('/trial/:id', function(req, res, next) {
+router.get('/session/:id', function(req, res, next) {
     let id = req.params.id;
-    if (!validation.trialId(id)) {
+    if (!validation.sessionId(id)) {
         return next({status: 400});
     }
-    return queries.trialExists(id).then((exists) => {
+    return queries.sessionExists(id).then((exists) => {
         if (!exists)
             return next({status: 404});
-        return res.render('trial', {appName: appName, year: year, id: id});
+        return res.render('session', {appName: appName, year: year, id: id});
     });
 });
 

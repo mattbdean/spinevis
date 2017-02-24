@@ -1,8 +1,8 @@
-ul.trial-meta {
+ul.session-meta {
     margin: 10px 0;
 }
 
-ul.trial-meta li {
+ul.session-meta li {
     display: inline;
     list-style-type: none;
     padding: 0 10px;

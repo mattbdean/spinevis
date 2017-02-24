@@ -2,8 +2,8 @@ let assert = require('assert');
 let validation = require('../src/routes/validation.js');
 
 describe('input validation', function() {
-    describe('trialId', function() {
-        let t = validation.trialId;
+    describe('sessionId', function() {
+        let t = validation.sessionId;
         it('should recognize valid input', function() {
             assert.ok(t('BMWR34:20160106:1:1'));
             assert.ok(t('BMWR30:20151123:2:1'));

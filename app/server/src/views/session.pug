@@ -1,12 +1,12 @@
 extends layout.pug
 
 block append stylesheets
-    link(rel='stylesheet', href='/style/trial.min.css')
+    link(rel='stylesheet', href='/style/session.min.css')
 
 block prepend scripts
     script(src='https://cdn.plot.ly/plotly-latest.min.js')
     script.
-        var trialId = "#{id}";
+        var sessionId = "#{id}";
 
 block content
-    trial-vis
+    session-vis

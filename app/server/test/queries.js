@@ -8,55 +8,55 @@ describe('queries', function() {
         return db.connect(db.MODE_PRODUCTION);
     });
 
-    describe('findAllTrials()', function() {
-        it('should find only appropriate trial metadata', function() {
-            return queries.findAllTrials(0, 20).then(function(trials) {
+    describe('findAllSessions()', function() {
+        it('should find only appropriate session metadata', function() {
+            return queries.findAllSessions(0, 20).then(function(sessions) {
                 // For each document ensure that only specific data is returned
                 let approvedKeys = ['_id', 'start_time', 'end_time', 'Animal', 'Run', 'nSamples'];
 
-                for (let trial of trials) {
+                for (let session of sessions) {
                     // Make sure all keys in the object are in the above array
-                    for (let key of Object.keys(trial)) {
-                        assert.ok(approvedKeys.includes(key), `Key '${key}' is unexpected, trial ID '${trial._id}'`);
+                    for (let key of Object.keys(session)) {
+                        assert.ok(approvedKeys.includes(key), `Key '${key}' is unexpected, session ID '${session._id}'`);
                     }
 
                     // Make sure all expected keys have defined values
                     for (let key of approvedKeys) {
-                        assert.ok(trial[key] !== undefined, `Key '${key}' is undefined`);
+                        assert.ok(session[key] !== undefined, `Key '${key}' is undefined`);
                     }
                 }
             });
         });
     });
 
-    describe('getTrialMeta()', function() {
-        it('should return only one trial', function() {
+    describe('getSessionMeta()', function() {
+        it('should return only one session', function() {
             let id = null;
-            return queries.findAllTrials(0, 20)
-            .then(function(trials) {
-                id = trials[0]._id;
-                return queries.getTrialMeta(trials[0]._id);
-            }).then(function(trial) {
+            return queries.findAllSessions(0, 20)
+            .then(function(sessions) {
+                id = sessions[0]._id;
+                return queries.getSessionMeta(sessions[0]._id);
+            }).then(function(session) {
                 // Make sure the query returns an object with a matching _id
-                assert.equal(typeof trial, 'object')
-                assert.equal(trial._id, id);
+                assert.equal(typeof session, 'object')
+                assert.equal(session._id, id);
             });
         });
     });
 
-    describe('trialExists()', function() {
+    describe('sessionExists()', function() {
         it('should return true for existing IDs', function() {
-            return queries.findAllTrials(0, 1)
-            .then(function(trials) {
-                return queries.trialExists(trials[0]._id);
+            return queries.findAllSessions(0, 1)
+            .then(function(sessions) {
+                return queries.sessionExists(sessions[0]._id);
             }).then(function(exists) {
                 assert.ok(exists, 'Did not find existing file');
             });
         });
 
         it('should return false for non-existent IDs', function() {
-            return queries.trialExists('i_dont_exist').then(function(exists) {
-                assert.ok(!exists, 'Found non-existent trial');
+            return queries.sessionExists('i_dont_exist').then(function(exists) {
+                assert.ok(!exists, 'Found non-existent session');
             });
         });
     });
@@ -64,8 +64,8 @@ describe('queries', function() {
     describe('getTimeline()', function() {
         it('should return only imaging events', function() {
             this.timeout(500000)
-            return queries.findAllTrials(0, 2).then(function(trials) {
-                let id = trials[1]._id;
+            return queries.findAllSessions(0, 2).then(function(sessions) {
+                let id = sessions[1]._id;
                 return queries.getTimeline(id).then(function(timelineData) {
                     for (let i = 0; i < timelineData; i++) {
                         assert.notEqual(timelineData[i].globalF, undefined);

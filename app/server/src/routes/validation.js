@@ -6,12 +6,12 @@ function validateRegex(input, reg) {
 }
 
 // http://regexr.com/3fb18
-let trialIdRegex = /^[A-Z]{4}\d{2}:\d{8}:\d:\d$/;
+let sessionIdRegex = /^[A-Z]{4}\d{2}:\d{8}:\d:\d$/;
 let partialNameRegex = /^[a-z0-9-]+$/;
 
 module.exports = {
-    trialId: function(id) {
-        return validateRegex(id, trialIdRegex);
+    sessionId: function(id) {
+        return validateRegex(id, sessionIdRegex);
     },
     partialName: function(name) {
         return validateRegex(name, partialNameRegex);

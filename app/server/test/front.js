@@ -14,7 +14,7 @@ describe('Public HTML endpoints', function() {
         util.closeConnections(app, done);
     });
 
-    describe('trials', function() {
+    describe('sessions', function() {
         describe('GET /', function() {
             it('should respond with HTML', function() {
                 return request(app)
@@ -24,13 +24,13 @@ describe('Public HTML endpoints', function() {
             });
         });
 
-        describe('GET /trial/:id', function() {
+        describe('GET /session/:id', function() {
             it('should respond with 200 OK when given an existing ID', function() {
-                return queries.findAllTrials(0, 1)
-                .then(function(trials) {
-                    let id = trials[0]._id;
+                return queries.findAllSessions(0, 1)
+                .then(function(sessions) {
+                    let id = sessions[0]._id;
                     return request(app)
-                        .get('/trial/' + id)
+                        .get('/session/' + id)
                         .expect('Content-Type', /html/)
                         .expect(200)
                 });
@@ -38,7 +38,7 @@ describe('Public HTML endpoints', function() {
 
             it('should respond with 404 Not Found when given a non-existent ID', function() {
                 return request(app)
-                    .get('/trial/i_dont_exist')
+                    .get('/session/i_dont_exist')
                     .expect('Content-Type', /html/)
                     .expect(404)
             });

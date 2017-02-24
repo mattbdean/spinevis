@@ -21,13 +21,13 @@ describe('API v1', function() {
     });
 
     let routePrefix = '/api/v1';
-    describe('trials', function() {
-        describe(`GET ${routePrefix}/trial`, function() {
+    describe('sessions', function() {
+        describe(`GET ${routePrefix}/session`, function() {
             it('should respond with paginated data when given valid input', function() {
                 let expectedStatus = 200;
 
                 return request(app)
-                    .get(routePrefix + '/trial')
+                    .get(routePrefix + '/session')
                     .expect('Content-Type', /json/) // Expect JSON response
                     .expect(expectedStatus)
                     .expect(function(res) {
@@ -42,33 +42,33 @@ describe('API v1', function() {
             });
 
             it('should respond with 400 when given an invalid limit', function() {
-                return expectErrorResponse(app, `${routePrefix}/trial?limit=-1`, 400);
+                return expectErrorResponse(app, `${routePrefix}/session?limit=-1`, 400);
             });
 
             it('should respond with 400 when given an invalid start', function() {
-                return expectErrorResponse(app, `${routePrefix}/trial?start=-1`, 400);
+                return expectErrorResponse(app, `${routePrefix}/session?start=-1`, 400);
             });
         });
 
-        describe(`GET ${routePrefix}/trial/:id`, function() {
+        describe(`GET ${routePrefix}/session/:id`, function() {
             it('should respond with a body whose data field is an object', function() {
-                return testIdEndpoint(app, (id) => `${routePrefix}/trial/${id}`);
+                return testIdEndpoint(app, (id) => `${routePrefix}/session/${id}`);
             });
 
             it('should respond with a 404 when a non-existant ID is passed', function() {
-                return expectErrorResponse(app, `${routePrefix}/trial/i_dont_exist`, 404);
+                return expectErrorResponse(app, `${routePrefix}/session/i_dont_exist`, 404);
             });
         });
 
-        describe(`GET ${routePrefix}/trial/:id/timeline`, function() {
+        describe(`GET ${routePrefix}/session/:id/timeline`, function() {
             it('should respond successfully with a valid ID', function() {
                 let expectedStatus = 200;
 
-                // Retrieve the very first trial and test the API using that ID
-                return queries.findAllTrials(0, 1).then(function(trials) {
-                    let id = trials[0]._id;
+                // Retrieve the very first session and test the API using that ID
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
                     return request(app)
-                        .get(`${routePrefix}/trial/${id}/timeline`)
+                        .get(`${routePrefix}/session/${id}/timeline`)
                         .expect(expectedStatus)
                         .expect(function(res) {
                             assert.ok(typeof res.body.data === 'object');
@@ -82,9 +82,9 @@ describe('API v1', function() {
 let testIdEndpoint = function(app, formatEndpoint) {
     let expectedStatus = 200;
 
-    // Retrieve the very first trial and test the API using that ID
-    return queries.findAllTrials(0, 1).then(function(trials) {
-        let id = trials[0]._id;
+    // Retrieve the very first session and test the API using that ID
+    return queries.findAllSessions(0, 1).then(function(sessions) {
+        let id = sessions[0]._id;
         return request(app)
             .get(formatEndpoint(id))
             .expect(expectedStatus)

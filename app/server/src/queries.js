@@ -41,10 +41,10 @@ let verifyPaginationData = function(start, limit) {
 };
 
 /**
- * Get simple, descriptive, metadata from all trials. No 'heavy' data is
+ * Get simple, descriptive, metadata from all sessions. No 'heavy' data is
  * included (e.g. Polys/Pts). Returns an array.
  */
-module.exports.findAllTrials = function(start, limit) {
+module.exports.findAllSessions = function(start, limit) {
 
     let paginationError = verifyPaginationData(start, limit);
     if (paginationError !== null) {
@@ -67,24 +67,24 @@ module.exports.findAllTrials = function(start, limit) {
 };
 
 /**
- * Get all metadata, both 'light' and 'heavy', for a specific trial.
+ * Get all metadata, both 'light' and 'heavy', for a specific session.
  *
- * @param id The value of the trial's '_id' field. Case sensitive.
+ * @param id The value of the session's '_id' field. Case sensitive.
  */
-module.exports.getTrialMeta = function(id) {
-    return db.mongo().collection(COLL_META).find({_id: id}).limit(1).toArray().then(function(trials) {
-        if (trials.length > 0)
-            return trials[0];
+module.exports.getSessionMeta = function(id) {
+    return db.mongo().collection(COLL_META).find({_id: id}).limit(1).toArray().then(function(sessions) {
+        if (sessions.length > 0)
+            return sessions[0];
 
-        return Promise.reject(errorMissing(`No trials for ID '${id}'`, {id: id}));
+        return Promise.reject(errorMissing(`No sessions for ID '${id}'`, {id: id}));
     });
 };
 
 /**
- * Checks if a trial exists by checking if a document in the metadata collection
+ * Checks if a session exists by checking if a document in the metadata collection
  * has an ID equal to the one specified.
  */
-module.exports.trialExists = function(id) {
+module.exports.sessionExists = function(id) {
     return db.mongo().collection(COLL_META)
         .find({_id: id})
         .project({_id: 1})

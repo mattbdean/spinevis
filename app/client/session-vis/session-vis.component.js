@@ -6,30 +6,29 @@ let util = require('../core/util.js');
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
-let ctrlDef = ['$http', '$window', function TrialVisController($http, $window) {
+let ctrlDef = ['$http', '$window', function SessionVisController($http, $window) {
     let $ctrl = this;
 
     // Fail fast if injection does as well
-    if ($window.trialId === undefined)
-        throw new ReferenceError('Expecting trialId to be injected via $window');
-    $ctrl.trialId = $window.trialId;
+    if ($window.sessionId === undefined)
+        throw new ReferenceError('Expecting sessionId to be injected via $window');
+    $ctrl.sessionId = $window.sessionId;
 
-    $http.get('/api/v1/trial/' + $ctrl.trialId).then(function(result) {
+    $http.get('/api/v1/session/' + $ctrl.sessionId).then(function(result) {
         // result is an XHR response, result.data is our JSON data, including
         // response metadata, result.data.data is the ACTUAL data
-        $ctrl.trialMeta = result.data.data;
+        $ctrl.sessionMeta = result.data.data;
 
-        // Grab specific elements from the trial metadata to display at the top
-        $ctrl.trialFormattedMeta = {
-            Run: $ctrl.trialMeta.Run,
-            Animal: $ctrl.trialMeta.Animal,
-            ["Start time"]: $ctrl.trialMeta.start_time,
-            Length: util.formatDifference($ctrl.trialMeta.start_time, $ctrl.trialMeta.end_time)
+        // Grab specific elements from the session metadata to display at the top
+        $ctrl.sessionFormattedMeta = {
+            Run: $ctrl.sessionMeta.Run,
+            Animal: $ctrl.sessionMeta.Animal,
+            ["Start time"]: $ctrl.sessionMeta.start_time,
+            Length: util.formatDifference($ctrl.sessionMeta.start_time, $ctrl.sessionMeta.end_time)
         };
-        console.log($ctrl.trialMeta);
     });
 
-    $http.get('/api/v1/trial/' + $ctrl.trialId + '/timeline').then(function(result) {
+    $http.get('/api/v1/session/' + $ctrl.sessionId + '/timeline').then(function(result) {
         $ctrl.timelineData = result.data.data;
 
         // Create timeline outline
@@ -63,6 +62,6 @@ let ctrlDef = ['$http', '$window', function TrialVisController($http, $window) {
 }];
 
 module.exports = {
-    templateUrl: '/partial/trial-vis',
+    templateUrl: '/partial/session-vis',
     controller: ctrlDef
 };

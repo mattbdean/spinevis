@@ -8,7 +8,7 @@ const outputDateFormat = 'D MMMM YYYY';
 let ctrlDef = ['$http', function($http) {
     let $ctrl = this;
 
-    $http.get('http://localhost:8080/api/v1/trial').then(function(response) {
+    $http.get('http://localhost:8080/api/v1/session').then(function(response) {
         let sessions = response.data.data;
 
         // Mutate data from server so we can plop these data pretty much right
