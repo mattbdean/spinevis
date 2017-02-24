@@ -14,10 +14,12 @@ System.config({
 
   map: {
     "angular": "npm:angular@1.6.2",
+    "angular-resource": "npm:angular-resource@1.6.2",
     "babel": "npm:babel-core@5.8.38",
     "babel-runtime": "npm:babel-runtime@5.8.38",
     "core-js": "npm:core-js@1.2.7",
     "jquery": "npm:jquery@3.1.1",
+    "lodash": "npm:lodash@4.17.4",
     "moment": "npm:moment@2.17.1",
     "moment-duration-format": "npm:moment-duration-format@1.3.0",
     "github:jspm/nodelibs-assert@0.1.0": {

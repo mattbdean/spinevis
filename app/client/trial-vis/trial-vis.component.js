@@ -1,6 +1,8 @@
 let moment = require('moment');
 require('moment-duration-format');
 
+let util = require('../core/util.js');
+
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
@@ -12,16 +14,6 @@ let ctrlDef = ['$http', '$window', function TrialVisController($http, $window) {
         throw new ReferenceError('Expecting trialId to be injected via $window');
     $ctrl.trialId = $window.trialId;
 
-    /**
-     * Calculates the difference in minutes between start and end, where both
-     * parameters are an ISO-formatted time string.
-     */
-    let calculateDifference = function(start, end) {
-        let diffInMillis = new Date(end).getTime() - new Date(start).getTime();
-        let diffInMinutes = diffInMillis / (60 * 1000);
-        return moment.duration(diffInMinutes, "minutes").format();
-    };
-
     $http.get('/api/v1/trial/' + $ctrl.trialId).then(function(result) {
         // result is an XHR response, result.data is our JSON data, including
         // response metadata, result.data.data is the ACTUAL data
@@ -32,7 +24,7 @@ let ctrlDef = ['$http', '$window', function TrialVisController($http, $window) {
             Run: $ctrl.trialMeta.Run,
             Animal: $ctrl.trialMeta.Animal,
             ["Start time"]: $ctrl.trialMeta.start_time,
-            Length: calculateDifference($ctrl.trialMeta.start_time, $ctrl.trialMeta.end_time)
+            Length: util.calculateDifference($ctrl.trialMeta.start_time, $ctrl.trialMeta.end_time)
         };
         console.log($ctrl.trialMeta);
     });

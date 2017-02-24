@@ -1,0 +1,3 @@
+div(ng-repeat="(timeGrouping, sessions) in $ctrl.sessions")
+    h2 {{timeGrouping}}
+    li(ng-repeat="session in sessions"): a(href='/trial/{{session._id}}') Animal {{session.Animal}}, run {{session.Run}} ({{session.duration}})
