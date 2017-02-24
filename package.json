@@ -12,6 +12,7 @@
   },
   "author": "Matthew Dean <deanmatthew16@gmail.com>",
   "dependencies": {
+    "benchmark": "^2.1.3",
     "body-parser": "^1.15.2",
     "bootstrap": "^3.3.7",
     "browserify-istanbul": "^2.0.0",
