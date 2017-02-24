@@ -7,6 +7,6 @@ module.exports = {
      */
     calculateDifference: function(start, end) {
         let diffInMillis = new Date(end).getTime() - new Date(start).getTime();
-        return moment.duration(diffInMillis, "milliseconds").format();
+        return moment.duration(diffInMillis, "milliseconds").format('h:mm');
     }
 };

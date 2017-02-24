@@ -51,7 +51,7 @@ module.exports.findAllTrials = function(start, limit) {
         return Promise.reject(errorPagination(paginationError, start, limit));
     }
 
-    let identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'nSamples'];
+    let identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'nSamples', 'volRate'];
 
     let projection = {};
     for (let prop of identifyingProperties) {

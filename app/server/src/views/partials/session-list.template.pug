@@ -1,3 +1,17 @@
-div(ng-repeat="(timeGrouping, sessions) in $ctrl.sessions")
-    h2 {{timeGrouping}}
-    li(ng-repeat="session in sessions"): a(href='/trial/{{session._id}}') Animal {{session.Animal}}, run {{session.Run}} ({{session.duration}})
+table.table.table-hover.table-striped
+    tr
+        th Animal
+        th Start Date
+        th Duration
+        //- th Field of View
+        th Run
+        th Samples
+        th Imaging Rate
+    tr(ng-repeat="session in $ctrl.sessions")
+        td {{session.Animal}}
+        td {{session.start_time}}
+        td {{session.duration}}
+        //- td {{session.fieldOfView}}
+        td {{session.Run}}
+        td {{session.nSamples}}
+        td {{session.volRate}}
