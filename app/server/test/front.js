@@ -6,7 +6,7 @@ let util = require('./_util.js');
 describe('Public HTML endpoints', function() {
     let app;
     beforeEach(function createServer() {
-        return util.serverFactory().then(function(serverApp) {
+        return util.serverFactory(false).then(function(serverApp) {
             app = serverApp.listen(util.TESTING_PORT);
         });
     });
