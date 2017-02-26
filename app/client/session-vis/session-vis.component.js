@@ -3,6 +3,8 @@ require('moment-duration-format');
 
 let util = require('../core/util.js');
 
+const plotlyDateTimeFormat = 'YYYY-MM-DD h:mm:ss.SSS';
+
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
@@ -26,11 +28,13 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             ["Start time"]: $ctrl.sessionMeta.start_time,
             Length: util.formatDifference($ctrl.sessionMeta.start_time, $ctrl.sessionMeta.end_time)
         };
+
+        graphTimeline($ctrl.sessionMeta.start_time,
+            $ctrl.sessionMeta.relTimes,
+            $ctrl.sessionMeta.globalTC);
     });
 
-    $http.get('/api/v1/session/' + $ctrl.sessionId + '/timeline').then(function(result) {
-        $ctrl.timelineData = result.data.data;
-
+    let graphTimeline = function(start, relTimes, fluorData) {
         // Create timeline outline
         let trace = {
             x: [],
@@ -48,17 +52,21 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             }
         };
 
-        let start = Date.now();
-        // Fill in the trace data with timeline data
-        for (let i = 0; i < $ctrl.timelineData.length; i++) {
-            trace.x[i] = i;
-            trace.y[i] = $ctrl.timelineData[i];
+        let startMoment = moment(start);
+
+        let startDelta = Date.now();
+
+        // Fill in the trace data with timeline data. relTimes.length should be
+        // equal to fluorData.length.
+        for (let i = 0; i < relTimes.length; i++) {
+            trace.x[i] = startMoment.clone().add(relTimes[i], 'seconds').format(plotlyDateTimeFormat);
+            trace.y[i] = fluorData[i];
         }
 
         Plotly.newPlot('plot-timeline', [trace], layout);
-        let delta = Date.now() - start;
+        let delta = Date.now() - startDelta;
         console.log('Created timeline traces and plotted in ' + (delta / 1000) + ' seconds');
-    });
+    };
 }];
 
 module.exports = {

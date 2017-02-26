@@ -40,6 +40,10 @@ describe('queries', function() {
                 // Make sure the query returns an object with a matching _id
                 assert.equal(typeof session, 'object')
                 assert.equal(session._id, id);
+
+                // Global fluorescense trace array must be equal in length to
+                // the relative time array
+                assert.equal(session.globalTC.length, session.relTimes.length);
             });
         });
     });
