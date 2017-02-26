@@ -88,4 +88,34 @@ describe('queries', function() {
             });
         })
     });
+
+    describe('getBehavior()', function() {
+        it('should return an object mapping behavior events to timepoint indexes', function() {
+            return getFirstSessionId().then(function(id) {
+                return queries.getBehavior(id);
+            }).then(function(behaviorData) {
+                for (let key of Object.keys(behaviorData)) {
+                    // Make sure we are always returning an array
+                    assert.ok(Array.isArray(behaviorData[key]));
+                }
+            });
+        });
+
+        it('should only return events which are asked for', function() {
+            let events = ['lick left', 'lick right'];
+
+            return getFirstSessionId().then(function(id) {
+                return queries.getBehavior(id, events);
+            }).then(function(behaviorData) {
+                let dataKeys = Object.keys(behaviorData);
+                // Lengths should be the same
+                assert.ok(dataKeys.length === events.length);
+
+                // Make sure that every event that was requested was returned
+                for (let event of events) {
+                    assert.ok(dataKeys.includes(event));
+                }
+            });
+        });
+    });
 });

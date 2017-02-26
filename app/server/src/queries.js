@@ -8,6 +8,7 @@ let db = require('./database.js');
 
 const COLL_META = 'meta';
 const COLL_TIME = 'time';
+const COLL_BEHAVIOR = 'behavior';
 
 module.exports.ERROR_MISSING = "missing";
 module.exports.ERROR_PAGINATION = "pagination";
@@ -111,3 +112,41 @@ module.exports.getTimeline = function(id) {
             return Promise.reject(errorMissing(`No timeline for ID '${id}'`, {id: id}));
         });
 };
+
+/**
+ * Gets behavior data for a specific session
+ * @param  {string} id   Session ID, e.g.
+ * @param  {array} types Array of types of behavior to look for, e.g. ["lick left", "lick correct"]
+ * @return {object}      An object mapping behavior types to the imaging index
+ *                       at which the event occurred. For example, an index of
+ *                       24 refers to the 24th time the brain was imaged
+ */
+module.exports.getBehavior = function(id, types = []) {
+    let query = {srcID: id};
+
+    // $or operators cannot contain an empty array
+    if (types.length > 0) {
+        // Generate an $or query based on the event types given
+        let typeQuery = [];
+        for (let type of types) {
+            // For each event add a condition to the query that matches evtType to
+            // the given type
+            typeQuery.push({evtType: {$eq: type}});
+        }
+
+        query.$or = typeQuery;
+    }
+
+    return db.mongo().collection(COLL_BEHAVIOR)
+        .find(query)
+        .toArray()
+        .then(function(behaviorDocs) {
+            let transformedData = {};
+
+            for (let doc of behaviorDocs) {
+                transformedData[doc.evtType] = doc.volNums;
+            }
+
+            return transformedData;
+        });
+}
