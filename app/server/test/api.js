@@ -55,7 +55,7 @@ describe('API v1', function() {
                 return testIdEndpoint(app, (id) => `${routePrefix}/session/${id}`);
             });
 
-            it('should respond with a 404 when a non-existant ID is passed', function() {
+            it('should respond with a 404 when a non-existent ID is passed', function() {
                 return expectErrorResponse(app, `${routePrefix}/session/i_dont_exist`, 404);
             });
         });
