@@ -22,6 +22,32 @@ let validateInteger = function(input, defaultValue, maxValue = Infinity) {
     return result;
 };
 
+/**
+ * Runs a query and sends the result as JSON to the response
+ *
+ * @param  {string}   idRaw   Raw input from req.params.id
+ * @param  {function}   queryFn Query function to execute
+ * @param  {object}   res     Express Response object
+ * @param  {function} next    Express 'next' function
+ */
+let runQuery = function(idRaw, queryFn, res, next) {
+    if (!validation.sessionId(idRaw)) {
+        // If the ID isn't valid than either our DB IDs are wrong or there is
+        // guaranteed to be no session with that ID
+        return next(responses.error('Session not found', {id: idRaw}, 404));
+    }
+
+    queryFn(idRaw).then(function(result) {
+        res.json(responses.success(result));
+    }).catch(function(err) {
+        if (err.type && err.type === queries.ERROR_MISSING) {
+            return next(responses.error(err.msg, err.data, 404));
+        }
+
+        return next(responses.error());
+    });
+};
+
 // Get 'light' session metadata for all sessions
 router.get('/', function(req, res, next) {
     // One might assume that we could do something like this:
@@ -49,39 +75,12 @@ router.get('/', function(req, res, next) {
 
 // Get 'heavy' session metadata for a specific session
 router.get('/:id', function(req, res, next) {
-    let id = req.params.id;
-
-    if (!validation.sessionId(id)) {
-        return next(responses.error('Session not found', {id: id}, 404));
-    }
-
-    queries.getSessionMeta(id).then(function(session) {
-        res.json(responses.success(session));
-    }).catch(function(err) {
-        if (err.type && err.type === queries.ERROR_MISSING) {
-            return next(responses.error(err.msg, err.data, 404));
-        }
-
-        return next(response.error());
-    });
+    runQuery(req.params.id, queries.getSessionMeta, res, next);
 });
 
+// Get timeline data
 router.get('/:id/timeline', function(req, res, next) {
-    let id = req.params.id;
-
-    if (!validation.sessionId(id)) {
-        return next(responses.error('Session not found', {id: id}, 404));
-    }
-
-    queries.getTimeline(id).then(function(result) {
-        res.json(responses.success(result));
-    }).catch(function(err) {
-        if (err.type && err.type === queries.ERROR_MISSING) {
-            return next(responses.error(err.msg, err.data, 404));
-        }
-
-        return next;
-    });
+    runQuery(req.params.id, queries.getTimeline, res, next);
 });
 
 module.exports = router;
