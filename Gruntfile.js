@@ -139,6 +139,12 @@ module.exports = function(grunt) {
                 files: ['app/server/src/views/**/*.pug'],
                 tasks: ['pug', 'copy:views']
             }
+        },
+        run: {
+            bench: {
+                cmd: 'node',
+                args: ['app/server/benchmarks/queries.js']
+            }
         }
     });
 
@@ -221,6 +227,7 @@ module.exports = function(grunt) {
         'lcov-merge',
         'mocha-test',
         'mocha-istanbul',
+        'run',
         'systemjs-builder'
     ];
 
