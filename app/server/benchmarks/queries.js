@@ -20,7 +20,7 @@ let addQuery = function(suite, name, query) {
 addQuery(suite, 'findAllSessions()', () => queries.findAllSessions(0, 20));
 addQuery(suite, 'getSessionMeta()', () => queries.getSessionMeta(id));
 addQuery(suite, 'sessionExists()', () => queries.sessionExists(id));
-// addQuery(suite, 'getTimeline()', () => queries.getTimeline(id));
+addQuery(suite, 'getTimeline()', () => queries.getTimeline(id));
 
 suite.on('complete', function() {
     db.close();

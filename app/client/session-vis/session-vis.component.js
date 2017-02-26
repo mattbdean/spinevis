@@ -50,9 +50,10 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
 
         let start = Date.now();
         // Fill in the trace data with timeline data
+        console.log($ctrl.timelineData);
         for (let i = 0; i < $ctrl.timelineData.length; i++) {
-            trace.x[i] = $ctrl.timelineData[i].absTime;
-            trace.y[i] = $ctrl.timelineData[i].globalF;
+            trace.x[i] = i;
+            trace.y[i] = $ctrl.timelineData[i];
         }
 
         Plotly.newPlot('plot-timeline', [trace], layout);

@@ -98,19 +98,16 @@ module.exports.sessionExists = function(id) {
 };
 
 module.exports.getTimeline = function(id) {
-    return db.mongo().collection(COLL_TIME).aggregate([
-        {$match: {
-            srcID: id,
-            evtType: 'vol'
-        }},
-        {$sort: {absTime: 1}},
-        {$project: {
-            absTime: 1, globalF: 1, _id: 0
-        }}
-    ]).toArray().then(function(result) {
-        if (result.length === 0) {
-            return Promise.reject(errorMissing(`No timeline data for ID ${id}`, {id: id}));
-        }
-        return result;
-    });
+    return db.mongo().collection(COLL_META)
+        .find({_id: id})
+        .project({globalTC: 1, _id: 0})
+        .limit(1)
+        .toArray()
+        .then(function(results) {
+            if (results.length === 1) {
+                return results[0].globalTC;
+            }
+
+            return Promise.reject(errorMissing(`No timeline for ID '${id}'`, {id: id}));
+        });
 };

@@ -62,14 +62,12 @@ describe('queries', function() {
     });
 
     describe('getTimeline()', function() {
-        it('should return only imaging events', function() {
-            this.timeout(500000)
-            return queries.findAllSessions(0, 2).then(function(sessions) {
-                let id = sessions[1]._id;
+        it('should return an array of global fluorescense values', function() {
+            return queries.findAllSessions(0, 1).then(function(sessions) {
+                let id = sessions[0]._id;
                 return queries.getTimeline(id).then(function(timelineData) {
-                    for (let i = 0; i < timelineData; i++) {
-                        assert.notEqual(timelineData[i].globalF, undefined);
-                        assert.notEqual(timelienData[i].absTime, undefined);
+                    for (let i = 0; i < timelineData.length; i++) {
+                        assert.ok(typeof timelineData[i] === 'number');
                     }
                 });
             });
