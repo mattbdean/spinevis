@@ -83,4 +83,8 @@ router.get('/:id/timeline', function(req, res, next) {
     runQuery(req.params.id, queries.getTimeline, res, next);
 });
 
+router.get('/:id/behavior', function(req, res, next) {
+    runQuery(req.params.id, queries.getBehavior, res, next);
+});
+
 module.exports = router;

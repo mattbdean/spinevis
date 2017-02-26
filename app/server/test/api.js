@@ -76,6 +76,23 @@ describe('API v1', function() {
                 });
             });
         });
+
+        describe(`GET ${routePrefix}/session/:id/behavior`, function() {
+            it('should respond successfully with a valid ID', function() {
+                let expectedStatus = 200;
+
+                // Retrieve the very first session and test the API using that ID
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    return request(app)
+                        .get(`${routePrefix}/session/${id}/behavior`)
+                        .expect(expectedStatus)
+                        .expect(function(res) {
+                            assert.ok(typeof res.body.data === 'object');
+                        });
+                });
+            });
+        });
     });
 });
 
