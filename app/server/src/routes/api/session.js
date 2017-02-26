@@ -2,89 +2,117 @@ let express = require('express');
 let router = express.Router();
 let queries = require('../../queries.js');
 let responses = require('./responses.js');
+let param = require('./parameter.js');
+let Parameter = param.Parameter;
 let validation = require('../validation.js');
+let _ = require('lodash');
 
 /** Maximum sessions returned at one time */
 const MAX_SESSION_DATA = 100;
 
-let validateInteger = function(input, defaultValue, maxValue = Infinity) {
-    // Assume that defaultValue is a positive integer
-    let result = defaultValue;
-
-    if (input !== undefined && !isNaN(input)) {
-        // Round down to remove decimals
-        result = Math.floor(parseInt(input));
-    }
-
-    if (result > maxValue)
-        result = maxValue;
-
-    return result;
-};
-
 /**
- * Runs a query and sends the result as JSON to the response
+ * Runs a query and sends the result as JSON to the response. Takes input
+ * Parameters and if all are valid, passes values to queryFn
  *
- * @param  {string}   idRaw   Raw input from req.params.id
- * @param  {function}   queryFn Query function to execute
- * @param  {object}   res     Express Response object
- * @param  {function} next    Express 'next' function
+ * @param  {array}     parameters An array of Parameters
+ * @param  {function}  queryFn    Query function to execute
+ * @param  {object}    res        Express Response object
+ * @param  {function}  next       Express 'next' function
  */
-let runQuery = function(idRaw, queryFn, res, next) {
-    if (!validation.sessionId(idRaw)) {
-        // If the ID isn't valid than either our DB IDs are wrong or there is
-        // guaranteed to be no session with that ID
-        return next(responses.error('Session not found', {id: idRaw}, 404));
+let runQuery = function(parameters, queryFn, res, next, paginated = false) {
+    // If any parameter is invalid, reject
+    for (let p of parameters) {
+        if (p.vaild === false) {
+            return next(responses.errorObj(p.invalidError));
+        }
     }
 
-    queryFn(idRaw).then(function(result) {
-        res.json(responses.success(result));
+    // Call queryFn with the parameter values
+    queryFn.apply(null, _.map(parameters, i => i.value))
+    .then(function(result) {
+        // Choose the correct type of response, whether that be a standard
+        // success or a paginated success object
+        let response;
+        if (paginated) {
+            // Identify values of start and limit
+            let start = _.find(parameters, p => p.name === 'start').value;
+            let limit = _.find(parameters, p => p.name === 'limit').value;
+            response = responses.paginatedSuccess(result, start, limit);
+        } else {
+            response = responses.success(result);
+        }
+        res.json(response);
     }).catch(function(err) {
-        if (err.type && err.type === queries.ERROR_MISSING) {
-            return next(responses.error(err.msg, err.data, 404));
+        // Handle errors. If the error has a type property, we know it was
+        // from a function in the queries module.
+        if (err.type) {
+            let status;
+            if (err.type === queries.ERROR_MISSING)
+                status = 404;
+            else if (err.type === queries.ERROR_PAGINATION)
+                // Send 400 Bad Request because the client sent bad data
+                status = 400;
+
+            // Make sure the type was one of the errors already checked for
+            if (status !== undefined) {
+                return next(responses.error(err.msg, err.data, status));
+            }
         }
 
+        // We don't know how to handle this kind of error, send a 500 Internal
+        // Server Error.
         return next(responses.error());
     });
 };
 
+/** Function to generate a function to vaildate the 'start' pagination property */
+let genStartValidationFn = function(input) {
+    return function(start) {
+        return validation.integer(input, 0);
+    };
+};
+
+/** Function to generate a function to vaildate the 'limit' pagination property */
+let genLimitValidationFn = function(input) {
+    return function(limit) {
+        return validation.integer(limit, 20, MAX_SESSION_DATA);
+    };
+};
+
 // Get 'light' session metadata for all sessions
 router.get('/', function(req, res, next) {
-    // One might assume that we could do something like this:
-    //
-    //     let whatever = parseInt(req.query.whatever) || defaultValue;
-    //
-    // but this does not account for the fact that if the user input is '0',
-    // JavaScript sees this as a "falsey" value and will use the default value
-    // instead.
-    let start = validateInteger(req.query.start, 0);
-    let limit = validateInteger(req.query.limit, 20, MAX_SESSION_DATA);
+    // Define our parameters and their values/locations, and what should be
+    // done if they're found to be invalid
+    let parameters = [
+        new Parameter(
+            'start',
+            req.query.start,
+            genStartValidationFn(req.query.start),
+            {msg: 'Invalid start', status: 400}
+        ),
+        new Parameter(
+            'limit',
+            req.query.limit,
+            genLimitValidationFn(req.query.limit),
+            {msg: 'Invalid limit', status: 400}
+        )
+    ];
 
-    queries.findAllSessions(start, limit).then(function(sessionInfo) {
-        // Return the data in a format that lets the user know that this
-        // endpoint is iterable
-        res.json(responses.paginatedSuccess(sessionInfo, limit, start));
-    }).catch(function(err) {
-        if (err.type && err.type === queries.ERROR_PAGINATION) {
-            return next(responses.error(err.msg, err.data, 400));
-        } else {
-            return next(responses.error());
-        }
-    });
+    runQuery(parameters, queries.findAllSessions, res, next, true);
 });
 
 // Get 'heavy' session metadata for a specific session
 router.get('/:id', function(req, res, next) {
-    runQuery(req.params.id, queries.getSessionMeta, res, next);
+    runQuery([param.sessionId(req.params.id)], queries.getSessionMeta, res, next);
 });
 
 // Get timeline data
 router.get('/:id/timeline', function(req, res, next) {
-    runQuery(req.params.id, queries.getTimeline, res, next);
+    runQuery([param.sessionId(req.params.id)], queries.getTimeline, res, next);
 });
 
 router.get('/:id/behavior', function(req, res, next) {
-    runQuery(req.params.id, queries.getBehavior, res, next);
+    runQuery([param.sessionId(req.params.id)], queries.getBehavior, res, next);
 });
 
 module.exports = router;

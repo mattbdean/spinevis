@@ -8,7 +8,7 @@ var db = require('./database.js');
 
 const app = express();
 
-module.exports = function(logToStdout = true) {
+module.exports = function(logToStdout = true, errorLogger = console.error) {
     ///////////////////// CONFIGURATION /////////////////////
     app.set('views', path.join(__dirname, './views'));
     app.set('view engine', 'pug');
@@ -19,8 +19,6 @@ module.exports = function(logToStdout = true) {
     app.use(express.static(path.join(__dirname, '../public')));
 
     //////////////////////// ROUTING ////////////////////////
-    // let errorLogger = console.error;
-    let errorLogger = () => {};
     let api = require('./routes/api')(errorLogger);
     app.use('/api/v1', api);
     app.use('/', require('./routes/front.js'));

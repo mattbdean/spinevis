@@ -23,6 +23,10 @@ exports.paginatedSuccess = function(data, limit, start, httpCode = 200) {
     };
 };
 
+exports.errorObj = function(err) {
+    return exports.error(err.msg, err.data, err.status);
+}
+
 exports.error = function(errMsg = 'Unable to execute request', errData = {}, httpCode = 500) {
     return {
         status: httpCode,

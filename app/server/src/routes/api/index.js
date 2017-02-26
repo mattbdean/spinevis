@@ -21,9 +21,13 @@ module.exports = function(errorLogger = () => {}) {
 
     // Error handling
     router.use('/', function(err, req, res, next) {
-        res.status(err.status || 500);
+        let status = err.status || 500;
+        res.status(status);
         res.send(err);
-        errorLogger(err);
+
+        // 4XX errors are to be expected, 5XX we need to see
+        if (status === 500)
+            errorLogger(err);
     });
 
     return router;

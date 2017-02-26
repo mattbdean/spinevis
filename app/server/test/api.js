@@ -31,6 +31,9 @@ describe('API v1', function() {
                     .expect('Content-Type', /json/) // Expect JSON response
                     .expect(expectedStatus)
                     .expect(function(res) {
+                        // Paginated data comes with a `size` property. Ensure
+                        // the value of that property equals the length of the
+                        // data
                         assert.equal(res.body.size, res.body.data.length,
                             'unexpected "size" property on paginated JSON data');
 
