@@ -2,6 +2,17 @@ let assert = require('assert');
 let db = require('../src/database.js');
 let queries = require('../src/queries.js');
 
+/**
+ * Helper method. Gets the first session via findAllSession() and returns its
+ * _id.
+ */
+let getFirstSessionId = function() {
+    return queries.findAllSessions(0, 1)
+    .then(function(sessions) {
+        return sessions[0]._id;
+    });
+}
+
 describe('queries', function() {
     before(function mongoConnect() {
         // Change to MODE_TEST when 'spinevis_test' database is ready
@@ -31,15 +42,16 @@ describe('queries', function() {
 
     describe('getSessionMeta()', function() {
         it('should return only one session', function() {
-            let id = null;
-            return queries.findAllSessions(0, 20)
-            .then(function(sessions) {
-                id = sessions[0]._id;
-                return queries.getSessionMeta(sessions[0]._id);
+            let _id = null;
+
+            return getFirstSessionId()
+            .then(function(id) {
+                _id = id;
+                return queries.getSessionMeta(id);
             }).then(function(session) {
                 // Make sure the query returns an object with a matching _id
                 assert.equal(typeof session, 'object')
-                assert.equal(session._id, id);
+                assert.equal(session._id, _id);
 
                 // Global fluorescense trace array must be equal in length to
                 // the relative time array
@@ -50,9 +62,9 @@ describe('queries', function() {
 
     describe('sessionExists()', function() {
         it('should return true for existing IDs', function() {
-            return queries.findAllSessions(0, 1)
-            .then(function(sessions) {
-                return queries.sessionExists(sessions[0]._id);
+            return getFirstSessionId()
+            .then(function(id) {
+                return queries.sessionExists(id);
             }).then(function(exists) {
                 assert.ok(exists, 'Did not find existing file');
             });
@@ -67,8 +79,7 @@ describe('queries', function() {
 
     describe('getTimeline()', function() {
         it('should return an array of global fluorescense values', function() {
-            return queries.findAllSessions(0, 1).then(function(sessions) {
-                let id = sessions[0]._id;
+            return getFirstSessionId().then(function(id) {
                 return queries.getTimeline(id).then(function(timelineData) {
                     for (let i = 0; i < timelineData.length; i++) {
                         assert.ok(typeof timelineData[i] === 'number');
@@ -76,5 +87,5 @@ describe('queries', function() {
                 });
             });
         })
-    })
+    });
 });
