@@ -80,11 +80,11 @@ describe('queries', function() {
     describe('getTimeline()', function() {
         it('should return an array of global fluorescense values', function() {
             return getFirstSessionId().then(function(id) {
-                return queries.getTimeline(id).then(function(timelineData) {
-                    for (let i = 0; i < timelineData.length; i++) {
-                        assert.ok(typeof timelineData[i] === 'number');
-                    }
-                });
+                return queries.getTimeline(id);
+            }).then(function(timelineData) {
+                for (let i = 0; i < timelineData.length; i++) {
+                    assert.ok(typeof timelineData[i] === 'number');
+                }
             });
         })
     });
