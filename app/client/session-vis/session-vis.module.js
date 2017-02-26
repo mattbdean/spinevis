@@ -1,3 +1,4 @@
+let angular = require('angular');
 let core = require('../core/core.module.js');
 let sessionVisComponent = require('./session-vis.component.js');
 
