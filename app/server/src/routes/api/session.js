@@ -112,7 +112,18 @@ router.get('/:id/timeline', function(req, res, next) {
 });
 
 router.get('/:id/behavior', function(req, res, next) {
-    runQuery([param.sessionId(req.params.id)], queries.getBehavior, res, next);
+    let parameters = [param.sessionId(req.params.id)];
+
+    // Define an optional parameter
+    if (req.query.types !== undefined) {
+        parameters.push(new Parameter(
+            'eventTypes',
+            _.map(req.query.types.split(','), type => type.trim()),
+            validation.alphabeticWords,
+            {msg: 'Invaild event type(s)', status: 400}
+        ));
+    }
+    runQuery(parameters, queries.getBehavior, res, next);
 });
 
 module.exports = router;

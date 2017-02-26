@@ -27,4 +27,14 @@ describe('input validation', function() {
         /*valid = */['something', 'something-else0'],
         /*invalid = */['invalid!character', '__file__']
     );
+
+    setUpSuite('integer',
+        /*valid = */['4', '8', '994'],
+        /*invalid = */['bla', 'foo', 'bar']
+    );
+
+    setUpSuite('alphabeticWords',
+        /*valid = */['hello there', 'something nice', ['array input', 'is cool']],
+        /*invalid = */['numb3r', 4, false, ['array input with', '!invalid!members!']]
+    );
 });

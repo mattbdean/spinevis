@@ -1,5 +1,6 @@
 let assert = require('assert');
 let request = require('supertest');
+let _ = require('lodash');
 let db = require('../src/database.js');
 let queries = require('../src/queries.js');
 let util = require('./_util.js');
@@ -92,6 +93,24 @@ describe('API v1', function() {
                         .expect(expectedStatus)
                         .expect(function(res) {
                             assert.ok(typeof res.body.data === 'object');
+                        });
+                });
+            });
+            it('should respond with only the requested event type', function() {
+                let expectedStatus = 200;
+                // Space before 'lick left' is intentional, test trimming
+                let eventTypes = [' lick left', 'lick right'];
+                let eventTypesCsv = _.join(eventTypes, ',');
+
+                // Retrieve the very first session and test the API using that ID
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    return request(app)
+                        .get(`${routePrefix}/session/${id}/behavior?types=${eventTypesCsv}`)
+                        .expect(expectedStatus)
+                        .expect(function(res) {
+                            assert.ok(typeof res.body.data === 'object');
+                            assert.equal(Object.keys(res.body.data).length, eventTypes.length);
                         });
                 });
             });

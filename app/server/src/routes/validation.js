@@ -8,6 +8,8 @@ function validateRegex(input, reg) {
 // http://regexr.com/3fb18
 let sessionIdRegex = /^[A-Z]{4}\d{2}:\d{8}:\d:\d$/;
 let partialNameRegex = /^[a-z0-9-]+$/;
+// Only letters and spaces for the entire string
+let alphabeticWordsRegex = /^[a-zA-Z ]+$/;
 
 module.exports = {
     sessionId: function(id) {
@@ -36,5 +38,27 @@ module.exports = {
             result = maxValue;
 
         return result;
+    },
+    alphabeticWords: function(input) {
+        if (typeof input === 'string') {
+            return validateRegex(input, alphabeticWordsRegex)
+        }
+
+        if (Array.isArray(input)) {
+            if (input.length === 0)
+                return false;
+
+            for (let i of input) {
+                if (!validateRegex(i, alphabeticWordsRegex)) {
+                    return false;
+                }
+            }
+
+            // All elements are valid
+            return true;
+        }
+
+        // Some unknown type
+        return false;
     }
 };
