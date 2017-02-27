@@ -48,18 +48,27 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
                 title: 'Fluorescence'
             },
             xaxis: {
-                title: 'Time'
+                title: 'Time',
+                tickformat: '%-Hh %-Mm %-S.%3fs' // 0h 4m 3.241s
             }
         };
 
-        let startMoment = moment(start);
-
         let startDelta = Date.now();
+
+        // In order to get Plotly to display a date on the x-axis, we assume
+        // our time series data starts at unix time 0 (Jan 1 1970). Doing this
+        // is the least computationally expensive starting position for showing
+        // relative times. I like to think of it less as a "hack" and more of
+        // a "workaround."
+
+        // Plotly assumes input dates are in UTC, adjust for timezone offset
+        let timezoneOffsetMillis = new Date().getTimezoneOffset() * 60 * 1000;
 
         // Fill in the trace data with timeline data. relTimes.length should be
         // equal to fluorData.length.
         for (let i = 0; i < relTimes.length; i++) {
-            trace.x[i] = startMoment.clone().add(relTimes[i], 'seconds').format(plotlyDateTimeFormat);
+            // relTimes[i] is in seconds, convert to millis and add timezone offset
+            trace.x[i] = new Date(relTimes[i] * 1000 + timezoneOffsetMillis);
             trace.y[i] = fluorData[i];
         }
 
