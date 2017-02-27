@@ -117,5 +117,20 @@ describe('queries', function() {
                 }
             });
         });
+
+        it('should report missing when one of the behaviors cannot be found', function() {
+            let events = ['lick left', 'something else that doesn\'t exist', 'lick right'];
+
+            return getFirstSessionId().then(function(id) {
+                return queries.getBehavior(id, events);
+            }).then(function(behaviorData) {
+                assert.fail(undefined, undefined, 'should not have reached here');
+            }).catch(function(err) {
+                assert.equal(err.type, queries.ERROR_MISSING);
+                // events[1] will not have any data, expect that the only
+                // value in the error's 'types' array will be this value
+                assert.deepStrictEqual(err.data, {types: [events[1]]});
+            });
+        });
     });
 });

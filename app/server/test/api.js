@@ -114,6 +114,43 @@ describe('API v1', function() {
                         });
                 });
             });
+            it('should 400 with an invalid behaviors', function() {
+                let expectedStatus = 400;
+                // Space before 'lick left' is intentional, test trimming
+                let eventTypes = ['!something_invalid!', '__other$@#'];
+                let eventTypesCsv = _.join(eventTypes, ',');
+
+                // Retrieve the very first session and test the API using that ID
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    return request(app)
+                        .get(`${routePrefix}/session/${id}/behavior?types=${eventTypesCsv}`)
+                        .expect(expectedStatus)
+                        .expect(function(res) {
+                            assert.strictEqual(res.body.data, undefined);
+                            assert.notStrictEqual(res.body.error, undefined);
+                        });
+                });
+            });
+            it('should 404 with valid, but non-existent behaviors', function() {
+                let expectedStatus = 404;
+
+                // One exists, one doesn't
+                let eventTypes = ['lick left', 'something else'];
+                let eventTypesCsv = _.join(eventTypes, ',');
+
+                // Retrieve the very first session and test the API using that ID
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    return request(app)
+                        .get(`${routePrefix}/session/${id}/behavior?types=${eventTypesCsv}`)
+                        .expect(expectedStatus)
+                        .expect(function(res) {
+                            assert.strictEqual(res.body.data, undefined);
+                            assert.notStrictEqual(res.body.error, undefined);
+                        });
+                });
+            });
         });
     });
 });

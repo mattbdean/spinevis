@@ -22,8 +22,8 @@ const MAX_SESSION_DATA = 100;
 let runQuery = function(parameters, queryFn, res, next, paginated = false) {
     // If any parameter is invalid, reject
     for (let p of parameters) {
-        if (p.vaild === false) {
-            return next(responses.errorObj(p.invalidError));
+        if (p.valid === false) {
+            return next(responses.errorObj(p.error));
         }
     }
 
@@ -115,7 +115,7 @@ router.get('/:id/behavior', function(req, res, next) {
     let parameters = [param.sessionId(req.params.id)];
 
     // Define an optional parameter
-    if (req.query.types !== undefined) {
+    if (req.query.types !== undefined && req.query.types.trim() !== '') {
         parameters.push(new Parameter(
             'eventTypes',
             _.map(req.query.types.split(','), type => type.trim()),

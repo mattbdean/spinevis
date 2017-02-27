@@ -5,6 +5,7 @@
  */
 
 let db = require('./database.js');
+let _ = require('lodash');
 
 const COLL_META = 'meta';
 const COLL_TIME = 'time';
@@ -141,6 +142,13 @@ module.exports.getBehavior = function(id, types = []) {
         .find(query)
         .toArray()
         .then(function(behaviorDocs) {
+            if (types.length > 0 && behaviorDocs.length !== types.length) {
+                // Identify the types that could not be found
+                let returnedTypes = _.map(behaviorDocs, o => o.evtType);
+                let missing = _.filter(types, t => returnedTypes.indexOf(t) < 0);
+                return Promise.reject(errorMissing('Some behavior types could not be found', {types: missing}));
+            }
+
             let transformedData = {};
 
             for (let doc of behaviorDocs) {

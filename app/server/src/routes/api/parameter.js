@@ -5,17 +5,21 @@ function Parameter(name, value, validate, invalidError) {
     this.value = value;
 
     let validationResult = validate(value);
-    if (validationResult !== false && validationResult !== true) {
-        // Validation function was able to salvage the input into something valid
-        this.value = validationResult;
-        this.valid = true;
-    } else if (validationResult === false) {
+    // We know it's invalid
+    if (validationResult === false) {
         this.valid = false;
+    } else if (validationResult === true) {
+        this.valid = true;
+    } else {
+        // validationResult is a non-boolean value, meaning that the validation
+        // function has salvaged the input
+        this.valid = true;
+        this.value = validationResult;
     }
-
-    this.error = this.valid ? null : invalidError;
+    
     if (!this.valid) {
-        // Add a data key so that this can easily be passed to responses.error()
+        this.error = invalidError;
+        // Add a data key so that this can easily be passed to responses.errorObj()
         this.error.data = {[name]: value};
     }
 }

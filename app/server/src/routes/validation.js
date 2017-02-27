@@ -12,19 +12,39 @@ let partialNameRegex = /^[a-z0-9-]+$/;
 let alphabeticWordsRegex = /^[a-zA-Z ]+$/;
 
 module.exports = {
+    /**
+     * Validates a session ID. Verification is absolute (either it's valid or it isn't)
+     */
     sessionId: function(id) {
         return validateRegex(id, sessionIdRegex);
     },
+    /**
+     * Validates the name of a partial template. Verification is absolute.
+     */
     partialName: function(name) {
         return validateRegex(name, partialNameRegex);
     },
-    // One might assume that we could do something like this:
-    //
-    //     let whatever = parseInt(req.query.whatever) || defaultValue;
-    //
-    // but this does not account for the fact that if the user input is '0',
-    // JavaScript sees this as a "falsey" value and will use the default value
-    // instead.
+
+    /**
+     * Verifies that the given input can be parsed as an integer. One might
+     * assume that we could do something like this:
+     *
+     *     let whatever = parseInt(req.query.whatever) || defaultValue;
+     *
+     * but this does not account for the fact that if the user input is '0',
+     * JavaScript sees this as a "falsey" value and will use the default value
+     * instead.
+     *
+     * @param  {string} input               Raw string input value
+     * @param  {Number} defaultValue        Default value for this integer
+     * @param  {Number} [maxValue=Infinity] Maximum value for this integer
+     *
+     * @return {Number} If the input is not defined or can't be parsed, returns
+     *                  the default value. If the input can be parsed and is
+     *                  within the given bounds, returns that value. If the
+     *                  input is out of the given bounds, returns the value of
+     *                  the bound closest to the input.
+     */
     integer: function(input, defaultValue, maxValue = Infinity) {
         // Assume that defaultValue is a positive integer
         let result = defaultValue;
