@@ -36,8 +36,12 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             $ctrl.sessionMeta.globalTC);
     }).then(function(minGlobalF) {
         $ctrl.minGlobalF = minGlobalF;
-        // Make sure that we have $ctrl.sessionMeta before sending any other
-        // HTTP requests that depend on that information
+        return $http.get('/conf/plotly/markers.json');
+    }).then(function(markerData) {
+        $ctrl.markerData = markerData.data;
+        console.log($ctrl.markerData);
+        // Make sure that we have $ctrl.sessionMeta and $ctrl.markerData before
+        // sending any other HTTP requests that depend on that information
         return $http.get('/api/v1/session/' + $ctrl.sessionId + '/behavior');
     }).then(function(result) {
         addBehaviorTraces(result.data.data, $ctrl.minGlobalF);
@@ -70,7 +74,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
                 title: 'Time',
                 tickformat: '%-Hh %-Mm %-S.%3fs' // 0h 4m 3.241s
             },
-            showlegend: false
+            showlegend: true
         };
 
         let startDelta = Date.now();
@@ -90,8 +94,12 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
     };
 
     /**
-     * Adds behavior data to
-     * @param {[type]} behaviorData [description]
+     * Adds behavior data to the timeline
+     * @param {object} behaviorData An object whose keys are the name of the
+     *                              behavior event and whose values are the
+     *                              indexes of the timepoints at which they
+     *                              occurred
+     * @param {Number} yValue The y-value at which to plot the behavior data
      */
     let addBehaviorTraces = function(behaviorData, yValue) {
         let traces = [];
@@ -102,13 +110,17 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
         // relative position at which the event occurred
         for (let name of Object.keys(behaviorData)) {
             let behaviorIndexes = behaviorData[name];
+
+            let marker = $ctrl.markerData[name];
+
             traces.push({
                 x: _.map(behaviorIndexes, index => relativeTime($ctrl.sessionMeta.relTimes[index])),
                 y: _.fill(Array(behaviorIndexes.length), yValue),
                 name: name,
                 type: 'scatter',
                 mode: 'markers',
-                hoverinfo: 'skip' // change to 'none' if hover events become necessary
+                hoverinfo: 'skip', // change to 'none' if hover events become necessary
+                marker: marker
             });
         }
 

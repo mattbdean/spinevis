@@ -97,8 +97,8 @@ module.exports = function(grunt) {
             },
             rawAssets: {
                 cwd: 'app/client/_assets/raw',
-                src: '*',
-                dest: build + 'assets',
+                src: '**',
+                dest: finalDist,
                 expand: true
             },
             scripts: {
@@ -138,6 +138,10 @@ module.exports = function(grunt) {
             views: {
                 files: ['app/server/src/views/**/*.pug'],
                 tasks: ['pug', 'copy:views']
+            },
+            raw: {
+                files: ['app/client/_assets/raw/**/*'],
+                tasks: ['copy:rawAssets']
             }
         },
         run: {
