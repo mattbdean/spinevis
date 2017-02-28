@@ -1,9 +1,9 @@
 let moment = require('moment');
 require('moment-duration-format');
+let $ = require('jquery');
+let _ = require('lodash');
 
 let util = require('../core/util.js');
-
-const plotlyDateTimeFormat = 'YYYY-MM-DD h:mm:ss.SSS';
 
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
@@ -15,6 +15,8 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
     if ($window.sessionId === undefined)
         throw new ReferenceError('Expecting sessionId to be injected via $window');
     $ctrl.sessionId = $window.sessionId;
+
+    let timelineNode = $('#plot-timeline')[0];
 
     $http.get('/api/v1/session/' + $ctrl.sessionId).then(function(result) {
         // result is an XHR response, result.data is our JSON data, including
@@ -29,17 +31,34 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             Length: util.formatDifference($ctrl.sessionMeta.start_time, $ctrl.sessionMeta.end_time)
         };
 
-        graphTimeline($ctrl.sessionMeta.start_time,
+        return graphTimeline($ctrl.sessionMeta.start_time,
             $ctrl.sessionMeta.relTimes,
             $ctrl.sessionMeta.globalTC);
+    }).then(function(minGlobalF) {
+        $ctrl.minGlobalF = minGlobalF;
+        // Make sure that we have $ctrl.sessionMeta before sending any other
+        // HTTP requests that depend on that information
+        return $http.get('/api/v1/session/' + $ctrl.sessionId + '/behavior');
+    }).then(function(result) {
+        addBehaviorTraces(result.data.data, $ctrl.minGlobalF);
     });
 
+    /**
+     * Graphs the global fluorescence data from the session metadata
+     * @param  {string} start     ISO date string of the start time
+     * @param  {array} relTimes  Each value in the array corresponds to the
+     *                           value of the x-axis of a point
+     * @param  {array} fluorData Global fluorescence data. Corresponds to values
+     *                           on the y-axis
+     * @return {Number}          The minimum value of fluorData
+     */
     let graphTimeline = function(start, relTimes, fluorData) {
         // Create timeline outline
         let trace = {
             x: [],
             y: [],
-            type: 'line'
+            type: 'scatter',
+            name: 'Global Fluorescence'
         };
 
         // Simple layout data
@@ -50,32 +69,75 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             xaxis: {
                 title: 'Time',
                 tickformat: '%-Hh %-Mm %-S.%3fs' // 0h 4m 3.241s
-            }
+            },
+            showlegend: false
         };
 
         let startDelta = Date.now();
 
-        // In order to get Plotly to display a date on the x-axis, we assume
-        // our time series data starts at unix time 0 (Jan 1 1970). Doing this
-        // is the least computationally expensive starting position for showing
-        // relative times. I like to think of it less as a "hack" and more of
-        // a "workaround."
-
-        // Plotly assumes input dates are in UTC, adjust for timezone offset
-        let timezoneOffsetMillis = new Date().getTimezoneOffset() * 60 * 1000;
-
         // Fill in the trace data with timeline data. relTimes.length should be
         // equal to fluorData.length.
-        for (let i = 0; i < relTimes.length; i++) {
-            // relTimes[i] is in seconds, convert to millis and add timezone offset
-            trace.x[i] = new Date(relTimes[i] * 1000 + timezoneOffsetMillis);
-            trace.y[i] = fluorData[i];
+        // Using lodash's map function and assigning fluorData directly cuts
+        // down on ~.5 seconds for a session with ~55k samples
+        trace.x = _.map(relTimes, time => new Date(relativeTime(time)));
+        trace.y = fluorData;
+
+        Plotly.newPlot(timelineNode, [trace], layout);
+        let delta = Date.now() - startDelta;
+        console.log('Created global fluorescence trace and plotted in ' + (delta / 1000) + ' seconds');
+
+        return _.min(fluorData);
+    };
+
+    /**
+     * Adds behavior data to
+     * @param {[type]} behaviorData [description]
+     */
+    let addBehaviorTraces = function(behaviorData, yValue) {
+        let traces = [];
+
+        let startDelta = Date.now();
+
+        // behaviorData is an object mapping event types to the index of the
+        // relative position at which the event occurred
+        for (let name of Object.keys(behaviorData)) {
+            let behaviorIndexes = behaviorData[name];
+            traces.push({
+                x: _.map(behaviorIndexes, index => relativeTime($ctrl.sessionMeta.relTimes[index])),
+                y: _.fill(Array(behaviorIndexes.length), yValue),
+                name: name,
+                type: 'scatter',
+                mode: 'markers',
+                hoverinfo: 'skip' // change to 'none' if hover events become necessary
+            });
         }
 
-        Plotly.newPlot('plot-timeline', [trace], layout);
+        Plotly.addTraces(timelineNode, traces);
+
         let delta = Date.now() - startDelta;
-        console.log('Created timeline traces and plotted in ' + (delta / 1000) + ' seconds');
-    };
+        console.log('Created behavior traces and plotted in ' + (delta / 1000) + ' seconds');
+    }
+
+    /** Offset in milliseconds of timezone */
+    let timezoneOffsetMillis = new Date().getTimezoneOffset() * 60 * 1000;
+
+    /**
+     * In order to get Plotly to display a date on the x-axis, we assume our
+     * time series data starts at unix time 0 (1 Jan 1970). Doing this is the
+     * least computationally expensive starting position for showing relative
+     * times. Think of this less as a "hack" and more of a "workaround."
+     *
+     * N.B. Will not work as expected if relativeSeconds is greater than the
+     * amount of seconds in one day
+     *
+     * @return Unix time at the millisecond resolution that can be plotted and
+     *         formatted with a time-only date format to reveal a pseudo-duration
+     *         format.
+     */
+    let relativeTime = function(relativeSeconds) {
+        // Plotly assumes input dates are in UTC, adjust for timezone offset
+        return (relativeSeconds * 1000) + timezoneOffsetMillis;
+    }
 }];
 
 module.exports = {
