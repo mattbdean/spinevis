@@ -49,7 +49,6 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
         return $http.get('/conf/plotly/markers.json');
     }).then(function(markerData) {
         $ctrl.markerData = markerData.data;
-        console.log($ctrl.markerData);
         // Make sure that we have $ctrl.sessionMeta and $ctrl.markerData before
         // sending any other HTTP requests that depend on that information
         return $http.get('/api/v1/session/' + $ctrl.sessionId + '/behavior');
