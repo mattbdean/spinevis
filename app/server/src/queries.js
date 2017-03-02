@@ -11,6 +11,8 @@ const COLL_META = 'meta';
 const COLL_TIME = 'time';
 const COLL_BEHAVIOR = 'behavior';
 
+const RESOLUTION_FULL = 100; // 100% = all data
+
 module.exports.ERROR_MISSING = "missing";
 module.exports.ERROR_PAGINATION = "pagination";
 
@@ -99,15 +101,57 @@ module.exports.sessionExists = function(id) {
         });
 };
 
-module.exports.getTimeline = function(id) {
+/**
+ * Returns an object mapping the name of the trace to the indexes and values
+ * that should be displayed.
+ * @param  {string} id         Session ID to fetch timeline for
+ * @param  {Number} resolution Percentage of data to show. resolution = 10
+ *                             would display the maximum of every 10 samples,
+ *                             resolution = 25 would display max of every 4, etc.
+ * @return {object}            An object whose keys are trace names and values
+ *                             are arrays containg the indexes of the imaging
+ *                             events to keep.
+ */
+module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL) {
     return db.mongo().collection(COLL_META)
         .find({_id: id})
-        .project({globalTC: 1, _id: 0})
+        .project({globalTC: 1, nSamples: 1, _id: 0})
         .limit(1)
         .toArray()
         .then(function(results) {
             if (results.length === 1) {
-                return results[0].globalTC;
+                let session = results[0];
+                let rawTimeline = session.globalTC;
+                let downsampled;
+
+                // Make sure we're dealing with integers
+                resolution = Math.floor(resolution);
+
+                if (resolution < RESOLUTION_FULL) {
+                    if (resolution < 1) resolution = 1;
+                    // Break up the timeline data into chunks, which we will
+                    // find the maximum value of and then append that index to
+                    // the downsampled array.
+
+                    // 50% res = chunk size of 2, 25% res = chunk size of 4, etc.
+                    let chunkSize = RESOLUTION_FULL / resolution;
+                    let chunks = _.chunk(rawTimeline, chunkSize);
+                    downsampled = [];
+
+                    for (let i = 0; i < chunks.length; i++) {
+                        // Find the index within this chumk of the maximum value
+                        // of this chunk
+                        let localIndex = _.indexOf(chunks[i], _.max(chunks[i]));
+                        // Calculate the index of this maximum value in reference
+                        // to the full resolution timeline
+                        let globalIndex = (i * chunkSize) + localIndex;
+                        downsampled.push(globalIndex);
+                    }
+                } else {
+                    downsampled = rawTimeline;
+                }
+
+                return {"global": downsampled};
             }
 
             return Promise.reject(errorMissing(`No timeline for ID '${id}'`, {id: id}));
@@ -116,7 +160,7 @@ module.exports.getTimeline = function(id) {
 
 /**
  * Gets behavior data for a specific session
- * @param  {string} id   Session ID, e.g.
+ * @param  {string} id   Session ID, e.g. "BMWR34:20160106:1:1"
  * @param  {array} types Array of types of behavior to look for, e.g. ["lick left", "lick correct"]
  * @return {object}      An object mapping behavior types to the imaging index
  *                       at which the event occurred. For example, an index of
