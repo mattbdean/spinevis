@@ -5,6 +5,8 @@ let _ = require('lodash');
 
 let util = require('../core/util.js');
 
+const INITIAL_RESOLUTION = 1; // 1% of all data is shown at start
+
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
@@ -31,11 +33,19 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             Length: util.formatDifference($ctrl.sessionMeta.start_time, $ctrl.sessionMeta.end_time)
         };
 
+        $ctrl.minGlobalF = _.min($ctrl.sessionMeta.globalTC);
+    }).then(function() {
+        // Get downsampled timeline
+        return $http.get('/api/v1/session/' + $ctrl.sessionId + '/timeline?resolution=' + INITIAL_RESOLUTION);
+    }).then(function(response) {
+        // Plotting only the global trace for now
+        let indexes = response.data.data.global;
+
         return graphTimeline($ctrl.sessionMeta.start_time,
             $ctrl.sessionMeta.relTimes,
-            $ctrl.sessionMeta.globalTC);
-    }).then(function(minGlobalF) {
-        $ctrl.minGlobalF = minGlobalF;
+            $ctrl.sessionMeta.globalTC,
+            indexes)
+    }).then(function() {
         return $http.get('/conf/plotly/markers.json');
     }).then(function(markerData) {
         $ctrl.markerData = markerData.data;
@@ -49,14 +59,14 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
 
     /**
      * Graphs the global fluorescence data from the session metadata
-     * @param  {string} start     ISO date string of the start time
+     * @param  {string} start    ISO date string of the start time
      * @param  {array} relTimes  Each value in the array corresponds to the
      *                           value of the x-axis of a point
      * @param  {array} fluorData Global fluorescence data. Corresponds to values
      *                           on the y-axis
-     * @return {Number}          The minimum value of fluorData
+     * @param  {array} indexes   Specific indexes to graph
      */
-    let graphTimeline = function(start, relTimes, fluorData) {
+    let graphTimeline = function(start, relTimes, fluorData, indexes) {
         // Create timeline outline
         let trace = {
             x: [],
@@ -81,16 +91,17 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
 
         // Fill in the trace data with timeline data. relTimes.length should be
         // equal to fluorData.length.
-        // Using lodash's map function and assigning fluorData directly cuts
-        // down on ~.5 seconds for a session with ~55k samples
-        trace.x = _.map(relTimes, time => new Date(relativeTime(time)));
-        trace.y = fluorData;
+        for (let i = 0; i < indexes.length; i++) {
+            let rawTimelineIndex = indexes[i];
+            trace.x[i] = new Date(relativeTime(relTimes[rawTimelineIndex]));
+            trace.y[i] = fluorData[rawTimelineIndex];
+        }
+        // trace.x = _.map(relTimes, time => new Date(relativeTime(time)));
+        // trace.y = fluorData;
 
         Plotly.newPlot(timelineNode, [trace], layout);
         let delta = Date.now() - startDelta;
         console.log('Created global fluorescence trace and plotted in ' + (delta / 1000) + ' seconds');
-
-        return _.min(fluorData);
     };
 
     /**
