@@ -24,6 +24,7 @@ addQuery(suite, 'getTimeline(100% res)', () => queries.getTimeline(id));
 addQuery(suite, 'getTimeline(50% res)', () => queries.getTimeline(id, 50));
 addQuery(suite, 'getTimeline(25% res)', () => queries.getTimeline(id, 25));
 addQuery(suite, 'getTimeline(5% res)', () => queries.getTimeline(id, 5));
+addQuery(suite, 'getTimeline(1% res)', () => queries.getTimeline(id, 1));
 addQuery(suite, 'getBehavior()', () => queries.getBehavior(id));
 
 suite.on('complete', function() {

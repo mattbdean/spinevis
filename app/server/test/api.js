@@ -45,12 +45,15 @@ describe('API v1', function() {
                     });
             });
 
-            it('should respond with 400 when given an invalid limit', function() {
-                return expectErrorResponse(app, `${routePrefix}/session?limit=-1`, 400);
-            });
-
-            it('should respond with 400 when given an invalid start', function() {
-                return expectErrorResponse(app, `${routePrefix}/session?start=-1`, 400);
+            it('should correct invalid start and limits', function() {
+                return request(app)
+                    .get(routePrefix + '/session?start=-1&limit=-1')
+                    .expect('Content-Type', /json/)
+                    .expect(200)
+                    .expect(function(res) {
+                        assert.strictEqual(res.body.start, 0);
+                        assert.ok(res.body.size > 0);
+                    });
             });
         });
 

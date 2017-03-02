@@ -45,7 +45,7 @@ module.exports = {
      *                  input is out of the given bounds, returns the value of
      *                  the bound closest to the input.
      */
-    integer: function(input, defaultValue, maxValue = Infinity) {
+    integer: function(input, defaultValue, minValue = -Infinity, maxValue = Infinity) {
         // Assume that defaultValue is a positive integer
         let result = defaultValue;
 
@@ -54,8 +54,11 @@ module.exports = {
             result = Math.floor(parseInt(input));
         }
 
+        // Bounds checks
         if (result > maxValue)
             result = maxValue;
+        if (result < minValue)
+            result = minValue;
 
         return result;
     },

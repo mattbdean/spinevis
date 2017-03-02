@@ -78,7 +78,7 @@ describe('queries', function() {
         });
     });
 
-    describe.only('getTimeline()', function() {
+    describe('getTimeline()', function() {
         it('should return an object mapping traces to arrays of indexes to display', function() {
             return getFirstSessionId().then(function(id) {
                 return queries.getTimeline(id);

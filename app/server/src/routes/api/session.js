@@ -37,7 +37,7 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false) {
             // Identify values of start and limit
             let start = _.find(parameters, p => p.name === 'start').value;
             let limit = _.find(parameters, p => p.name === 'limit').value;
-            response = responses.paginatedSuccess(result, start, limit);
+            response = responses.paginatedSuccess(result, limit, start);
         } else {
             response = responses.success(result);
         }
@@ -68,14 +68,14 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false) {
 /** Function to generate a function to vaildate the 'start' pagination property */
 let genStartValidationFn = function(input) {
     return function(start) {
-        return validation.integer(input, 0);
+        return validation.integer(input, 0, 0);
     };
 };
 
 /** Function to generate a function to vaildate the 'limit' pagination property */
 let genLimitValidationFn = function(input) {
     return function(limit) {
-        return validation.integer(limit, 20, MAX_SESSION_DATA);
+        return validation.integer(limit, 20, 1, MAX_SESSION_DATA);
     };
 };
 
