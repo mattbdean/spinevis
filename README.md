@@ -11,6 +11,7 @@ Getting the website up and running is simple. Make sure to install [jspm](http:/
 
 ```sh
 $ jspm install && npm install
+$ grunt build
 $ node server.js
 ```
 
