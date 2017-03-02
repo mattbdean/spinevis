@@ -201,4 +201,4 @@ module.exports.getBehavior = function(id, types = []) {
 
             return transformedData;
         });
-}
+};

@@ -64,7 +64,7 @@ module.exports = {
     },
     alphabeticWords: function(input) {
         if (typeof input === 'string') {
-            return validateRegex(input, alphabeticWordsRegex)
+            return validateRegex(input, alphabeticWordsRegex);
         }
 
         if (Array.isArray(input)) {

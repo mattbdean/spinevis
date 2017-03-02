@@ -16,7 +16,7 @@ function Parameter(name, value, validate, invalidError) {
         this.valid = true;
         this.value = validationResult;
     }
-    
+
     if (!this.valid) {
         this.error = invalidError;
         // Add a data key so that this can easily be passed to responses.errorObj()
@@ -31,4 +31,4 @@ module.exports.sessionId = function(value) {
     // unless our DB IDs don't adhere to the same validation
     let invalidError = {msg: 'Session not found', status: 404};
     return new Parameter('id', value, validation.sessionId, invalidError);
-}
+};

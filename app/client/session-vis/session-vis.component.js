@@ -44,7 +44,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
         return graphTimeline($ctrl.sessionMeta.start_time,
             $ctrl.sessionMeta.relTimes,
             $ctrl.sessionMeta.globalTC,
-            indexes)
+            indexes);
     }).then(function() {
         return $http.get('/conf/plotly/markers.json');
     }).then(function(markerData) {
@@ -138,7 +138,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
 
         let delta = Date.now() - startDelta;
         console.log('Created behavior traces and plotted in ' + (delta / 1000) + ' seconds');
-    }
+    };
 
     /** Offset in milliseconds of timezone */
     let timezoneOffsetMillis = new Date().getTimezoneOffset() * 60 * 1000;
@@ -159,7 +159,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
     let relativeTime = function(relativeSeconds) {
         // Plotly assumes input dates are in UTC, adjust for timezone offset
         return (relativeSeconds * 1000) + timezoneOffsetMillis;
-    }
+    };
 }];
 
 module.exports = {
