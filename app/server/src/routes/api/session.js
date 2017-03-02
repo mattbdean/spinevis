@@ -108,7 +108,18 @@ router.get('/:id', function(req, res, next) {
 
 // Get timeline data
 router.get('/:id/timeline', function(req, res, next) {
-    runQuery([param.sessionId(req.params.id)], queries.getTimeline, res, next);
+    let parameters = [param.sessionId(req.params.id)];
+
+    // Optional query parameter
+    if (req.query.resolution !== undefined && req.query.resolution.trim() !== '') {
+        parameters.push(new Parameter(
+            'resolution',
+            req.query.resolution,
+            function(res) { return validation.integer(res, 100, 1, 100); },
+            {msg: 'Invalid resolution', status: 400}
+        ));
+    }
+    runQuery(parameters, queries.getTimeline, res, next);
 });
 
 router.get('/:id/behavior', function(req, res, next) {

@@ -82,6 +82,24 @@ describe('API v1', function() {
                         });
                 });
             });
+
+            it('should recognize the resolution query parameter', function() {
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    let rawSamples = sessions[0].nSamples;
+
+                    return request(app)
+                        .get(`${routePrefix}/session/${id}/timeline?resolution=50`)
+                        .expect(200)
+                        .expect('Content-Type', /json/)
+                        .expect(function(res) {
+                            // Downsampled size is tested in queries.js, we just care
+                            // if the API recognizes the resolution parameter
+                            let actualSamples = res.body.data.global.length;
+                            assert.ok(actualSamples < rawSamples);
+                        });
+                });
+            });
         });
 
         describe(`GET ${routePrefix}/session/:id/behavior`, function() {
