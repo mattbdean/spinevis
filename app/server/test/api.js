@@ -95,9 +95,30 @@ describe('API v1', function() {
                         .expect(function(res) {
                             // Downsampled size is tested in queries.js, we just care
                             // if the API recognizes the resolution parameter
-                            let actualSamples = res.body.data.global.length;
+                            let actualSamples = res.body.data.traces.global.length;
                             assert.ok(actualSamples < rawSamples);
                         });
+                });
+            });
+
+            it('should reject invalid start', function() {
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    return expectErrorResponse(app, `${routePrefix}/session/${id}/timeline?start=-1&end=-1`, 400);
+                });
+            });
+
+            it('should check bounds', function() {
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    return expectErrorResponse(app, `${routePrefix}/session/${id}/timeline?start=100&end=0`, 400);
+                });
+            });
+
+            it('should reject invalid bufferMult values', function() {
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    return expectErrorResponse(app, `${routePrefix}/session/${id}/timeline?start=100&end=110&bufferMult=1000`, 400);
                 });
             });
         });

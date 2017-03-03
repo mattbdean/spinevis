@@ -126,15 +126,13 @@ describe('queries', function() {
         });
 
         it('should pay attention to start and end parameters', function() {
-            let start = 20, end = 50, bufferMult = 2;
-            // Buffer pushes bounds to [-40, 110], but should be corrected to
-            // [0, 110] which yields a net of 110 data points
-            let expectedSamples = 110;
+            let start = 1000, end = 1050, bufferMult = 2;
+            let expectedSamples = (end - start) + ((end - start) * (bufferMult * 2));
 
             return getFirstSessionId().then(function(id) {
                 return queries.getTimeline(id, 100, start, end, bufferMult);
             }).then(function(timelineData) {
-                assert.strictEqual(timelineData.start, 0);
+                assert.strictEqual(timelineData.start, start - (bufferMult * (end - start)));
 
                 for (let traceName of Object.keys(timelineData.traces)) {
                     let trace = timelineData.traces[traceName];

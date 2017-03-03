@@ -1,6 +1,7 @@
 let assert = require('assert');
 let param = require('../src/routes/api/parameter.js');
 let Parameter = param.Parameter;
+let Contract = param.Contract;
 
 let forceInvalid = function() {
     return false;
@@ -19,6 +20,10 @@ let blankErrorObj = function() {
         msg: null,
         status: -1,
     };
+};
+
+let makeValidParameter = function(name, value = 0) {
+    return new Parameter(name, value, forceValid, blankErrorObj());
 };
 
 describe('parameter validation', function() {
@@ -45,7 +50,45 @@ describe('parameter validation', function() {
             assert.equal(p.name, 'p');
             assert.equal(p.value, simulateFixingInput());
             assert.strictEqual(p.valid, true);
-            assert.strictEqual(p.error, undefined)
+            assert.strictEqual(p.error, undefined);
+        });
+
+        it('should allow final modification to a validated input', function() {
+            let p = new Parameter('p', '42', forceValid, blankErrorObj(), (value) => parseInt(value, 10));
+            assert.strictEqual(p.name, 'p');
+            assert.strictEqual(p.value, 42);
+            assert.strictEqual(p.valid, true);
+            assert.strictEqual(p.error, undefined);
+        });
+    });
+
+    describe('Contract()', function() {
+        it('should not produce an error when not broken', function() {
+            let p1 = makeValidParameter('a');
+            let p2 = makeValidParameter('b');
+            let contract = new Contract(p1.name, p2.name, forceValid);
+            contract.apply([p1, p2]);
+
+            assert.strictEqual(contract.error, undefined);
+            assert.strictEqual(contract.valid, true);
+        });
+
+        it('should produce an error when broken', function() {
+            let p1 = makeValidParameter('a');
+            let p2 = makeValidParameter('b');
+            let errMsg = 'test';
+            let contract = new Contract(p1.name, p2.name, forceInvalid, errMsg);
+            contract.apply([p1, p2]);
+
+            assert.deepStrictEqual(contract.error, {
+                msg: errMsg,
+                status: 400,
+                data: {
+                    [p1.name]: p1.value,
+                    [p2.name]: p2.value
+                }
+            });
+            assert.strictEqual(contract.valid, false);
         });
     });
 });

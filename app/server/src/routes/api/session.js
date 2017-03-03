@@ -4,11 +4,13 @@ let queries = require('../../queries.js');
 let responses = require('./responses.js');
 let param = require('./parameter.js');
 let Parameter = param.Parameter;
+let Contract = param.Contract;
 let validation = require('../validation.js');
 let _ = require('lodash');
 
 /** Maximum sessions returned at one time */
 const MAX_SESSION_DATA = 100;
+const BUFFER_MULT_MAX = 3;
 
 /**
  * Runs a query and sends the result as JSON to the response. Takes input
@@ -19,11 +21,18 @@ const MAX_SESSION_DATA = 100;
  * @param  {object}    res        Express Response object
  * @param  {function}  next       Express 'next' function
  */
-let runQuery = function(parameters, queryFn, res, next, paginated = false) {
+let runQuery = function(parameters, queryFn, res, next, paginated = false, contracts = []) {
     // If any parameter is invalid, reject
     for (let p of parameters) {
         if (p.valid === false) {
             return next(responses.errorObj(p.error));
+        }
+    }
+
+    for (let contract of contracts) {
+        contract.apply(parameters);
+        if (contract.valid === false) {
+            return next(responses.errorObj(contract.error));
         }
     }
 
@@ -109,6 +118,7 @@ router.get('/:id', function(req, res, next) {
 // Get timeline data
 router.get('/:id/timeline', function(req, res, next) {
     let parameters = [param.sessionId(req.params.id)];
+    let contracts = [];
 
     // Optional query parameter
     if (req.query.resolution !== undefined && req.query.resolution.trim() !== '') {
@@ -118,8 +128,29 @@ router.get('/:id/timeline', function(req, res, next) {
             function(res) { return validation.integer(res, 100, 1, 100); },
             {msg: 'Invalid resolution', status: 400}
         ));
+    } else {
+        parameters.push(param.defaultValue('resolution', 100));
     }
-    runQuery(parameters, queries.getTimeline, res, next);
+
+    // start and end are optional parameters as well
+    if (req.query.start !== undefined && req.query.start.trim() !== '' &&
+        req.query.end !== undefined && req.query.end.trim() !== '') {
+
+        parameters.push(param.integerStrict('start', req.query.start, 0));
+        parameters.push(param.integerStrict('end', req.query.end, 1));
+
+        contracts.push(new Contract(
+            'start', 'end',
+            function(start, end) { return start < end; },
+            'start must be less than end'
+        ));
+
+        if (req.query.bufferMult !== undefined && req.query.bufferMult.trim() !== '') {
+            parameters.push(param.integerStrict('bufferMult', req.query.bufferMult, 0, BUFFER_MULT_MAX));
+        }
+    }
+
+    runQuery(parameters, queries.getTimeline, res, next, false, contracts);
 });
 
 router.get('/:id/behavior', function(req, res, next) {

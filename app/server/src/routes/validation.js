@@ -51,7 +51,7 @@ module.exports = {
 
         if (input !== undefined && !isNaN(input)) {
             // Round down to remove decimals
-            result = Math.floor(parseInt(input));
+            result = Math.floor(parseInt(input, 10));
         }
 
         // Bounds checks
@@ -61,6 +61,19 @@ module.exports = {
             result = minValue;
 
         return result;
+    },
+    /**
+     * A stricter version of integer(). Input must be a parseable integer and
+     * within the given bounds to return true. If all of these conditions are
+     * not met, false is returned.
+     */
+    integerStrict: function(input, minValue = -Infinity, maxValue = Infinity) {
+        if (input === undefined || isNaN(input) || parseFloat(input) !== parseInt(input))
+            return false;
+
+        let result = parseInt(input, 10);
+
+        return !(result > maxValue || result < minValue);
     },
     alphabeticWords: function(input) {
         if (typeof input === 'string') {
