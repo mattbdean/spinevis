@@ -35,7 +35,7 @@ module.exports.sessionId = function(value) {
 
 module.exports.integerStrict = function(name, value, minValue = -Infinity, maxValue = Infinity) {
     let invalidError = {
-        msg: `${name} must be an integer between [${minValue} and ${maxValue}]`,
+        msg: `${name} must be an integer in the range [${minValue}, ${maxValue}]`,
         status: 400
     };
     return new Parameter(name, value,
