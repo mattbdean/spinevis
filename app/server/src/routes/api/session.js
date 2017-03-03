@@ -122,12 +122,7 @@ router.get('/:id/timeline', function(req, res, next) {
 
     // Optional query parameter
     if (req.query.resolution !== undefined && req.query.resolution.trim() !== '') {
-        parameters.push(new Parameter(
-            'resolution',
-            req.query.resolution,
-            function(res) { return validation.integer(res, 100, 1, 100); },
-            {msg: 'Invalid resolution', status: 400}
-        ));
+        parameters.push(param.integerStrict('resolution', req.query.resolution, 1, 100));
     } else {
         parameters.push(param.defaultValue('resolution', 100));
     }
