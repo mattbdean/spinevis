@@ -108,11 +108,17 @@ module.exports.sessionExists = function(id) {
  * @param  {Number} resolution Percentage of data to show. resolution = 10
  *                             would display the maximum of every 10 samples,
  *                             resolution = 25 would display max of every 4, etc.
+ * @param  {Number} start      Starting index (optional)
+ * @param  {Number} end        End index (optional)
+ * @param  {Number} bufferMult How much extra data to include on either side of
+ *                             the requested data. If start = 1000, end = 1100,
+ *                             and bufferMult = 2, then points [800, 1300] would
+ *                             be returned. (optional)
  * @return {object}            An object whose keys are trace names and values
  *                             are arrays containg the indexes of the imaging
  *                             events to keep.
  */
-module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL) {
+module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, end, bufferMult = 0) {
     return db.mongo().collection(COLL_META)
         .find({_id: id})
         .project({globalTC: 1, nSamples: 1, _id: 0})
@@ -122,6 +128,22 @@ module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL) {
             if (results.length === 1) {
                 let session = results[0];
                 let rawTimeline = session.globalTC;
+
+                let globalOffset = 0;
+
+                if (start !== undefined && end !== undefined) {
+                    let diff = end - start;
+                    let bufferSize = diff * bufferMult;
+
+                    let bufferStart = start - bufferSize;
+                    if (bufferStart < 0) bufferStart = 0;
+
+                    let bufferEnd = end + bufferSize;
+                    if (bufferEnd > rawTimeline.length) bufferEnd = rawTimeline.length;
+
+                    rawTimeline = _.slice(rawTimeline, bufferStart, bufferEnd);
+                }
+
                 let downsampled;
 
                 // Make sure we're dealing with integers
@@ -148,10 +170,16 @@ module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL) {
                         downsampled.push(globalIndex);
                     }
                 } else {
-                    downsampled = rawTimeline;
+                    downsampled = _.range(rawTimeline.length)
                 }
 
-                return {"global": downsampled};
+                return {
+                    start: globalOffset,
+                    size: rawTimeline.length,
+                    traces: {
+                        global: downsampled
+                    }
+                };
             }
 
             return Promise.reject(errorMissing(`No timeline for ID '${id}'`, {id: id}));

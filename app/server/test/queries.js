@@ -85,17 +85,19 @@ describe('queries', function() {
             }).then(function(timelineData) {
                 assert.strictEqual(typeof timelineData, 'object');
 
-                let traceNames = Object.keys(timelineData);
+                let traceNames = Object.keys(timelineData.traces);
 
                 for (let name of traceNames) {
-                    let trace = timelineData[name];
+                    let trace = timelineData.traces[name];
                     assert.ok(Array.isArray(trace));
                 }
 
-                let globalF = timelineData.global;
+                let globalF = timelineData.traces.global;
                 assert.notStrictEqual(globalF, undefined);
+                assert.strictEqual(timelineData.start, 0);
+                assert.strictEqual(timelineData.size, timelineData.traces.global.length);
 
-                for (let i = 0; i < timelineData.length; i++) {
+                for (let i = 0; i < timelineData.traces.length; i++) {
                     assert.ok(typeof timelineData[i] === 'number');
                 }
             });
@@ -111,12 +113,33 @@ describe('queries', function() {
 
                 return queries.getTimeline(session._id, resolution);
             }).then(function(timelineData) {
-                for (let traceName of Object.keys(timelineData)) {
-                    let trace = timelineData[traceName];
+                assert.strictEqual(timelineData.start, 0);
+
+                for (let traceName of Object.keys(timelineData.traces)) {
+                    let trace = timelineData.traces[traceName];
                     assert.ok(Array.isArray(trace));
                     // May be off by 1 in case the algorithm can't break the
                     // timeline data into even chunks
                     assert.ok(trace.length === expectedSamples || trace.length === expectedSamples + 1);
+                }
+            });
+        });
+
+        it('should pay attention to start and end parameters', function() {
+            let start = 20, end = 50, bufferMult = 2;
+            // Buffer pushes bounds to [-40, 110], but should be corrected to
+            // [0, 110] which yields a net of 110 data points
+            let expectedSamples = 110;
+
+            return getFirstSessionId().then(function(id) {
+                return queries.getTimeline(id, 100, start, end, bufferMult);
+            }).then(function(timelineData) {
+                assert.strictEqual(timelineData.start, 0);
+
+                for (let traceName of Object.keys(timelineData.traces)) {
+                    let trace = timelineData.traces[traceName];
+                    assert.ok(Array.isArray(trace));
+                    assert.strictEqual(trace.length, expectedSamples);
                 }
             });
         });
