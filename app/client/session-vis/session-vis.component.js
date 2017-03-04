@@ -58,12 +58,53 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
                     let endIndex = inexactBinarySearch($ctrl.sessionMeta.relTimes, endMillis / 1000);
 
                     // TODO call /timeline with start and end
+                    replotTimeline($ctrl.sessionId, $ctrl.sessionMeta.start_time, startIndex, endIndex);
                 }
             }
             // plotly_relayout events are also fired when the pan, zoom, lasso,
             // etc. buttons are clicked
         });
     };
+
+    let replotTimeline = function(id, sessionStart, rangeStart, rangeEnd, resolution = FULL_RESOLUTION, bufferMult = 2) {
+        $http.get(`/api/v1/session/${id}/timeline?resolution=${resolution}&start=${rangeStart}&end=${rangeEnd}&bufferMult=${bufferMult}`).then(function(response) {
+            return response.data.data;
+        }).then(function(timelineData) {
+            console.log(timelineData);
+            // Plotly.deleteTraces(timelineNode, 0); // Delete global fluorescence trace
+            let globalF = createFluorTrace(
+                'Global Fluorescence',
+                $ctrl.sessionMeta.start_time,
+                $ctrl.sessionMeta.relTimes,
+                $ctrl.sessionMeta.globalTC,
+                timelineData.traces.global,
+                timelineData.start
+            );
+
+            Plotly.addTraces(timelineNode, [globalF], 0);
+            Plotly.deleteTraces(timelineNode, 1);
+        });
+    };
+
+    let createFluorTrace = function(name, sessionStart, relTimes, fluorData, indexes, offset = 0) {
+        // Create outline
+        let trace = {
+            x: [],
+            y: [],
+            type: 'scatter',
+            name: name
+        };
+
+        // Fill in the trace data with timeline data. relTimes.length should be
+        // equal to fluorData.length.
+        for (let i = 0; i < indexes.length; i++) {
+            let adjustedIndex = indexes[i] + offset;
+            trace.x[i] = new Date(relativeTime(relTimes[adjustedIndex]));
+            trace.y[i] = fluorData[adjustedIndex];
+        }
+
+        return trace;
+    }
 
     /**
      * Performs an inexact binary search to find the index of the element that
@@ -118,9 +159,9 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
         return $http.get('/api/v1/session/' + $ctrl.sessionId + '/timeline?resolution=' + INITIAL_RESOLUTION);
     }).then(function(response) {
         // Plotting only the global trace for now
-        let indexes = response.data.data.global;
+        let indexes = response.data.data.traces.global;
 
-        return graphTimeline($ctrl.sessionMeta.start_time,
+        return initTimeline($ctrl.sessionMeta.start_time,
             $ctrl.sessionMeta.relTimes,
             $ctrl.sessionMeta.globalTC,
             indexes);
@@ -144,15 +185,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
      *                           on the y-axis
      * @param  {array} indexes   Specific indexes to graph
      */
-    let graphTimeline = function(start, relTimes, fluorData, indexes) {
-        // Create timeline outline
-        let trace = {
-            x: [],
-            y: [],
-            type: 'scatter',
-            name: 'Global Fluorescence'
-        };
-
+    let initTimeline = function(start, relTimes, fluorData, indexes) {
         // Simple layout data
         let layout = {
             yaxis: {
@@ -167,15 +200,9 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
 
         let startDelta = Date.now();
 
-        // Fill in the trace data with timeline data. relTimes.length should be
-        // equal to fluorData.length.
-        for (let i = 0; i < indexes.length; i++) {
-            let rawTimelineIndex = indexes[i];
-            trace.x[i] = new Date(relativeTime(relTimes[rawTimelineIndex]));
-            trace.y[i] = fluorData[rawTimelineIndex];
-        }
+        let traces = [createFluorTrace('Global Fluorescence', start, relTimes, fluorData, indexes)]
+        Plotly.newPlot(timelineNode, traces, layout);
 
-        Plotly.newPlot(timelineNode, [trace], layout);
         let delta = Date.now() - startDelta;
         console.log('Created global fluorescence trace and plotted in ' + (delta / 1000) + ' seconds');
     };
