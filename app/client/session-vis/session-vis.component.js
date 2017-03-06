@@ -51,6 +51,10 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             // plotly_relayout events are also fired when the pan, zoom, lasso,
             // etc. buttons are clicked
         });
+
+        $window.onresize = function() {
+            Plotly.Plots.resize(timelineNode);
+        };
     };
 
     session.get($ctrl.sessionId).then(function(result) {
