@@ -1,5 +1,6 @@
 let _ = require('lodash');
 let uuid = require('uuid');
+let sessionGenerator = require('../core/session.js');
 // let Plotly = require('plotly');
 
 const DEFAULT_BUFFER_MULT = 2;
@@ -24,7 +25,7 @@ module.exports.TraceManager = class TraceManager {
      *                        for entire domain.
      */
     constructor($http, plotNode, sessionId, sessionStart, relTimes, thresholds) {
-        this.$http = $http;
+        this.session = sessionGenerator($http);
         this.plotNode = plotNode;
         this.sessionId = sessionId;
         this.sessionStart = sessionStart;
@@ -80,7 +81,7 @@ module.exports.TraceManager = class TraceManager {
         let self = this;
 
         if (!hasInitialData(this.traces, newThreshold)) {
-            return requestFreshTraces(this.$http, this.sessionId, this.relTimes, newThreshold.resolution, startMillis, endMillis, this.bufferMult)
+            return requestFreshTraces(this.session, this.sessionId, this.relTimes, newThreshold.resolution, startMillis, endMillis, this.bufferMult)
             .then(function(result) {
                 let freshTraceNames = Object.keys(result.traces);
                 for (let freshTraceName of freshTraceNames) {
@@ -130,12 +131,12 @@ let identifyThresh = function(visibleDomain, thresholds) {
     return thresh;
 };
 
-let requestFreshTraces = function($http, sessionId, relTimes, resolution, startMillis, endMillis, bufferMult) {
+let requestFreshTraces = function(session, sessionId, relTimes, resolution, startMillis, endMillis, bufferMult) {
     // relTimes is in seconds, convert start and end millis before searching
     let startIndex = inexactBinarySearch(relTimes, startMillis / 1000);
     let endIndex = inexactBinarySearch(relTimes, endMillis / 1000);
 
-    return $http.get(`/api/v1/session/${sessionId}/timeline?resolution=${resolution}&start=${startIndex}&end=${endIndex}&bufferMult=${bufferMult}`).then(function(response) {
+    return session.timeline(sessionId, resolution, startIndex, endIndex, bufferMult).then(function(response) {
         return response.data.data;
     });
 };

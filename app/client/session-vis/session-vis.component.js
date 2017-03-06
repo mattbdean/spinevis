@@ -18,6 +18,7 @@ const FULL_RESOLUTION = 100;
 // let Plotly = require('plotly/plotly.js');
 
 let ctrlDef = ['$http', '$window', function SessionVisController($http, $window) {
+    let session = require('../core/session.js')($http);
     let $ctrl = this;
 
     // Fail fast if injection does as well
@@ -52,7 +53,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
         });
     };
 
-    $http.get('/api/v1/session/' + $ctrl.sessionId).then(function(result) {
+    session.get($ctrl.sessionId).then(function(result) {
         // result is an XHR response, result.data is our JSON data, including
         // response metadata, result.data.data is the ACTUAL data
         $ctrl.sessionMeta = result.data.data;
@@ -96,7 +97,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
         $ctrl.markerData = markerData.data;
         // Make sure that we have $ctrl.sessionMeta and $ctrl.markerData before
         // sending any other HTTP requests that depend on that information
-        return $http.get('/api/v1/session/' + $ctrl.sessionId + '/behavior');
+        return session.behavior($ctrl.sessionId);
     }).then(function(result) {
         addBehaviorTraces(result.data.data, $ctrl.minGlobalF);
     }).then(registerCallbacks);
