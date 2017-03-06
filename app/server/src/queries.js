@@ -114,11 +114,14 @@ module.exports.sessionExists = function(id) {
  *                             the requested data. If start = 1000, end = 1100,
  *                             and bufferMult = 2, then points [800, 1300] would
  *                             be returned. (optional)
+ * @param {string} extendBuffer The direction to expand the buffer. If 'left'
+ *                              or 'right', will only include the buffer in that
+ *                              direction.
  * @return {object}            An object whose keys are trace names and values
  *                             are arrays containg the indexes of the imaging
  *                             events to keep.
  */
-module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, end, bufferMult = 0) {
+module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, end, bufferMult = 0, extendBuffer) {
     return db.mongo().collection(COLL_META)
         .find({_id: id})
         .project({globalTC: 1, nSamples: 1, _id: 0})
@@ -136,10 +139,20 @@ module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, e
                     let bufferSize = diff * bufferMult;
 
                     let bufferStart = start - bufferSize;
-                    if (bufferStart < 0) bufferStart = 0;
-
                     let bufferEnd = end + bufferSize;
-                    if (bufferEnd > rawTimeline.length) bufferEnd = rawTimeline.length;
+
+                    if (extendBuffer !== undefined) {
+                        if (extendBuffer === 'left') {
+                            bufferStart = start - bufferSize;
+                            bufferEnd = start;
+                        } else if (extendBuffer === 'right') {
+                            bufferStart = end;
+                            bufferEnd = end + bufferSize;
+                        }
+                    }
+
+                    if (bufferStart < 0) bufferStart = 0;
+                    if (bufferEnd > rawTimeline.length - 1) bufferEnd = rawTimeline.length - 1;
 
                     rawTimeline = _.slice(rawTimeline, bufferStart, bufferEnd);
                     globalOffset = bufferStart;

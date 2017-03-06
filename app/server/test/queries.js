@@ -141,6 +141,19 @@ describe('queries', function() {
                 }
             });
         });
+
+        it('should only include the buffer when asked', function() {
+            let start = 1000, end = 1050, bufferMult = 2;
+            let expectedSamples = (end - start) * bufferMult;
+            let direction = 'left';
+
+            return getFirstSessionId().then(function(id) {
+                return queries.getTimeline(id, 100, start, end, bufferMult, direction);
+            }).then(function(timelineData) {
+                assert.strictEqual(timelineData.start, start - ((end - start) * bufferMult));
+                assert.strictEqual(timelineData.size, (end - start) * bufferMult);
+            });
+        });
     });
 
     describe('getBehavior()', function() {
