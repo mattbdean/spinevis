@@ -119,6 +119,9 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
                 title: 'Time',
                 tickformat: '%-Hh %-Mm %-S.%3fs' // 0h 4m 3.241s
             },
+            font: {
+                family: 'Roboto, sans-serif'
+            },
             showlegend: true
         };
 
