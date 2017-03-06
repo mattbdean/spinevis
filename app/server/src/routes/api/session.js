@@ -142,6 +142,16 @@ router.get('/:id/timeline', function(req, res, next) {
 
         if (req.query.bufferMult !== undefined && req.query.bufferMult.trim() !== '') {
             parameters.push(param.integerStrict('bufferMult', req.query.bufferMult, 0, BUFFER_MULT_MAX));
+
+            if (req.query.extendBuffer !== undefined && req.query.extendBuffer.trim() !== '') {
+                let possibleValues = ['left', 'right'];
+                parameters.push(new Parameter(
+                    'extendBuffer',
+                    req.query.extendBuffer,
+                    (value) => validation.enumerated(possibleValues, value),
+                    {msg: 'extendBuffer must be one of ' + possibleValues, status: 400}
+                ));
+            }
         }
     }
 

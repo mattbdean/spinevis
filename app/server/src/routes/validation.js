@@ -96,5 +96,8 @@ module.exports = {
 
         // Some unknown type
         return false;
+    },
+    enumerated: function(possibleValues, input) {
+        return possibleValues.includes(input);
     }
 };

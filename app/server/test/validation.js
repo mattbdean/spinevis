@@ -53,4 +53,9 @@ describe('input validation', function() {
         /*valid = */['hello there', 'something nice', ['array input', 'is cool']],
         /*invalid = */['numb3r', 4, false, ['array input with', '!invalid!members!']]
     );
+
+    setUpSuite(function enumerated(input) { return validation.enumerated(['a', 'b', 'c', '1'], input); }, true,
+        /*valid = */['a', 'b', 'c', '1'],
+        /*invalid = */['d', 'e', 1]
+    );
 });

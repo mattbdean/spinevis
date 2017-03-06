@@ -121,6 +121,16 @@ describe('API v1', function() {
                     return expectErrorResponse(app, `${routePrefix}/session/${id}/timeline?start=100&end=110&bufferMult=1000`, 400);
                 });
             });
+
+            it('should recognize a buffer extension request', function() {
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    return request(app)
+                        .get(`${routePrefix}/session/${id}/timeline?resolution=1&start=1000&end=1050&bufferMult=2&extendBuffer=right`)
+                        .expect(200)
+                        .expect('Content-Type', /json/);
+                });
+            });
         });
 
         describe(`GET ${routePrefix}/session/:id/behavior`, function() {
