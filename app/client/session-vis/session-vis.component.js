@@ -3,6 +3,11 @@ require('moment-duration-format');
 let $ = require('jquery');
 let _ = require('lodash');
 
+let tm = require('./trace-manager.js');
+let TraceManager = tm.TraceManager;
+let relativeTime = tm.relativeTime;
+let timezoneOffsetMillis = tm.timezoneOffsetMillis;
+
 let util = require('../core/util.js');
 
 const INITIAL_RESOLUTION = 1; // 1% of all data is shown at start
@@ -22,80 +27,30 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
 
     let timelineNode = $('#plot-timeline')[0];
 
-    /**
-     * Creates an array of absolute times that correspond to the given relative
-     * times. Relative times are caclulated with the relativeTime function. For
-     * each value in relTimes, there will be one value in the returned array
-     *
-     * @param  {array} relTimes An array of relative times in seconds
-     * @return {array}          An array of absolute times
-     */
-    let createAbsTimeMap = function(relTimes) {
-        let map = [];
-
-        for (let relTime of relTimes) {
-            map.push(relativeTime(relTime, true));
-        }
-
-        return map;
-    };
+    let traceManager = null;
 
     /**
      * Registers callbacks on the timeline node that are only available after
      * plotting.
      */
     let registerCallbacks = function() {
+        traceManager.init();
+
         timelineNode.on('plotly_relayout', function(evt) {
             if (evt['xaxis.autorange'] && evt['xaxis.autorange'] === true) {
                 // User has reset axes (at least the x-axis)
+                traceManager.onDomainChange(0, Infinity);
             } else if (evt['xaxis.range[0]']) {
                 // Zooming/panning around gives definitive ranges
                 let startMillis = new Date(evt['xaxis.range[0]']).getTime() - timezoneOffsetMillis;
                 let endMillis = new Date(evt['xaxis.range[1]']).getTime() - timezoneOffsetMillis;
 
-                if (endMillis - startMillis < FULL_RES_DURATION_THRESH) {
-                    let startIndex = inexactBinarySearch($ctrl.sessionMeta.relTimes, startMillis / 1000)
-                    let endIndex = inexactBinarySearch($ctrl.sessionMeta.relTimes, endMillis / 1000);
-
-                    // TODO call /timeline with start and end
-                }
+                traceManager.onDomainChange(startMillis, endMillis);
             }
             // plotly_relayout events are also fired when the pan, zoom, lasso,
             // etc. buttons are clicked
         });
     };
-
-    /**
-     * Performs an inexact binary search to find the index of the element that
-     * is closest in value to the item given. Borrowed from
-     * http://oli.me.uk/2014/12/17/revisiting-searching-javascript-arrays-with-a-binary-search/
-     */
-    let inexactBinarySearch = function(list, item) {
-        let min = 0;
-        let max = list.length - 1;
-        let guess;
-        let lastGuess;
-
-        while (min <= max) {
-            lastGuess = guess;
-            guess = Math.floor((min + max) / 2);
-
-            if (list[guess] === item) {
-                return guess;
-            } else {
-                if (list[guess] < item) {
-                    min = guess + 1;
-                } else {
-                    max = guess - 1;
-                }
-            }
-        }
-
-        // A normal binary search would return -1 at this point. However, since
-        // we're doing an inexact binary search, we know the value of item
-        // is less than list[guess], so return guess - 1
-        return guess === 0 ? 0 : guess - 1;
-    }
 
     $http.get('/api/v1/session/' + $ctrl.sessionId).then(function(result) {
         // result is an XHR response, result.data is our JSON data, including
@@ -110,20 +65,31 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             Length: util.formatDifference($ctrl.sessionMeta.start_time, $ctrl.sessionMeta.end_time)
         };
 
+        initTimeline();
+
+        traceManager = new TraceManager(
+            /*$http = */$http,
+            /*plotNode = */timelineNode,
+            /*sessionId = */$ctrl.sessionId,
+            /*sessionStart = */$ctrl.sessionMeta.start_time,
+            /*relTimes = */$ctrl.sessionMeta.relTimes,
+            /*thresholds = */[
+                {
+                    visibleDomain: Infinity,
+                    resolution: 1
+                },
+                {
+                    visibleDomain: 5 * 60 * 1000, // 5 minutes
+                    resolution: 100
+                }
+            ]
+        );
+
+        // Define our global trace
+        traceManager.putTrace('global', 'Global Fluorescence', $ctrl.sessionMeta.globalTC);
+
+        // Keep track of the minimum y-axis value
         $ctrl.minGlobalF = _.min($ctrl.sessionMeta.globalTC);
-
-        $ctrl.timeMapping = createAbsTimeMap($ctrl.sessionMeta.relTimes);
-    }).then(function() {
-        // Get downsampled timeline
-        return $http.get('/api/v1/session/' + $ctrl.sessionId + '/timeline?resolution=' + INITIAL_RESOLUTION);
-    }).then(function(response) {
-        // Plotting only the global trace for now
-        let indexes = response.data.data.global;
-
-        return graphTimeline($ctrl.sessionMeta.start_time,
-            $ctrl.sessionMeta.relTimes,
-            $ctrl.sessionMeta.globalTC,
-            indexes);
     }).then(function() {
         return $http.get('/conf/plotly/markers.json');
     }).then(function(markerData) {
@@ -136,23 +102,9 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
     }).then(registerCallbacks);
 
     /**
-     * Graphs the global fluorescence data from the session metadata
-     * @param  {string} start    ISO date string of the start time
-     * @param  {array} relTimes  Each value in the array corresponds to the
-     *                           value of the x-axis of a point
-     * @param  {array} fluorData Global fluorescence data. Corresponds to values
-     *                           on the y-axis
-     * @param  {array} indexes   Specific indexes to graph
+     * Initializes the timeline with no traces
      */
-    let graphTimeline = function(start, relTimes, fluorData, indexes) {
-        // Create timeline outline
-        let trace = {
-            x: [],
-            y: [],
-            type: 'scatter',
-            name: 'Global Fluorescence'
-        };
-
+    let initTimeline = function() {
         // Simple layout data
         let layout = {
             yaxis: {
@@ -165,19 +117,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             showlegend: true
         };
 
-        let startDelta = Date.now();
-
-        // Fill in the trace data with timeline data. relTimes.length should be
-        // equal to fluorData.length.
-        for (let i = 0; i < indexes.length; i++) {
-            let rawTimelineIndex = indexes[i];
-            trace.x[i] = new Date(relativeTime(relTimes[rawTimelineIndex]));
-            trace.y[i] = fluorData[rawTimelineIndex];
-        }
-
-        Plotly.newPlot(timelineNode, [trace], layout);
-        let delta = Date.now() - startDelta;
-        console.log('Created global fluorescence trace and plotted in ' + (delta / 1000) + ' seconds');
+        Plotly.newPlot(timelineNode, [], layout);
     };
 
     /**
@@ -201,7 +141,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             let marker = $ctrl.markerData[name];
 
             traces.push({
-                x: _.map(behaviorIndexes, index => relativeTime($ctrl.sessionMeta.relTimes[index])),
+                x: _.map(behaviorIndexes, index => new Date(relativeTime($ctrl.sessionMeta.relTimes[index]))),
                 y: _.fill(Array(behaviorIndexes.length), yValue),
                 name: name,
                 type: 'scatter',
@@ -215,34 +155,6 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
 
         let delta = Date.now() - startDelta;
         console.log('Created behavior traces and plotted in ' + (delta / 1000) + ' seconds');
-    };
-
-    /** Offset in milliseconds of timezone */
-    let timezoneOffsetMillis = new Date().getTimezoneOffset() * 60 * 1000;
-
-    /**
-     * In order to get Plotly to display a date on the x-axis, we assume our
-     * time series data starts at unix time 0 (1 Jan 1970). Doing this is the
-     * least computationally expensive starting position for showing relative
-     * times. Think of this less as a "hack" and more of a "workaround."
-     *
-     * N.B. Will not work as expected if relativeSeconds is greater than the
-     * amount of seconds in one day
-     *
-     * @param utc If false, will account for timezone offset
-     *
-     * @return Unix time at the millisecond resolution that can be plotted and
-     *         formatted with a time-only date format to reveal a pseudo-duration
-     *         format.
-     */
-    let relativeTime = function(relativeSeconds, utc = false) {
-        // Plotly assumes input dates are in UTC, adjust for timezone offset
-        let millis = relativeSeconds * 1000;
-        if (!utc) {
-            millis += timezoneOffsetMillis;
-        }
-
-        return millis;
     };
 }];
 
