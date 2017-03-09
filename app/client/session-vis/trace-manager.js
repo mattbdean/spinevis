@@ -76,12 +76,14 @@ module.exports.TraceManager = class TraceManager {
      *                               visible to the user
      */
     onDomainChange(startMillis, endMillis) {
-        let visibleDomain = endMillis - startMillis;
-        let newThreshold = identifyThresh(visibleDomain, this.thresholds);
         let self = this;
 
+        let visibleDomain = endMillis - startMillis;
+        let newThreshold = identifyThresh(visibleDomain, this.thresholds);
+        let [startIndex, endIndex] = convertDomain(this.relTimes, startMillis, endMillis);
+
         if (!hasInitialData(this.traces, newThreshold)) {
-            return requestFreshTraces(this.session, this.sessionId, this.relTimes, newThreshold.resolution, startMillis, endMillis, this.bufferMult)
+            return requestFreshTraces(this.session, this.sessionId, this.relTimes, newThreshold.resolution, startIndex, endIndex, this.bufferMult)
             .then(function(result) {
                 let freshTraceNames = Object.keys(result.traces);
                 for (let freshTraceName of freshTraceNames) {
@@ -131,11 +133,28 @@ let identifyThresh = function(visibleDomain, thresholds) {
     return thresh;
 };
 
-let requestFreshTraces = function(session, sessionId, relTimes, resolution, startMillis, endMillis, bufferMult) {
-    // relTimes is in seconds, convert start and end millis before searching
-    let startIndex = inexactBinarySearch(relTimes, startMillis / 1000);
-    let endIndex = inexactBinarySearch(relTimes, endMillis / 1000);
+/**
+ * Converts the amount of milliseconds into the session to the approximate
+ * (maximum error of 1) index of that timepoint. For example, 0 milliseconds
+ * would be converted into the 0th index, 35 millis results in 1 (assuming the
+ * session was imaged at ~14 Hz), 106 millis results in 2, etc. Since this
+ * conversion is usually done with both the start and end times, this function
+ * is made specifically for converting the start and end times (in
+ * milliseconds).
+ *
+ * @param  {array} relTimes An array of relative times whose elements correspond
+ *                          to the time (in seconds) at which each imaging event
+ *                          occured.
+ * @return {array}          An array of length 2, the first element being the
+ *                          index that corresponds to the converted start time,
+ *                          and the second element being the index for the
+ *                          converted end time.
+ */
+let convertDomain = function(relTimes, startMillis, endMillis) {
+    return _.map([startMillis, endMillis], millis => inexactBinarySearch(relTimes, millis / 1000));
+}
 
+let requestFreshTraces = function(session, sessionId, relTimes, resolution, startIndex, endIndex, bufferMult) {
     return session.timeline(sessionId, resolution, startIndex, endIndex, bufferMult).then(function(response) {
         return response.data.data;
     });
