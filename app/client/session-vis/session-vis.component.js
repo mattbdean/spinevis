@@ -4,15 +4,11 @@ let $ = require('jquery');
 let _ = require('lodash');
 
 let tm = require('./trace-manager.js');
+let util = require('../core/util.js');
+
 let TraceManager = tm.TraceManager;
 let relativeTime = tm.relativeTime;
 let timezoneOffsetMillis = tm.timezoneOffsetMillis;
-
-let util = require('../core/util.js');
-
-const INITIAL_RESOLUTION = 1; // 1% of all data is shown at start
-const FULL_RES_DURATION_THRESH = 5 * 60 * 1000; // Looking at 5 minutes worth of data
-const FULL_RESOLUTION = 100;
 
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
