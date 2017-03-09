@@ -125,8 +125,8 @@ module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, e
                 let session = results[0];
                 let rawTimeline = session.globalTC;
 
-                if (start === undefined) start = 0;
-                if (end === undefined) end = rawTimeline.length;
+                if (start === undefined || start < 0) start = 0;
+                if (end === undefined || end >= rawTimeline.length) end = rawTimeline.length - 1;
 
                 rawTimeline = _.slice(rawTimeline, start, end);
 
