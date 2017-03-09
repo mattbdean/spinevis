@@ -152,7 +152,7 @@ module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, e
                     }
 
                     if (bufferStart < 0) bufferStart = 0;
-                    if (bufferEnd > rawTimeline.length - 1) bufferEnd = rawTimeline.length - 1;
+                    if (bufferEnd > rawTimeline.length) bufferEnd = rawTimeline.length;
 
                     rawTimeline = _.slice(rawTimeline, bufferStart, bufferEnd);
                     globalOffset = bufferStart;
