@@ -81,11 +81,13 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             /*thresholds = */[
                 {
                     visibleDomain: Infinity,
-                    resolution: 1
+                    resolution: 1,
+                    nick: 'all'
                 },
                 {
                     visibleDomain: 5 * 60 * 1000, // 5 minutes
-                    resolution: 100
+                    resolution: 100,
+                    nick: '5min'
                 }
             ]
         );

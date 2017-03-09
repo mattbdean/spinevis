@@ -19,19 +19,11 @@ class SessionApiImpl {
         return this.$http.get(`${this.baseUrl}/${id}`);
     }
 
-    timeline(id, resolution = 100, start, end, bufferMult, extendBuffer) {
+    timeline(id, resolution = 100, start, end) {
         let query = 'resolution=' + resolution;
 
         if (start !== undefined && end !== undefined) {
             query += `&start=${start}&end=${end}`;
-
-            if (bufferMult !== undefined) {
-                query += '&bufferMult=' + bufferMult;
-
-                if (extendBuffer !== undefined) {
-                    query += '&extendBuffer=' + extendBuffer;
-                }
-            }
         }
 
         return this.$http.get(`${this.baseUrl}/${id}/timeline?${query}`);

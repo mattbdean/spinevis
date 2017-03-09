@@ -1,5 +1,6 @@
 let _ = require('lodash');
 let uuid = require('uuid');
+let range = require('./range.js');
 let sessionGenerator = require('../core/session.js');
 // let Plotly = require('plotly');
 
@@ -16,13 +17,14 @@ module.exports.TraceManager = class TraceManager {
      *                      imaging session at which the value of
      *                      `traces.someTrace.fullRes[i]` was captured.
      * @param {[]} thresholds An array containing objects with two properties:
-     *                        `resolution` and `visibleDomain`. `resolution` is
-     *                        an integer from 1-100 that defines what percentage
-     *                        of the raw data that should be shown.
-     *                        `visibleDomain` is the duration in milliseconds
-     *                        between the start of the visible domain (x-axis)
-     *                        and the end of the visible domain. Leave Infinity
-     *                        for entire domain.
+     *                        `resolution` `visibleDomain`, and `nick`.
+     *                        `resolution` is an integer from 1-100 that defines
+     *                        what percentage of the raw data that should be
+     *                        shown. `visibleDomain` is the duration in
+     *                        milliseconds between the start of the visible
+     *                        domain (x-axis) and the end of the visible domain.
+     *                        Leave Infinity for entire domain. `nick` is a
+     *                        nickname for the threshold.
      */
     constructor($http, plotNode, sessionId, sessionStart, relTimes, thresholds) {
         this.session = sessionGenerator($http);
@@ -32,7 +34,6 @@ module.exports.TraceManager = class TraceManager {
         this.relTimes = relTimes;
         this.thresholds = _.orderBy(thresholds, ['visibleDomain'], ['desc']);
 
-        this.bufferMult = DEFAULT_BUFFER_MULT;
         this.traces = {};
         this.currentThresh = null;
     }
@@ -47,9 +48,8 @@ module.exports.TraceManager = class TraceManager {
         // Pre-allocate some data for caching each resolution's data
         let emptyCacheMap = {};
         for (let threshold of this.thresholds) {
-            emptyCacheMap[threshold.visibleDomain] = {
-                start: null,
-                end: null,
+            emptyCacheMap[threshold.nick] = {
+                ranges: [],
                 trace: null,
                 complete: false,
                 resolution: threshold.resolution
@@ -82,43 +82,85 @@ module.exports.TraceManager = class TraceManager {
         let newThreshold = identifyThresh(visibleDomain, this.thresholds);
         let [startIndex, endIndex] = convertDomain(this.relTimes, startMillis, endMillis);
 
-        if (!hasInitialData(this.traces, newThreshold)) {
-            return requestFreshTraces(this.session, this.sessionId, this.relTimes, newThreshold.resolution, startIndex, endIndex, this.bufferMult)
-            .then(function(result) {
-                let freshTraceNames = Object.keys(result.traces);
-                for (let freshTraceName of freshTraceNames) {
+        // Find out what exactly we need to handle the domain change
+        let requestRange = determineRequestRange(this.traces, newThreshold, startIndex, endIndex);
 
-                    self.traces[freshTraceName].variations[newThreshold.visibleDomain] = {
-                        start: result.start,
-                        end: result.size,
-                        complete: result.start === 0 && result.size === self.relTimes.length,
-                        resolution: newThreshold.resolution
+        if (requestRange === null) {
+            // We already have the required data, make sure there is a change
+            // of threshold before we go about wasting resources
+            if (newThreshold.visibleDomain !== this.currentThresh.visibleDomain) {
+                applyThreshold(this.plotNode, this.traces, newThreshold);
+                self.currentThresh = newThreshold;
+            }
+        } else {
+            return requestFreshTraces(this.session, this.sessionId, this.relTimes, newThreshold.resolution, requestRange.start, requestRange.end)
+            .then(function(timelineData) {
+                let traceNames = Object.keys(timelineData.traces);
+                for (let traceName of traceNames) {
+                    let prevVariation = self.traces[traceName].variations[newThreshold.nick];
+
+                    let ranges = prevVariation.ranges;
+                    ranges.push(range.create(timelineData.start, timelineData.end));
+                    ranges = range.merge(ranges);
+
+                    let variation = {
+                        ranges: ranges,
+                        complete: ranges[0].start === 0 && ranges[0].end === self.relTimes.length - 1,
+                        resolution: prevVariation.resolution,
+                        trace: createOrUpdateTrace(
+                            /*prevTrace = */prevVariation.trace,
+                            /*uuid = */self.traces[traceName].uuid,
+                            /*name = */self.traces[traceName].displayName,
+                            /*sessionStart = */self.sessionStart,
+                            /*relTimes = */self.relTimes,
+                            /*fluorData = */self.traces[traceName].fullRes,
+                            /*indexes = */timelineData.traces[traceName],
+                            /*offset = */timelineData.start
+                        )
                     };
-                    self.traces[freshTraceName].variations[newThreshold.visibleDomain].trace = createTrace(
-                        /*uuid = */self.traces[freshTraceName].uuid,
-                        /*name = */self.traces[freshTraceName].displayName,
-                        /*sessionStart = */self.sessionStart,
-                        /*relTimes = */self.relTimes,
-                        /*fluorData = */self.traces[freshTraceName].fullRes,
-                        /*indexes = */result.traces[freshTraceName],
-                        /*offset = */result.start
-                    );
+
+                    self.traces[traceName].variations[newThreshold.nick] = variation;
                 }
 
                 applyThreshold(self.plotNode, self.traces, newThreshold);
+                self.currentThresh = newThreshold;
             });
-        } else {
-            applyThreshold(self.plotNode, self.traces, newThreshold);
+        }
+    }
+}
+
+/**
+ * Tries to determine the best range of data to request at one time from the
+ * timeline endpoint. Takes into account existing data ranges
+ * @param  {object}  traces      Traces object passed from TraceManager
+ * @param  {object}  threshold   The threshold to be tested
+ * @param  {Number}  startIndex  Start of visible domain
+ * @param  {Number}  endIndex    End of visible domain
+ * @return {string}              Returns null if the data is already present.
+ *                               Otherwise, returns an object containing a
+ *                               numerical start and end property dictating the
+ *                               most efficient range of data to request
+ */
+let determineRequestRange = function(traces, threshold, startIndex, endIndex) {
+    let firstTrace = traces[Object.keys(traces)[0]];
+    let variation = firstTrace.variations[threshold.nick];
+
+    // We have all data for this variation
+    if (variation.complete === true) return null;
+
+    let requestRange = range.create(startIndex, endIndex);
+
+    // TODO There's a smarter way to do this that should be O(log_2(n)) but this
+    // is just a proof of concept
+    for (let i = 0; i < variation.ranges.length; i++) {
+        let r = variation.ranges[i];
+        if (range.contained(r, requestRange)) {
+            return null;
         }
     }
 
-}
-
-let hasInitialData = function(traces, threshold) {
-    let firstTrace = traces[Object.keys(traces)[0]];
-    // Check if the first variation (the largest threshold and therefore the
-    // one that is filled when init() is called) has trace data
-    return firstTrace.variations[threshold.visibleDomain].trace !== null;
+    // Exclude the data that we already have so nothing gets requested twice
+    return range.squeeze(variation.ranges, range.create(startIndex, endIndex));
 }
 
 let identifyThresh = function(visibleDomain, thresholds) {
@@ -151,11 +193,20 @@ let identifyThresh = function(visibleDomain, thresholds) {
  *                          converted end time.
  */
 let convertDomain = function(relTimes, startMillis, endMillis) {
-    return _.map([startMillis, endMillis], millis => inexactBinarySearch(relTimes, millis / 1000));
+    let converted = _.map([startMillis, endMillis], millis => inexactBinarySearch(relTimes, millis / 1000));
+
+    // If inexactBinarySearch cannot find an exact match, it returns 1 less than
+    // its last search location. However, we want to override this in case
+    // endMillis is Infinity, which means that we want the very last index.
+    if (endMillis === Infinity) {
+        converted[1] = relTimes.length - 1;
+    }
+
+    return converted;
 }
 
-let requestFreshTraces = function(session, sessionId, relTimes, resolution, startIndex, endIndex, bufferMult) {
-    return session.timeline(sessionId, resolution, startIndex, endIndex, bufferMult).then(function(response) {
+let requestFreshTraces = function(session, sessionId, relTimes, resolution, startIndex, endIndex) {
+    return session.timeline(sessionId, resolution, startIndex, endIndex).then(function(response) {
         return response.data.data;
     });
 };
@@ -165,7 +216,7 @@ let applyThreshold = function(plotNode, traces, threshold) {
     for (let traceName of traceNames) {
 
         let trace = traces[traceName];
-        let variation = trace.variations[threshold.visibleDomain].trace;
+        let variation = trace.variations[threshold.nick].trace;
 
         let traceIndex = _.findIndex(plotNode.data, d => d.uid === trace.uuid);
         if (traceIndex === -1) {
@@ -178,22 +229,25 @@ let applyThreshold = function(plotNode, traces, threshold) {
     }
 }
 
-let createTrace = function(uuid, name, sessionStart, relTimes, fluorData, indexes, offset = 0) {
-    // Create outline
-    let trace = {
-        x: [],
-        y: [],
-        type: 'scatter',
-        uid: uuid,
-        name: name
-    };
+let createOrUpdateTrace = function(prevTrace, uuid, name, sessionStart, relTimes, fluorData, indexes, offset = 0) {
+    let trace = prevTrace;
+    if (trace === null) {
+        // Create outline
+        trace = {
+            x: [],
+            y: [],
+            type: 'scatter',
+            uid: uuid,
+            name: name
+        };
+    }
 
     // Fill in the trace data with timeline data. relTimes.length should be
     // equal to fluorData.length.
     for (let i = 0; i < indexes.length; i++) {
         let adjustedIndex = indexes[i] + offset;
-        trace.x[i] = new Date(relativeTime(relTimes[adjustedIndex]));
-        trace.y[i] = fluorData[adjustedIndex];
+        trace.x[i + offset] = new Date(relativeTime(relTimes[adjustedIndex]));
+        trace.y[i + offset] = fluorData[adjustedIndex];
     }
 
     return trace;
@@ -201,7 +255,7 @@ let createTrace = function(uuid, name, sessionStart, relTimes, fluorData, indexe
 
 /**
  * Performs an inexact binary search to find the index of the element that
- * is closest in value to the item given. Borrowed from
+ * is closest in value to the item given. Adapted from
  * http://oli.me.uk/2014/12/17/revisiting-searching-javascript-arrays-with-a-binary-search/
  */
 let inexactBinarySearch = function(list, item) {
