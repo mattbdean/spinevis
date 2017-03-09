@@ -95,7 +95,7 @@ describe('queries', function() {
                 let globalF = timelineData.traces.global;
                 assert.notStrictEqual(globalF, undefined);
                 assert.strictEqual(timelineData.start, 0);
-                assert.strictEqual(timelineData.size, timelineData.traces.global.length);
+                assert.strictEqual(timelineData.actualSize, timelineData.traces.global.length);
 
                 for (let i = 0; i < timelineData.traces.length; i++) {
                     assert.ok(typeof timelineData[i] === 'number');
@@ -126,32 +126,24 @@ describe('queries', function() {
         });
 
         it('should pay attention to start and end parameters', function() {
-            let start = 1000, end = 1050, bufferMult = 2;
-            let expectedSamples = (end - start) + ((end - start) * (bufferMult * 2));
+            let start = 1000, end = 1050;
+            let expectedSamples = end - start;
 
             return getFirstSessionId().then(function(id) {
-                return queries.getTimeline(id, 100, start, end, bufferMult);
+                return queries.getTimeline(id, 100, start, end);
             }).then(function(timelineData) {
-                assert.strictEqual(timelineData.start, start - (bufferMult * (end - start)));
+                assert.strictEqual(timelineData.start, start);
+                assert.strictEqual(timelineData.end, end);
+
+                // Since resolution is 100%, sampleSize === actualSize
+                assert.strictEqual(timelineData.sampleSize, expectedSamples);
+                assert.strictEqual(timelineData.sampleSize, timelineData.actualSize);
 
                 for (let traceName of Object.keys(timelineData.traces)) {
                     let trace = timelineData.traces[traceName];
                     assert.ok(Array.isArray(trace));
                     assert.strictEqual(trace.length, expectedSamples);
                 }
-            });
-        });
-
-        it('should only include the buffer when asked', function() {
-            let start = 1000, end = 1050, bufferMult = 2;
-            let expectedSamples = (end - start) * bufferMult;
-            let direction = 'left';
-
-            return getFirstSessionId().then(function(id) {
-                return queries.getTimeline(id, 100, start, end, bufferMult, direction);
-            }).then(function(timelineData) {
-                assert.strictEqual(timelineData.start, start - ((end - start) * bufferMult));
-                assert.strictEqual(timelineData.size, (end - start) * bufferMult);
             });
         });
     });

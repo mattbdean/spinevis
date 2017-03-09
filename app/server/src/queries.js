@@ -110,18 +110,11 @@ module.exports.sessionExists = function(id) {
  *                             resolution = 25 would display max of every 4, etc.
  * @param  {Number} start      Starting index (optional)
  * @param  {Number} end        End index (optional)
- * @param  {Number} bufferMult How much extra data to include on either side of
- *                             the requested data. If start = 1000, end = 1100,
- *                             and bufferMult = 2, then points [800, 1300] would
- *                             be returned. (optional)
- * @param {string} extendBuffer The direction to expand the buffer. If 'left'
- *                              or 'right', will only include the buffer in that
- *                              direction.
  * @return {object}            An object whose keys are trace names and values
  *                             are arrays containg the indexes of the imaging
  *                             events to keep.
  */
-module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, end, bufferMult = 0, extendBuffer) {
+module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, end) {
     return db.mongo().collection(COLL_META)
         .find({_id: id})
         .project({globalTC: 1, nSamples: 1, _id: 0})
@@ -132,31 +125,10 @@ module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, e
                 let session = results[0];
                 let rawTimeline = session.globalTC;
 
-                let globalOffset = 0;
+                if (start === undefined) start = 0;
+                if (end === undefined) end = rawTimeline.length;
 
-                if (start !== undefined && end !== undefined) {
-                    let diff = end - start;
-                    let bufferSize = diff * bufferMult;
-
-                    let bufferStart = start - bufferSize;
-                    let bufferEnd = end + bufferSize;
-
-                    if (extendBuffer !== undefined) {
-                        if (extendBuffer === 'left') {
-                            bufferStart = start - bufferSize;
-                            bufferEnd = start;
-                        } else if (extendBuffer === 'right') {
-                            bufferStart = end;
-                            bufferEnd = end + bufferSize;
-                        }
-                    }
-
-                    if (bufferStart < 0) bufferStart = 0;
-                    if (bufferEnd > rawTimeline.length) bufferEnd = rawTimeline.length;
-
-                    rawTimeline = _.slice(rawTimeline, bufferStart, bufferEnd);
-                    globalOffset = bufferStart;
-                }
+                rawTimeline = _.slice(rawTimeline, start, end);
 
                 let downsampled;
 
@@ -188,8 +160,10 @@ module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, e
                 }
 
                 return {
-                    start: globalOffset,
-                    size: rawTimeline.length,
+                    start: start,
+                    end: end,
+                    sampleSize: rawTimeline.length,
+                    actualSize: downsampled.length,
                     traces: {
                         global: downsampled
                     }
