@@ -1,6 +1,6 @@
 let _ = require('lodash');
 let uuid = require('uuid');
-let range = require('./range.js');
+let range = require('../core/range.js');
 let sessionGenerator = require('../core/session.js');
 // let Plotly = require('plotly');
 
