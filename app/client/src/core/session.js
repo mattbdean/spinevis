@@ -33,4 +33,9 @@ class SessionApiImpl {
         let query = types === undefined ? '' : '?' + _.join(types, ',');
         return this.$http.get(`${this.baseUrl}/${id}/behavior${query}`);
     }
+
+    traces(id, names = []) {
+        let query = names.length > 0 ? '?names=' + _.join(names, ',') : '';
+        return this.$http.get(`${this.baseUrl}/${id}/trace${query}`);
+    }
 }
