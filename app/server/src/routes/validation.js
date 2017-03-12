@@ -65,15 +65,27 @@ module.exports = {
     /**
      * A stricter version of integer(). Input must be a parseable integer and
      * within the given bounds to return true. If all of these conditions are
-     * not met, false is returned.
+     * not met, false is returned. If input is an array, each value in the array
+     * must meet these conditions in order for true to be returned.
      */
     integerStrict: function(input, minValue = -Infinity, maxValue = Infinity) {
-        if (input === undefined || isNaN(input) || parseFloat(input) !== parseInt(input))
-            return false;
+        let values;
+        if (Array.isArray(input)) {
+            values = input;
+        } else {
+            values = [input];
+        }
 
-        let result = parseInt(input, 10);
+        for (let v of values) {
+            if (v === undefined || isNaN(v) || parseFloat(v) !== parseInt(v))
+                return false;
 
-        return !(result > maxValue || result < minValue);
+            let result = parseInt(v, 10);
+
+            if (result < minValue || result > maxValue) return false;
+        }
+
+        return true;
     },
     alphabeticWords: function(input) {
         if (typeof input === 'string') {

@@ -173,4 +173,16 @@ router.get('/:id/behavior', function(req, res, next) {
     runQuery(parameters, queries.getBehavior, res, next);
 });
 
+router.get('/:id/trace', function(req, res, next) {
+    let parameters = [param.sessionId(req.params.id)];
+
+    // `names` is optional
+    if (req.query.names !== undefined && req.query.names.trim() !== '') {
+        let values = _.map(req.query.names.split(','), name => name.trim());
+        parameters.push(param.integerStrict('names', values, 0));
+    }
+
+    runQuery(parameters, queries.getTraces, res, next);
+});
+
 module.exports = router;

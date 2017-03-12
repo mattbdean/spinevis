@@ -33,9 +33,16 @@ module.exports.sessionId = function(value) {
     return new Parameter('id', value, validation.sessionId, invalidError);
 };
 
+/**
+ * Creates a Parameter that will be validated by validation.integerStrict. When
+ * validated, the value will be parsed as a base 10 integer. `value` may be a
+ * string or an array of strings.
+ */
 module.exports.integerStrict = function(name, value, minValue = -Infinity, maxValue = Infinity) {
+    let array = Array.isArray(value);
+
     let invalidError = {
-        msg: `${name} must be an integer in the range [${minValue}, ${maxValue}]`,
+        msg: `${array ? 'Each value in ' : ''}${name} must be an integer in the range [${minValue}, ${maxValue}]`,
         status: 400
     };
     return new Parameter(name, value,
@@ -43,7 +50,7 @@ module.exports.integerStrict = function(name, value, minValue = -Infinity, maxVa
         (paramVal) => validation.integerStrict(value, minValue, maxValue),
         invalidError,
         // Parse as base 10 integer after validating
-        (validatedVal) => parseInt(value, 10)
+        (validatedVal) => array ? _.map(value, v => parseInt(v, 10)) : parseInt(value, 10)
     )
 }
 

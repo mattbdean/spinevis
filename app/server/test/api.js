@@ -204,6 +204,30 @@ describe('API v1', function() {
                 });
             });
         });
+
+        describe(`GET ${routePrefix}/session/:id/trace`, function() {
+            it('should return only trace names when the names paramter is not present', function() {
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    let id = sessions[0]._id;
+                    return request(app)
+                        .get(`${routePrefix}/session/${id}/trace`)
+                        .expect(200);
+                });
+            });
+
+            it('should return actual trace data when requested', function() {
+                let id;
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    id = sessions[0]._id;
+                    return queries.getTraces(id);
+                }).then(function(traceNames) {
+                    let names = traceNames.slice(0, 5);
+                    return request(app)
+                        .get(`${routePrefix}/session/${id}/trace?names=${_.join(names, ',')}`)
+                        .expect(200);
+                });
+            });
+        });
     });
 });
 
