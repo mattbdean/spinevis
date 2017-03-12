@@ -192,4 +192,36 @@ describe('queries', function() {
             });
         });
     });
+
+    describe('getTraces', function() {
+        it('should return only mask names when only provided a session ID', function() {
+            return getFirstSessionId().then(function(id) {
+                return queries.getTraces(id);
+            }).then(function(traceNames) {
+                assert.ok(Array.isArray(traceNames));
+                for (let name of traceNames) {
+                    // Should not be an object, either a Number or a string (if
+                    // we ever transition into string-based IDs)
+                    assert.notEqual(typeof name, 'object');
+                }
+            });
+        });
+
+        it('should return an object mapping mask names to fluorescense values otherwise', function() {
+            let requestedNames;
+            let sessionId;
+            return getFirstSessionId().then(function(id) {
+                sesisonId = id;
+                return queries.getTraces(sessionId);
+            }).then(function(traceNames) {
+                requestedNames = traceNames.slice(0, 5);
+                return queries.getTraces(sessionId, requestedNames);
+            }).then(function(traceData) {
+                assert.strictEqual(requestedNames.length, Object.keys(traceData).length);
+                for (let name of requestedNames) {
+                    assert.notStrictEqual(traceData[name], undefined);
+                }
+            });
+        });
+    });
 });

@@ -10,6 +10,7 @@ let _ = require('lodash');
 const COLL_META = 'meta';
 const COLL_TIME = 'time';
 const COLL_BEHAVIOR = 'behavior';
+const COLL_MASK_TIME_COURSE = 'masktc';
 
 const RESOLUTION_FULL = 100; // 100% = all data
 
@@ -209,12 +210,55 @@ module.exports.getBehavior = function(id, types = []) {
                 return Promise.reject(errorMissing('Some behavior types could not be found', {types: missing}));
             }
 
-            let transformedData = {};
+            return rearrangeByKey(behaviorDocs, 'evtType', 'volNums');
+        });
+};
 
-            for (let doc of behaviorDocs) {
-                transformedData[doc.evtType] = doc.volNums;
+module.exports.getTraces = function(sessionId, traceIds) {
+    let namesOnly = traceIds === undefined || traceIds.length == 0;
+
+    let query = {srcID: sessionId};
+    if (!namesOnly) {
+        let traceIdQuery = [];
+        for (let id of traceIds) {
+            // For each trace ID add a condition to the $or segment
+            traceIdQuery.push({maskNum: id});
+        }
+        query.$or = traceIdQuery;
+    }
+
+    let cursor = db.mongo().collection(COLL_MASK_TIME_COURSE)
+        .find(query);
+    if (namesOnly) {
+        cursor = cursor.project({_id: 0, maskNum: 1});
+    }
+
+    return cursor.toArray().then(function(timeCourseDocs) {
+        if (namesOnly) {
+            return _.map(timeCourseDocs, doc => doc.maskNum);
+        } else {
+            if (timeCourseDocs.length !== traceIds.length) {
+                // Find the IDs that couldn't be found
+                let returned = _.map(timeCourseDocs, t => t.maskNum);
+                let missing = _.filter(traceIds, id => returned.indexOf(id) < 0);
+                return Promise.reject(errorMissing('Some time courses could not be found', {timeCourses: missing}));
             }
 
-            return transformedData;
-        });
+            return rearrangeByKey(timeCourseDocs, 'maskNum', 'maskF');
+        }
+    });
+};
+
+/**
+ * Transforms an array of objects into a single object such that each property
+ * in the object has a key of docs[i][keyName] and a value of docs[i][valueName]
+ */
+let rearrangeByKey = function(docs, keyName, valueName) {
+    let transformedData = {};
+
+    for (let doc of docs) {
+        transformedData[doc[keyName]] = doc[valueName];
+    }
+
+    return transformedData;
 };
