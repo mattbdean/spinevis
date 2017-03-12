@@ -1,4 +1,5 @@
 let moment = require('moment');
+require('moment-duration-format');
 
 module.exports = {
     /**

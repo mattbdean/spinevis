@@ -11,7 +11,8 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: pkg,
         clean: {
-            buildPrep: [build, finalDist]
+            buildPrep: [build, finalDist],
+            testPrep: ['build']
         },
         mochaTest: {
             test: {
@@ -85,9 +86,15 @@ module.exports = function(grunt) {
                 dest: finalDist,
                 expand: true
             },
-            scripts: {
+            config: {
                 cwd: clientBase,
-                src: ['./!(jspm_packages)**/*.js', './*.js'],
+                src: 'config.js',
+                dest: finalDist + 'scripts/',
+                expand: true
+            },
+            scripts: {
+                cwd: clientBase + 'src/',
+                src: ['**/*.js'],
                 dest: finalDist + 'scripts',
                 expand: true
             },
@@ -118,7 +125,7 @@ module.exports = function(grunt) {
         },
         watch: {
             js: {
-                files: ['app/client/*.js', 'app/client/!(build|jspm_packages)/**/*.js'],
+                files: ['app/client/src/**/*.js', 'app/client/config.js'],
                 tasks: ['copy:scripts']
             },
             css: {

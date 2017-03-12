@@ -11,21 +11,18 @@
   },
   "author": "Matthew Dean <deanmatthew16@gmail.com>",
   "dependencies": {
-    "benchmark": "^2.1.3",
     "body-parser": "^1.15.2",
     "bootstrap": "^3.3.7",
-    "browserify-istanbul": "^2.0.0",
-    "browserify-shim": "^3.8.12",
     "express": "^4.14.0",
     "helmet": "^3.1.0",
     "lodash": "^4.17.4",
     "mongodb": "^2.2.11",
     "morgan": "^1.7.0",
-    "pug": "^2.0.0-beta6",
-    "supertest": "^3.0.0"
+    "pug": "^2.0.0-beta6"
   },
   "devDependencies": {
     "angular-mocks": "^1.6.1",
+    "benchmark": "^2.1.3",
     "chai": "^3.5.0",
     "coveralls": "^2.11.15",
     "grunt": "^1.0.1",
@@ -43,13 +40,12 @@
     "grunt-run": "^0.6.0",
     "jspm": "^0.16.52",
     "karma": "^1.3.0",
-    "karma-browserify": "^5.1.0",
     "karma-chrome-launcher": "^2.0.0",
     "karma-coverage": "^1.1.1",
-    "karma-es6-shim": "^1.0.0",
     "karma-firefox-launcher": "^1.0.0",
+    "karma-jspm": "^2.2.2",
     "karma-mocha": "^1.3.0",
-    "karma-phantomjs-launcher": "^1.0.2",
+    "karma-mocha-reporter": "^2.2.2",
     "mocha": "^3.1.2",
     "mocha-lcov-reporter": "^1.2.0",
     "supertest": "^3.0.0"
@@ -61,6 +57,7 @@
     "dependencies": {
       "angular": "npm:angular@^1.6.2",
       "angular-resource": "npm:angular-resource@^1.6.2",
+      "chai": "npm:chai@^3.5.0",
       "jquery": "npm:jquery@^3.1.1",
       "lodash": "npm:lodash@^4.17.4",
       "moment": "npm:moment@^2.17.1",

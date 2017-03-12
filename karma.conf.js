@@ -10,13 +10,12 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha', 'browserify'],
+    frameworks: ['jspm', 'mocha'],
 
 
     // list of non-CommonJS files / patterns to load in the browser
-    files: [
-        '**/*.spec.js'
-    ],
+    // NB: Specify source files for JSPM in jspm.loadFiles
+    files: [],
 
 
     // list of files to exclude
@@ -27,19 +26,19 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-        '**/*.js': ['browserify']
+        'src/**/*.js': ['coverage']
     },
 
-    browserify: {
-        debug: true,
-        transform: ['browserify-istanbul']
-    },
 
+    jspm: {
+        loadFiles: ['test/**/*.js'],
+        serveFiles: ['src/**/*.js']
+    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress', 'coverage'],
+    reporters: ['progress', 'coverage', 'mocha'],
 
 
     coverageReporter: {
@@ -79,6 +78,6 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultaneous
-    concurrency: Infinity
+    concurrency: Infinity,
   })
 }

@@ -66,5 +66,7 @@ module.exports.squeeze = function(ranges, fit) {
 }
 
 module.exports.create = function(start, end) {
-    return {start: start, end: end};
+    let first = Math.min(start, end);
+    let last = Math.max(start, end);
+    return {start: first, end: last};
 }
