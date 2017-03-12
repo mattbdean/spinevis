@@ -81,7 +81,7 @@ describe('queries', function() {
     describe('getTimeline()', function() {
         it('should return an object mapping traces to arrays of indexes to display', function() {
             return getFirstSessionId().then(function(id) {
-                return queries.getTimeline(id);
+                return queries.getTimeline(id, 'global');
             }).then(function(timelineData) {
                 assert.strictEqual(typeof timelineData, 'object');
 
@@ -103,6 +103,25 @@ describe('queries', function() {
             });
         });
 
+        it('should return multiple traces when asked', function() {
+            let id;
+            let traceNames;
+            return getFirstSessionId().then(function(sessionId) {
+                id = sessionId;
+                return queries.getTraces(id);
+            }).then(function(names) {
+                traceNames = names.slice(0, 2);
+                return queries.getTimeline(id, traceNames);
+            }).then(function(timelineData) {
+                let returnedNames = Object.keys(timelineData.traces);
+                assert.strictEqual(returnedNames.length, traceNames.length);
+
+                for (let name of traceNames) {
+                    assert.ok(Array.isArray(timelineData.traces[name]))
+                }
+            });
+        });
+
         it('should return a percentage of the raw timeline', function() {
             let actualSamples, expectedSamples, resolution = 25;
 
@@ -111,7 +130,7 @@ describe('queries', function() {
                 actualSamples = session.nSamples;
                 expectedSamples = Math.floor(actualSamples / (100 / resolution));
 
-                return queries.getTimeline(session._id, resolution);
+                return queries.getTimeline(session._id, 'global', resolution);
             }).then(function(timelineData) {
                 assert.strictEqual(timelineData.start, 0);
 
@@ -130,7 +149,7 @@ describe('queries', function() {
             let expectedSamples = end - start;
 
             return getFirstSessionId().then(function(id) {
-                return queries.getTimeline(id, 100, start, end);
+                return queries.getTimeline(id, 'global', 100, start, end);
             }).then(function(timelineData) {
                 assert.strictEqual(timelineData.start, start);
                 assert.strictEqual(timelineData.end, end);

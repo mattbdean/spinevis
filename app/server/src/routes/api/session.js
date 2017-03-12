@@ -115,10 +115,36 @@ router.get('/:id', function(req, res, next) {
     runQuery([param.sessionId(req.params.id)], queries.getSessionMeta, res, next);
 });
 
+let validateTraceNames = function(input) {
+    for (let name of input) {
+        if (name !== 'global' && !validation.integerStrict(name)) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
+let postProcessTraceNames = function(input) {
+    return _.map(input, i => i !== 'global' ? parseInt(i, 10) : 'global');
+}
+
 // Get timeline data
 router.get('/:id/timeline', function(req, res, next) {
     let parameters = [param.sessionId(req.params.id)];
     let contracts = [];
+
+    if (req.query.traceNames !== undefined && req.query.traceNames.trim() !== '') {
+        parameters.push(new Parameter(
+            'traceNames',
+            _.map(req.query.traceNames.split(','), t => t.trim()),
+            validateTraceNames,
+            {msg: 'Invalid trace names', status: 400},
+            postProcessTraceNames
+        ));
+    } else {
+        parameters.push(param.defaultValue('traceNames', ['global']));
+    }
 
     // Optional query parameter
     if (req.query.resolution !== undefined && req.query.resolution.trim() !== '') {

@@ -111,5 +111,5 @@ module.exports = {
     },
     enumerated: function(possibleValues, input) {
         return possibleValues.includes(input);
-    }
+    },
 };

@@ -106,6 +106,8 @@ module.exports.sessionExists = function(id) {
  * Returns an object mapping the name of the trace to the indexes and values
  * that should be displayed.
  * @param  {string} id         Session ID to fetch timeline for
+ * @param  {array} traceNames  Array of trace names to fetch. Can be a string
+ *                             to fetch only that particular trace.
  * @param  {Number} resolution Percentage of data to show. resolution = 10
  *                             would display the maximum of every 10 samples,
  *                             resolution = 25 would display max of every 4, etc.
@@ -115,64 +117,85 @@ module.exports.sessionExists = function(id) {
  *                             are arrays containg the indexes of the imaging
  *                             events to keep.
  */
-module.exports.getTimeline = function(id, resolution = RESOLUTION_FULL, start, end) {
-    return db.mongo().collection(COLL_META)
-        .find({_id: id})
-        .project({globalTC: 1, nSamples: 1, _id: 0})
-        .limit(1)
+module.exports.getTimeline = function(id, traceNames = ['global'], resolution = RESOLUTION_FULL, start, end) {
+    if (typeof traceNames === 'string')
+        traceNames = [traceNames];
+
+    return db.mongo().collection(COLL_MASK_TIME_COURSE)
+        .find({srcID: id, $or: createDynamicQuerySegment('maskNum', traceNames)})
+        .project({_id: 0, maskNum: 1, maskF: 1})
         .toArray()
         .then(function(results) {
-            if (results.length === 1) {
-                let session = results[0];
-                let rawTimeline = session.globalTC;
-
-                if (start === undefined || start < 0) start = 0;
-                if (end === undefined || end >= rawTimeline.length) end = rawTimeline.length - 1;
-
-                rawTimeline = _.slice(rawTimeline, start, end);
-
-                let downsampled;
-
-                // Make sure we're dealing with integers
-                resolution = Math.floor(resolution);
-
-                if (resolution < RESOLUTION_FULL) {
-                    if (resolution < 1) resolution = 1;
-                    // Break up the timeline data into chunks, which we will
-                    // find the maximum value of and then append that index to
-                    // the downsampled array.
-
-                    // 50% res = chunk size of 2, 25% res = chunk size of 4, etc.
-                    let chunkSize = RESOLUTION_FULL / resolution;
-                    let chunks = _.chunk(rawTimeline, chunkSize);
-                    downsampled = [];
-
-                    for (let i = 0; i < chunks.length; i++) {
-                        // Find the index within this chumk of the maximum value
-                        // of this chunk
-                        let localIndex = _.indexOf(chunks[i], _.max(chunks[i]));
-                        // Calculate the index of this maximum value in reference
-                        // to the full resolution timeline
-                        let globalIndex = (i * chunkSize) + localIndex;
-                        downsampled.push(globalIndex);
-                    }
-                } else {
-                    downsampled = _.range(rawTimeline.length)
-                }
-
-                return {
-                    start: start,
-                    end: end,
-                    sampleSize: rawTimeline.length,
-                    actualSize: downsampled.length,
-                    traces: {
-                        global: downsampled
-                    }
-                };
+            if (results.length !== traceNames.length) {
+                // Identify the traces that could not be found
+                let returned = _.map(results, r => r.maskNum);
+                let missing = _.filter(traceNames, n => returned.indexOf(n) < 0);
+                return Promise.reject(errorMissing('Some mask names could not be found', {traceNames: missing}));
             }
 
-            return Promise.reject(errorMissing(`No timeline for ID '${id}'`, {id: id}));
+            return downsampleTimelines(results, resolution, start, end);
         });
+
+};
+
+let downsampleTimelines = function(inputDocs, resolution, start, end) {
+    if (start === undefined || start < 0) start = 0;
+
+    // end, sampleSize, and actualSize are set when the first trace is downsampled
+    let downsampledData = {
+        start: start,
+        end: null,
+        sampleSize: null,
+        actualSize: null,
+        traces: {} // Append when each trace is downsampled
+    }
+
+    for (let input of inputDocs) {
+        if (end === undefined || end >= input.maskF.length) end = input.maskF.length - 1;
+        if (downsampledData.end === null)
+            downsampledData.end = end;
+
+        let rawTimeline = _.slice(input.maskF, start, end);
+
+        let downsampled;
+
+        // Make sure we're dealing with integers
+        resolution = Math.floor(resolution);
+
+        if (resolution < RESOLUTION_FULL) {
+            // Prevent 0% or negative resolutions
+            if (resolution < 1) resolution = 1;
+            // Break up the timeline data into chunks, which we will
+            // find the maximum value of and then append that index to
+            // the downsampled array.
+
+            // 50% res = chunk size of 2, 25% res = chunk size of 4, etc.
+            let chunkSize = RESOLUTION_FULL / resolution;
+            let chunks = _.chunk(rawTimeline, chunkSize);
+            downsampled = [];
+
+            for (let i = 0; i < chunks.length; i++) {
+                // Find the index within this chumk of the maximum value
+                // of this chunk
+                let localIndex = _.indexOf(chunks[i], _.max(chunks[i]));
+                // Calculate the index of this maximum value in reference
+                // to the full resolution timeline
+                let globalIndex = (i * chunkSize) + localIndex;
+                downsampled.push(globalIndex);
+            }
+        } else {
+            downsampled = _.range(rawTimeline.length)
+        }
+
+        // Add result to the return object
+        downsampledData.traces[input.maskNum] = downsampled;
+        if (downsampledData.sampleSize === null)
+            downsampledData.sampleSize = downsampled.length;
+        if (downsampledData.actualSize === null)
+            downsampledData.actualSize = rawTimeline.length;
+    }
+
+    return downsampledData;
 };
 
 /**
@@ -189,14 +212,7 @@ module.exports.getBehavior = function(id, types = []) {
     // $or operators cannot contain an empty array
     if (types.length > 0) {
         // Generate an $or query based on the event types given
-        let typeQuery = [];
-        for (let type of types) {
-            // For each event add a condition to the query that matches evtType to
-            // the given type
-            typeQuery.push({evtType: {$eq: type}});
-        }
-
-        query.$or = typeQuery;
+        query.$or = createDynamicQuerySegment('evtType', types);
     }
 
     return db.mongo().collection(COLL_BEHAVIOR)
@@ -219,12 +235,7 @@ module.exports.getTraces = function(sessionId, traceIds) {
 
     let query = {srcID: sessionId};
     if (!namesOnly) {
-        let traceIdQuery = [];
-        for (let id of traceIds) {
-            // For each trace ID add a condition to the $or segment
-            traceIdQuery.push({maskNum: id});
-        }
-        query.$or = traceIdQuery;
+        query.$or = createDynamicQuerySegment('maskNum', traceIds);
     }
 
     let cursor = db.mongo().collection(COLL_MASK_TIME_COURSE)
@@ -248,6 +259,15 @@ module.exports.getTraces = function(sessionId, traceIds) {
         }
     });
 };
+
+let createDynamicQuerySegment = function(key, values) {
+    let segments = [];
+    for (let val of values) {
+        segments.push({[key]: val});
+    }
+
+    return segments;
+}
 
 /**
  * Transforms an array of objects into a single object such that each property
