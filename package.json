@@ -7,7 +7,6 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "postinstall": "node_modules/.bin/grunt build",
     "start": "node server --use-strict"
   },
   "author": "Matthew Dean <deanmatthew16@gmail.com>",
@@ -42,7 +41,6 @@
     "grunt-mocha-istanbul": "^5.0.2",
     "grunt-mocha-test": "^0.13.2",
     "grunt-run": "^0.6.0",
-    "grunt-systemjs-builder": "^0.2.7",
     "jspm": "^0.16.52",
     "karma": "^1.3.0",
     "karma-browserify": "^5.1.0",

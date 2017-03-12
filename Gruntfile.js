@@ -72,22 +72,6 @@ module.exports = function(grunt) {
                 }
             }
         },
-        systemjs: {
-            options: {
-                sfx: true,
-                configFile: clientBase + 'config.js',
-                // minify: true, // uncommenting breaks build
-                sourceMaps: true,
-                format: 'cjs',
-                baseURL: clientBase
-            },
-            dist: {
-                files: [{
-                    src: 'app.module.js',
-                    dest: path.join(build, 'scripts/app.min.js')
-                }]
-            }
-        },
         copy: {
             fonts: {
                 cwd: 'node_modules/bootstrap/dist/fonts/',
@@ -102,9 +86,15 @@ module.exports = function(grunt) {
                 expand: true
             },
             scripts: {
-                cwd: build + 'scripts',
-                src: '**',
+                cwd: clientBase,
+                src: ['./!(jspm_packages)**/*.js', './*.js'],
                 dest: finalDist + 'scripts',
+                expand: true
+            },
+            jspm: {
+                cwd: clientBase + 'jspm_packages/',
+                src: '**',
+                dest: finalDist + 'scripts/jspm_packages/',
                 expand: true
             },
             style: {
@@ -128,8 +118,8 @@ module.exports = function(grunt) {
         },
         watch: {
             js: {
-                files: ['app/client/*.js', 'app/client/!(build)/**/*.js'],
-                tasks: ['systemjs', 'copy:scripts']
+                files: ['app/client/*.js', 'app/client/!(build|jspm_packages)/**/*.js'],
+                tasks: ['copy:scripts']
             },
             css: {
                 files: ['./app/client/_assets/style/*.css'],
@@ -231,8 +221,7 @@ module.exports = function(grunt) {
         'lcov-merge',
         'mocha-test',
         'mocha-istanbul',
-        'run',
-        'systemjs-builder'
+        'run'
     ];
 
     for (var i = 0; i < tasks.length; i++) {
@@ -243,5 +232,5 @@ module.exports = function(grunt) {
     grunt.registerTask('test', ['mochaTest', 'karma']);
     grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
-    grunt.registerTask('build', ['clean:buildPrep', 'systemjs', 'cssmin', 'pug', 'copy']);
+    grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'copy']);
 };

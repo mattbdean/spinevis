@@ -12,9 +12,11 @@ html(ng-app=appName)
         block stylesheets
             link(href="https://fonts.googleapis.com/css?family=Roboto|Ubuntu+Mono" rel="stylesheet")
 
-
         block scripts
-            script(src='/scripts/app.min.js')
+            script(src='/scripts/jspm_packages/system.js')
+            script(src='/scripts/config.js')
+            script.
+                System.import('/scripts/app.module.js');
 
 
     body

@@ -1,4 +1,5 @@
 System.config({
+  baseURL: "/scripts",
   defaultJSExtensions: true,
   transpiler: "babel",
   babelOptions: {
@@ -10,6 +11,96 @@ System.config({
   paths: {
     "github:*": "jspm_packages/github/*",
     "npm:*": "jspm_packages/npm/*"
+  },
+
+  depCache: {
+    "app.module.js": [
+      "angular",
+      "./session-vis/session-vis.module.js",
+      "./session-list/session-list.module.js"
+    ],
+    "npm:angular@1.6.2.js": [
+      "npm:angular@1.6.2/angular"
+    ],
+    "session-vis/session-vis.module.js": [
+      "angular",
+      "../core/core.module.js",
+      "./session-vis.component.js"
+    ],
+    "session-list/session-list.module.js": [
+      "angular",
+      "./session-list.component.js"
+    ],
+    "core/core.module.js": [
+      "angular"
+    ],
+    "session-vis/session-vis.component.js": [
+      "moment",
+      "moment-duration-format",
+      "jquery",
+      "lodash",
+      "./trace-manager.js",
+      "../core/util.js",
+      "../core/session.js"
+    ],
+    "session-list/session-list.component.js": [
+      "../core/util.js",
+      "moment",
+      "numeral",
+      "lodash",
+      "../core/session.js"
+    ],
+    "npm:lodash@4.17.4.js": [
+      "npm:lodash@4.17.4/lodash.js"
+    ],
+    "npm:moment@2.17.1.js": [
+      "npm:moment@2.17.1/moment.js"
+    ],
+    "npm:jquery@3.1.1.js": [
+      "npm:jquery@3.1.1/dist/jquery.js"
+    ],
+    "core/util.js": [
+      "moment"
+    ],
+    "npm:moment-duration-format@1.3.0.js": [
+      "npm:moment-duration-format@1.3.0/lib/moment-duration-format.js"
+    ],
+    "core/session.js": [
+      "lodash"
+    ],
+    "session-vis/trace-manager.js": [
+      "lodash",
+      "uuid",
+      "./range.js",
+      "../core/session.js"
+    ],
+    "npm:numeral@2.0.4.js": [
+      "npm:numeral@2.0.4/numeral.js"
+    ],
+    "npm:lodash@4.17.4/lodash.js": [
+      "@empty"
+    ],
+    "npm:moment-duration-format@1.3.0/lib/moment-duration-format.js": [
+      "moment"
+    ],
+    "npm:uuid@3.0.1.js": [
+      "npm:uuid@3.0.1/index"
+    ],
+    "session-vis/range.js": [
+      "lodash"
+    ],
+    "npm:uuid@3.0.1/index.js": [
+      "./v1",
+      "./v4"
+    ],
+    "npm:uuid@3.0.1/v1.js": [
+      "./lib/rng-browser",
+      "./lib/bytesToUuid"
+    ],
+    "npm:uuid@3.0.1/v4.js": [
+      "./lib/rng-browser",
+      "./lib/bytesToUuid"
+    ]
   },
 
   map: {
