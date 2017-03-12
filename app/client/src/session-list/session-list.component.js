@@ -3,8 +3,6 @@ let moment = require('moment');
 let numeral = require('numeral');
 let _ = require('lodash');
 
-const outputDateFormat = 'D MMMM YYYY';
-
 let ctrlDef = ['$http', function($http) {
     let session = require('../core/session.js')($http);
     let $ctrl = this;
@@ -19,9 +17,9 @@ let ctrlDef = ['$http', function($http) {
 
             // Add new property 'duration', difference between start and end
             // time formatted in the format 'h:mm'
-            sessions[i].duration = util.formatDifference(s.start_time, s.end_time);
+            sessions[i].duration = util.format.duration(s.start_time, s.end_time);
             // Format start time as a date, eg. 6 January 2016
-            sessions[i].start_time = moment(s.start_time).format(outputDateFormat);
+            sessions[i].start_time = util.format.date(s.start_time);
             // Reduce the amount of significant figures in nSamples, format with
             // 'k' at end. "54645" => "55k"
             sessions[i].nSamples = numeral(s.nSamples).format('0a');

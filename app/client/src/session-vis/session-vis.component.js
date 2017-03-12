@@ -1,5 +1,4 @@
 let moment = require('moment');
-require('moment-duration-format');
 let $ = require('jquery');
 let _ = require('lodash');
 
@@ -59,12 +58,12 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
         $ctrl.sessionMeta = result.data.data;
 
         // Grab specific elements from the session metadata to display at the top
-        $ctrl.sessionFormattedMeta = {
-            Run: $ctrl.sessionMeta.Run,
-            Animal: $ctrl.sessionMeta.Animal,
-            ["Start time"]: $ctrl.sessionMeta.start_time,
-            Length: util.formatDifference($ctrl.sessionMeta.start_time, $ctrl.sessionMeta.end_time)
-        };
+        $ctrl.sessionFormattedMeta = [
+            'Animal ' + $ctrl.sessionMeta.Animal,
+            util.format.dateTime($ctrl.sessionMeta.start_time),
+            util.format.duration($ctrl.sessionMeta.start_time, $ctrl.sessionMeta.end_time),
+            'Run ' + $ctrl.sessionMeta.Run
+        ];
 
         initTimeline();
 
