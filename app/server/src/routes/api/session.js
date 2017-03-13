@@ -204,8 +204,13 @@ router.get('/:id/trace', function(req, res, next) {
 
     // `names` is optional
     if (req.query.names !== undefined && req.query.names.trim() !== '') {
-        let values = _.map(req.query.names.split(','), name => name.trim());
-        parameters.push(param.integerStrict('names', values, 0));
+        parameters.push(new Parameter(
+            'names',
+            _.map(req.query.names.split(','), n => n.trim()),
+            validateTraceNames,
+            {msg: 'Invalid trace names', status: 400},
+            postProcessTraceNames
+        ))
     }
 
     runQuery(parameters, queries.getTraces, res, next);
