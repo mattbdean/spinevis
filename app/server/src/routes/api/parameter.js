@@ -51,8 +51,8 @@ module.exports.integerStrict = function(name, value, minValue = -Infinity, maxVa
         invalidError,
         // Parse as base 10 integer after validating
         (validatedVal) => array ? _.map(value, v => parseInt(v, 10)) : parseInt(value, 10)
-    )
-}
+    );
+};
 
 module.exports.defaultValue = function(name, value) {
     return new Parameter(name, value,
@@ -60,7 +60,7 @@ module.exports.defaultValue = function(name, value) {
         () => true,
         {msg: 'you shouldn\'t ever see this', status: 418}
     );
-}
+};
 
 /**
  * Defines a contract between two parameters.
@@ -82,11 +82,11 @@ function Contract(p1Name, p2Name, verify, messageOnBroken, statusOnBroken = 400)
     this.apply = function(params) {
         let p1 = _.find(params, p => p.name === this.p1Name);
         if (p1 === null)
-            throw new Error(`could not find parameter '${this.p1Name}'`)
+            throw new Error(`could not find parameter '${this.p1Name}'`);
 
         let p2 = _.find(params, p => p.name === this.p2Name);
         if (p2 === null)
-            throw new Error(`could not find parameter '${this.p2Name}'`)
+            throw new Error(`could not find parameter '${this.p2Name}'`);
 
         this.valid = verify(p1.value, p2.value);
         if (!this.valid) {
@@ -97,7 +97,7 @@ function Contract(p1Name, p2Name, verify, messageOnBroken, statusOnBroken = 400)
                     [p1Name]: p1.value,
                     [p2Name]: p2.value
                 }
-            }
+            };
         }
     };
 }

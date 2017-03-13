@@ -24,7 +24,7 @@ module.exports.merge = function(ranges) {
     }
 
     return merged;
-}
+};
 
 /**
  * Checks if small can be completely encompassed within big, where big and small
@@ -32,7 +32,7 @@ module.exports.merge = function(ranges) {
  */
 module.exports.contained = function(big, small) {
     return big.start < small.start && big.end > small.end;
-}
+};
 
 /**
  * Returns a range object that will squeeze into ranges such that
@@ -63,10 +63,10 @@ module.exports.squeeze = function(ranges, fit) {
     }
 
     return fit;
-}
+};
 
 module.exports.create = function(start, end) {
     let first = Math.min(start, end);
     let last = Math.max(start, end);
     return {start: first, end: last};
-}
+};

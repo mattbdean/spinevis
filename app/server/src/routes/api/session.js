@@ -127,7 +127,7 @@ let validateTraceNames = function(input) {
 
 let postProcessTraceNames = function(input) {
     return _.map(input, i => i !== 'global' ? parseInt(i, 10) : 'global');
-}
+};
 
 // Get timeline data
 router.get('/:id/timeline', function(req, res, next) {

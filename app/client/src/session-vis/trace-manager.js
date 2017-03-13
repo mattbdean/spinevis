@@ -127,7 +127,7 @@ module.exports.TraceManager = class TraceManager {
             });
         }
     }
-}
+};
 
 /**
  * Tries to determine the best range of data to request at one time from the
@@ -161,7 +161,7 @@ let determineRequestRange = function(traces, threshold, startIndex, endIndex) {
 
     // Exclude the data that we already have so nothing gets requested twice
     return range.squeeze(variation.ranges, range.create(startIndex, endIndex));
-}
+};
 
 let identifyThresh = function(visibleDomain, thresholds) {
     let thresh = thresholds[0];
@@ -203,7 +203,7 @@ let convertDomain = function(relTimes, startMillis, endMillis) {
     }
 
     return converted;
-}
+};
 
 let requestFreshTraces = function(session, sessionId, relTimes, resolution, startIndex, endIndex) {
     return session.timeline(sessionId, resolution, startIndex, endIndex).then(function(response) {
@@ -227,7 +227,7 @@ let applyThreshold = function(plotNode, traces, threshold) {
             Plotly.redraw(plotNode);
         }
     }
-}
+};
 
 let createOrUpdateTrace = function(prevTrace, uuid, name, sessionStart, relTimes, fluorData, indexes, offset = 0) {
     let trace = prevTrace;
@@ -283,7 +283,7 @@ let inexactBinarySearch = function(list, item) {
     // we're doing an inexact binary search, we know the value of item
     // is less than list[guess], so return guess - 1
     return guess === 0 ? 0 : guess - 1;
-}
+};
 
 /** Offset in milliseconds of timezone */
 let timezoneOffsetMillis = new Date().getTimezoneOffset() * 60 * 1000;

@@ -2,7 +2,7 @@ let _ = require('lodash');
 
 module.exports = function($http) {
     return new SessionApiImpl($http);
-}
+};
 
 class SessionApiImpl {
     constructor($http) {

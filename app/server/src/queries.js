@@ -148,7 +148,7 @@ let downsampleTimelines = function(inputDocs, resolution, start, end) {
         sampleSize: null,
         actualSize: null,
         traces: {} // Append when each trace is downsampled
-    }
+    };
 
     for (let input of inputDocs) {
         if (end === undefined || end >= input.maskF.length) end = input.maskF.length - 1;
@@ -184,7 +184,7 @@ let downsampleTimelines = function(inputDocs, resolution, start, end) {
                 downsampled.push(globalIndex);
             }
         } else {
-            downsampled = _.range(rawTimeline.length)
+            downsampled = _.range(rawTimeline.length);
         }
 
         // Add result to the return object
@@ -231,7 +231,7 @@ module.exports.getBehavior = function(id, types = []) {
 };
 
 module.exports.getTraces = function(sessionId, traceIds) {
-    let namesOnly = traceIds === undefined || traceIds.length == 0;
+    let namesOnly = traceIds === undefined || traceIds.length === 0;
 
     let query = {srcID: sessionId};
     if (!namesOnly) {
@@ -267,7 +267,7 @@ let createDynamicQuerySegment = function(key, values) {
     }
 
     return segments;
-}
+};
 
 /**
  * Transforms an array of objects into a single object such that each property
