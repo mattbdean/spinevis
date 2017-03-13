@@ -1,5 +1,5 @@
 doctype html
-html(ng-app=appName)
+html
     head
         //- These 3 <meta> headers must come first
         meta(charset='utf-8')
@@ -16,7 +16,9 @@ html(ng-app=appName)
             script(src='/scripts/jspm_packages/system.js')
             script(src='/scripts/config.js')
             script.
-                System.import('/scripts/app.module.js');
+                System.import('/scripts/app.module.js').then(function() {
+                    angular.bootstrap(document, ['spinevis'])
+                });
 
 
     body
