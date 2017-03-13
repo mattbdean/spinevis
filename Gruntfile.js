@@ -125,7 +125,7 @@ module.exports = function(grunt) {
         },
         watch: {
             js: {
-                files: ['app/client/src/**/*.js', 'app/client/config.js'],
+                files: ['app/client/src/**/*.js'],
                 tasks: ['copy:scripts']
             },
             css: {
@@ -139,6 +139,10 @@ module.exports = function(grunt) {
             raw: {
                 files: ['app/client/_assets/raw/**/*'],
                 tasks: ['copy:rawAssets']
+            },
+            jspmConfig: {
+                files: ['app/client/config.js'],
+                tasks: ['copy:config', 'copy:jspm']
             }
         },
         run: {
