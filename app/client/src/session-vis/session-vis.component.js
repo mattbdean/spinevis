@@ -32,6 +32,9 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
     let registerCallbacks = function() {
         traceManager.init();
 
+        // Define our global trace
+        traceManager.putTrace('global', 'Global Fluorescence');
+
         timelineNode.on('plotly_relayout', function(evt) {
             if (evt['xaxis.autorange'] && evt['xaxis.autorange'] === true) {
                 // User has reset axes (at least the x-axis)
@@ -87,9 +90,6 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
                 }
             ]
         );
-
-        // Define our global trace
-        traceManager.putTrace('global', 'Global Fluorescence');
 
         // Keep track of the minimum y-axis value
         $ctrl.minGlobalF = _.min($ctrl.sessionMeta.globalTC);
