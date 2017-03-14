@@ -123,10 +123,10 @@ describe('queries', function() {
         });
     });
 
-    describe('getTraces', function() {
+    describe('getTimeline()', function() {
         it('should return only mask names when only provided a session ID', function() {
             return getFirstSessionId().then(function(id) {
-                return queries.getTraces(id);
+                return queries.getTimeline(id);
             }).then(function(traceNames) {
                 assert.ok(Array.isArray(traceNames));
                 for (let name of traceNames) {
@@ -142,10 +142,10 @@ describe('queries', function() {
             let sessionId;
             return getFirstSessionId().then(function(id) {
                 sesisonId = id;
-                return queries.getTraces(sessionId);
+                return queries.getTimeline(sessionId);
             }).then(function(traceNames) {
                 requestedNames = traceNames.slice(0, 5);
-                return queries.getTraces(sessionId, requestedNames);
+                return queries.getTimeline(sessionId, requestedNames);
             }).then(function(traceData) {
                 assert.strictEqual(requestedNames.length, Object.keys(traceData).length);
                 for (let name of requestedNames) {

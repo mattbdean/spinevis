@@ -19,24 +19,14 @@ class SessionApiImpl {
         return this.$http.get(`${this.baseUrl}/${id}`);
     }
 
-    timeline(id, resolution = 100, start, end) {
-        let query = 'resolution=' + resolution;
-
-        if (start !== undefined && end !== undefined) {
-            query += `&start=${start}&end=${end}`;
-        }
-
-        return this.$http.get(`${this.baseUrl}/${id}/timeline?${query}`);
-    }
-
     behavior(id, types) {
         let query = types === undefined ? '' : '?' + _.join(types, ',');
         return this.$http.get(`${this.baseUrl}/${id}/behavior${query}`);
     }
 
-    traces(id, names = []) {
+    timeline(id, names = []) {
         // If `names` is not present in the query
         let query = names.length > 0 ? '?names=' + _.join(names, ',') : '';
-        return this.$http.get(`${this.baseUrl}/${id}/trace${query}`);
+        return this.$http.get(`${this.baseUrl}/${id}/timeline${query}`);
     }
 }

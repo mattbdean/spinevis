@@ -139,12 +139,12 @@ describe('API v1', function() {
             });
         });
 
-        describe(`GET ${routePrefix}/session/:id/trace`, function() {
+        describe(`GET ${routePrefix}/session/:id/timeline`, function() {
             it('should return only trace names when the names paramter is not present', function() {
                 return queries.findAllSessions(0, 1).then(function(sessions) {
                     let id = sessions[0]._id;
                     return request(app)
-                        .get(`${routePrefix}/session/${id}/trace`)
+                        .get(`${routePrefix}/session/${id}/timeline`)
                         .expect(200);
                 });
             });
@@ -153,11 +153,11 @@ describe('API v1', function() {
                 let id;
                 return queries.findAllSessions(0, 1).then(function(sessions) {
                     id = sessions[0]._id;
-                    return queries.getTraces(id);
+                    return queries.getTimeline(id);
                 }).then(function(traceNames) {
                     let names = traceNames.slice(0, 5);
                     return request(app)
-                        .get(`${routePrefix}/session/${id}/trace?names=${_.join(names, ',')}`)
+                        .get(`${routePrefix}/session/${id}/timeline?names=${_.join(names, ',')}`)
                         .expect(200);
                 });
             });

@@ -115,20 +115,6 @@ router.get('/:id', function(req, res, next) {
     runQuery([param.sessionId(req.params.id)], queries.getSessionMeta, res, next);
 });
 
-let validateTraceNames = function(input) {
-    for (let name of input) {
-        if (name !== 'global' && !validation.integerStrict(name)) {
-            return false;
-        }
-    }
-
-    return true;
-};
-
-let postProcessTraceNames = function(input) {
-    return _.map(input, i => i !== 'global' ? parseInt(i, 10) : 'global');
-};
-
 router.get('/:id/behavior', function(req, res, next) {
     let parameters = [param.sessionId(req.params.id)];
 
@@ -144,7 +130,7 @@ router.get('/:id/behavior', function(req, res, next) {
     runQuery(parameters, queries.getBehavior, res, next);
 });
 
-router.get('/:id/trace', function(req, res, next) {
+router.get('/:id/timeline', function(req, res, next) {
     let parameters = [param.sessionId(req.params.id)];
 
     // `names` is optional
@@ -158,7 +144,21 @@ router.get('/:id/trace', function(req, res, next) {
         ))
     }
 
-    runQuery(parameters, queries.getTraces, res, next);
+    runQuery(parameters, queries.getTimeline, res, next);
 });
+
+let validateTraceNames = function(input) {
+    for (let name of input) {
+        if (name !== 'global' && !validation.integerStrict(name)) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
+let postProcessTraceNames = function(input) {
+    return _.map(input, i => i !== 'global' ? parseInt(i, 10) : 'global');
+};
 
 module.exports = router;

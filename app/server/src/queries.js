@@ -134,7 +134,7 @@ module.exports.getBehavior = function(id, types = []) {
         });
 };
 
-module.exports.getTraces = function(sessionId, traceIds) {
+module.exports.getTimeline = function(sessionId, traceIds) {
     let namesOnly = traceIds === undefined || traceIds.length === 0;
 
     let query = {srcID: sessionId};

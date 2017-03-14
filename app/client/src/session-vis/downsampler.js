@@ -12,7 +12,7 @@ module.exports = class Downsampler {
 
     process(traceName, resolutions) {
         let self = this;
-        return this.session.traces(sessionId, [traceName]).then(function(fullRes) {
+        return this.session.timeline(sessionId, [traceName]).then(function(fullRes) {
             return downsample(self.relTimes, fullRes.data.data[traceName], traceName, resolutions);
         });
     }
