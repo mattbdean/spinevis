@@ -138,19 +138,17 @@ describe('queries', function() {
         });
 
         it('should return an object mapping mask names to fluorescense values otherwise', function() {
-            let requestedNames;
+            let requestedName;
             let sessionId;
             return getFirstSessionId().then(function(id) {
-                sesisonId = id;
+                sessionId = id;
                 return queries.getTimeline(sessionId);
             }).then(function(traceNames) {
-                requestedNames = traceNames.slice(0, 5);
-                return queries.getTimeline(sessionId, requestedNames);
+                requestedName = traceNames[0];
+                return queries.getTimeline(sessionId, requestedName);
             }).then(function(traceData) {
-                assert.strictEqual(requestedNames.length, Object.keys(traceData).length);
-                for (let name of requestedNames) {
-                    assert.notStrictEqual(traceData[name], undefined);
-                }
+                assert.strictEqual(Object.keys(traceData).length, 1);
+                assert.notStrictEqual(traceData[requestedName], undefined);
             });
         });
     });

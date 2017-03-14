@@ -24,9 +24,9 @@ class SessionApiImpl {
         return this.$http.get(`${this.baseUrl}/${id}/behavior${query}`);
     }
 
-    timeline(id, names = []) {
+    timeline(id, name) {
         // If `names` is not present in the query
-        let query = names.length > 0 ? '?names=' + _.join(names, ',') : '';
+        let query = name !== undefined ? '?name=' + name : '';
         return this.$http.get(`${this.baseUrl}/${id}/timeline${query}`);
     }
 }

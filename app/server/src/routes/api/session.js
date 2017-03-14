@@ -134,10 +134,10 @@ router.get('/:id/timeline', function(req, res, next) {
     let parameters = [param.sessionId(req.params.id)];
 
     // `names` is optional
-    if (req.query.names !== undefined && req.query.names.trim() !== '') {
+    if (req.query.name !== undefined && req.query.name.trim() !== '') {
         parameters.push(new Parameter(
             'names',
-            _.map(req.query.names.split(','), n => n.trim()),
+            req.query.name,
             validateTraceNames,
             {msg: 'Invalid trace names', status: 400},
             postProcessTraceNames
@@ -148,17 +148,11 @@ router.get('/:id/timeline', function(req, res, next) {
 });
 
 let validateTraceNames = function(input) {
-    for (let name of input) {
-        if (name !== 'global' && !validation.integerStrict(name)) {
-            return false;
-        }
-    }
-
-    return true;
+    return input === 'global' || validation.integerStrict(name);
 };
 
 let postProcessTraceNames = function(input) {
-    return _.map(input, i => i !== 'global' ? parseInt(i, 10) : 'global');
+    return input === 'global' ? 'global' : parseInt(input, 10);
 };
 
 module.exports = router;

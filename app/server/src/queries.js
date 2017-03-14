@@ -134,12 +134,12 @@ module.exports.getBehavior = function(id, types = []) {
         });
 };
 
-module.exports.getTimeline = function(sessionId, traceIds) {
-    let namesOnly = traceIds === undefined || traceIds.length === 0;
+module.exports.getTimeline = function(sessionId, traceId) {
+    let namesOnly = traceId === undefined;
 
     let query = {srcID: sessionId};
     if (!namesOnly) {
-        query.$or = createDynamicQuerySegment('maskNum', traceIds);
+        query.maskNum = traceId;
     }
 
     let cursor = db.mongo().collection(COLL_MASK_TIME_COURSE)
@@ -152,11 +152,9 @@ module.exports.getTimeline = function(sessionId, traceIds) {
         if (namesOnly) {
             return _.map(timeCourseDocs, doc => doc.maskNum);
         } else {
-            if (timeCourseDocs.length !== traceIds.length) {
-                // Find the IDs that couldn't be found
-                let returned = _.map(timeCourseDocs, t => t.maskNum);
-                let missing = _.filter(traceIds, id => returned.indexOf(id) < 0);
-                return Promise.reject(errorMissing('Some time courses could not be found', {timeCourses: missing}));
+            if (timeCourseDocs.length < 1) {
+                // Couldn't find the requested trace
+                return Promise.reject(errorMissing('Couldn\'t find trace', {name: traceId}));
             }
 
             return rearrangeByKey(timeCourseDocs, 'maskNum', 'maskF');
