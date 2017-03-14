@@ -1,10 +1,17 @@
 let _ = require('lodash');
 let uuid = require('uuid');
-let range = require('../core/range.js');
+let range = require('./range.js');
+let Downsampler = require('./downsampler.js');
 let sessionGenerator = require('../core/session.js');
+let relTime = require('./relative-time.js');
 // let Plotly = require('plotly');
 
-const DEFAULT_BUFFER_MULT = 2;
+/** One unit of padding is equal to 5% of the treshold's normalized visibleDomain */
+const PADDING_RATIO = 0.05;
+/** The start/end of the domain is within 100% of the visible domain */
+const PADDING_THRESH_MULT = 1;
+/** Add 500% the visible domain once that threshold is crossed */
+const PADDING_ADD_MULT = 3;
 
 module.exports.TraceManager = class TraceManager {
     /**
@@ -26,7 +33,7 @@ module.exports.TraceManager = class TraceManager {
      *                        Leave Infinity for entire domain. `nick` is a
      *                        nickname for the threshold.
      */
-    constructor($http, plotNode, sessionId, sessionStart, relTimes, thresholds) {
+    constructor($http, plotNode, sessionId, sessionStart, sessionFrequency, relTimes, thresholds) {
         this.session = sessionGenerator($http);
         this.plotNode = plotNode;
         this.sessionId = sessionId;
@@ -34,36 +41,54 @@ module.exports.TraceManager = class TraceManager {
         this.relTimes = relTimes;
         this.thresholds = _.orderBy(thresholds, ['visibleDomain'], ['desc']);
 
+        // Assign each threshold a fixed padding width
+        for (let i = 0; i < this.thresholds.length; i++) {
+            let t = this.thresholds[i];
+            // No padding if the visible domain is Infinity, otherwise normalize
+            // the padding widths by dividing by the frequency at which the
+            // recordings were taken
+            this.thresholds[i].paddingUnit = t.visibleDomain === Infinity ? 0 :
+                    Math.floor((t.visibleDomain / sessionFrequency) * PADDING_RATIO);
+        }
+
+        this.downsampler = new Downsampler(this.session, this.sessionId, this.relTimes);
         this.traces = {};
         this.currentThresh = null;
+        this.absoluteBounds = range.create(0, this.relTimes.length - 1);
     }
 
     init() {
         // Assume the whole domain is visible
         this.currentThresh = identifyThresh(Infinity, this.thresholds);
+        this.displayRange = range.copy(this.absoluteBounds);
+        this.minimumBounds = range.copy(this.absoluteBounds);
         this.onDomainChange(0, Infinity);
     }
 
-    putTrace(codeName, displayName, fullResData, index = Object.keys(this.traces).length) {
-        // Pre-allocate some data for caching each resolution's data
-        let emptyCacheMap = {};
-        for (let threshold of this.thresholds) {
-            emptyCacheMap[threshold.nick] = {
-                ranges: [],
-                trace: null,
-                complete: false,
-                resolution: threshold.resolution
-            };
+    putTrace(codeName, displayName, index = Object.keys(this.traces).length) {
+        // Allocate a variable location for each resolution
+        let emptyData = {};
+        for (let thresh of this.thresholds) {
+            emptyData[thresh.resolution] = {};
         }
 
         // Register the trace
         this.traces[codeName] = {
             index: index,
             displayName: displayName,
-            fullRes: fullResData,
-            variations: emptyCacheMap,
-            uuid: uuid.v4()
+            downsampled: emptyData,
+            uuid: uuid.v4(),
+            fullRes: null // placeholder
         };
+
+        let self = this;
+        return this.downsampler.process(codeName, _.map(this.thresholds, t => t.resolution)).then(function(data) {
+            self.traces[codeName].downsampled = data.downsampled;
+            self.traces[codeName].fullRes = data.fullRes;
+            displayNewTrace(self.plotNode, self.traces[codeName], self.displayRange, self.currentThresh, self.relTimes);
+        }).catch(function(err) {
+            throw err;
+        })
     }
 
     /**
@@ -78,90 +103,120 @@ module.exports.TraceManager = class TraceManager {
     onDomainChange(startMillis, endMillis) {
         let self = this;
 
-        let visibleDomain = endMillis - startMillis;
-        let newThreshold = identifyThresh(visibleDomain, this.thresholds);
-        let [startIndex, endIndex] = convertDomain(this.relTimes, startMillis, endMillis);
+        let newThreshold = identifyThresh(endMillis - startMillis, this.thresholds);
+        // Convert start and end times into indexes
+        let [startIndex, endIndex] = _.map([startMillis, endMillis], t => relTime.toIndex(this.relTimes, t));
 
-        // Find out what exactly we need to handle the domain change
-        let requestRange = determineRequestRange(this.traces, newThreshold, startIndex, endIndex);
+        let paddingMultSize = newThreshold.paddingUnit * PADDING_ADD_MULT;
 
-        if (requestRange === null) {
-            // We already have the required data, make sure there is a change
-            // of threshold before we go about wasting resources
-            if (newThreshold.visibleDomain !== this.currentThresh.visibleDomain) {
-                applyThreshold(this.plotNode, this.traces, newThreshold);
-                self.currentThresh = newThreshold;
-            }
-        } else {
-            return requestFreshTraces(this.session, this.sessionId, this.relTimes, newThreshold.resolution, requestRange.start, requestRange.end)
-            .then(function(timelineData) {
-                let traceNames = Object.keys(timelineData.traces);
-                for (let traceName of traceNames) {
-                    let prevVariation = self.traces[traceName].variations[newThreshold.nick];
+        if (newThreshold.resolution === this.currentThresh.resolution) {
+            // Same resolution, expand the trace.
+            let paddingThreshSize = this.currentThresh.paddingUnit * PADDING_THRESH_MULT;
 
-                    let ranges = prevVariation.ranges;
-                    ranges.push(range.create(timelineData.start, timelineData.end));
-                    ranges = range.merge(ranges);
+            // If the visible range does not completely encompass this range,
+            // add more data
+            let minimumBounds = range.create(
+                this.displayRange.start + paddingThreshSize,
+                this.displayRange.end - paddingThreshSize
+            );
 
-                    let variation = {
-                        ranges: ranges,
-                        complete: ranges[0].start === 0 && ranges[0].end === self.relTimes.length - 1,
-                        resolution: prevVariation.resolution,
-                        trace: createOrUpdateTrace(
-                            /*prevTrace = */prevVariation.trace,
-                            /*uuid = */self.traces[traceName].uuid,
-                            /*name = */self.traces[traceName].displayName,
-                            /*sessionStart = */self.sessionStart,
-                            /*relTimes = */self.relTimes,
-                            /*fluorData = */self.traces[traceName].fullRes,
-                            /*indexes = */timelineData.traces[traceName],
-                            /*offset = */timelineData.start
-                        )
-                    };
+            let visibleBoundsToUser = range.create(startIndex, endIndex);
 
-                    self.traces[traceName].variations[newThreshold.nick] = variation;
+            if (!range.contained(minimumBounds, visibleBoundsToUser)) {
+                // Add new data, determine whether to append or prepend
+
+                let additionRange = visibleBoundsToUser.start < minimumBounds.start ?
+                    // prepend
+                    range.create(
+                        this.displayRange.start - paddingMultSize,
+                        this.displayRange.start
+                    ) :
+                    // append
+                    range.create(
+                        this.displayRange.end,
+                        this.displayRange.end + paddingMultSize
+                    );
+
+                for (let codeName of Object.keys(this.traces)) {
+                    addDataToTrace(this.plotNode, this.traces[codeName], additionRange, this.currentThresh, this.relTimes);
                 }
 
-                applyThreshold(self.plotNode, self.traces, newThreshold);
-                self.currentThresh = newThreshold;
-            });
+                if (additionRange.start === this.displayRange.end) {
+                    this.displayRange.end = additionRange.end;
+                } else if (additionRange.end === this.displayRange.start) {
+                    this.displayRange.start = additionRange.start;
+                }
+            }
+        } else {
+            // Different resolution, create new traces
+            let displayRange = range.create(startIndex - paddingMultSize, endIndex + paddingMultSize);
+            this.displayRange = range.boundBy(displayRange, this.absoluteBounds);
+            this.currentThresh = newThreshold;
+            for (let codeName of Object.keys(this.traces)) {
+                displayNewTrace(this.plotNode, this.traces[codeName], this.displayRange, this.currentThresh, this.relTimes);
+            }
         }
     }
-};
+}
 
-/**
- * Tries to determine the best range of data to request at one time from the
- * timeline endpoint. Takes into account existing data ranges
- * @param  {object}  traces      Traces object passed from TraceManager
- * @param  {object}  threshold   The threshold to be tested
- * @param  {Number}  startIndex  Start of visible domain
- * @param  {Number}  endIndex    End of visible domain
- * @return {string}              Returns null if the data is already present.
- *                               Otherwise, returns an object containing a
- *                               numerical start and end property dictating the
- *                               most efficient range of data to request
- */
-let determineRequestRange = function(traces, threshold, startIndex, endIndex) {
-    let firstTrace = traces[Object.keys(traces)[0]];
-    let variation = firstTrace.variations[threshold.nick];
+let displayNewTrace = function(plotNode, traceData, displayRange, currentThresh, relTimes) {
+    let computedData = createCoordinateData(traceData, displayRange, currentThresh, relTimes);
 
-    // We have all data for this variation
-    if (variation.complete === true) return null;
+    let trace = {
+        x: computedData.x,
+        y: computedData.y,
+        type: 'scatter',
+        uid: traceData.uuid,
+        name: traceData.displayName
+    };
 
-    let requestRange = range.create(startIndex, endIndex);
+    // Delete the trace if it already exists
+    let existingIndex = _.findIndex(plotNode.data, d => d.uid === traceData.uuid);
+    if (existingIndex >= 0) {
+        Plotly.deleteTraces(plotNode, existingIndex);
+    }
 
-    // TODO There's a smarter way to do this that should be O(log_2(n)) but this
-    // is just a proof of concept
-    for (let i = 0; i < variation.ranges.length; i++) {
-        let r = variation.ranges[i];
-        if (range.contained(r, requestRange)) {
-            return null;
+    // Add the trace
+    Plotly.addTraces(plotNode, trace, traceData.index);
+}
+
+let addDataToTrace = function(plotNode, traceData, range, currentThresh, relTimes) {
+    let computedData = createCoordinateData(traceData, range, currentThresh, relTimes);
+    Plotly.extendTraces(plotNode, {x: [computedData.x], y: [computedData.y]}, [traceData.index]);
+}
+
+let createCoordinateData = function(traceData, displayRange, threshold, relTimes) {
+    let variation = traceData.downsampled[threshold.resolution];
+    let x = [], y = [];
+    let offset = displayRange.start;
+
+    if (variation.x && variation.y) {
+        // The downsampler was able to prepare x- and y-axis data for this
+        // threshold. Only happens when the threshold resolution is 100%
+
+        // Access only a portion of the data and assign it to only a portion
+        // of the arrays
+        for (let i = 0; i < displayRange.end - displayRange.start; i++) {
+            x[i + offset] = variation.x[i + offset];
+            y[i + offset] = variation.y[i + offset];
+        }
+    } else {
+        // Fall back on variation.indexes
+        let indexes = variation.indexes;
+
+        let offset = displayRange.start;
+        let end = Math.min(displayRange.end, indexes.length);
+
+        // Selectively add data to the arrays like above
+        for (let i = 0; i < end; i++) {
+            let adjustedIndex = indexes[i] + offset;
+            x[i + offset] = new Date(relTime.relativeMillis(relTimes[adjustedIndex]));
+            y[i + offset] = traceData.fullRes[adjustedIndex];
         }
     }
 
-    // Exclude the data that we already have so nothing gets requested twice
-    return range.squeeze(variation.ranges, range.create(startIndex, endIndex));
-};
+    return {x: x, y: y};
+}
 
 let identifyThresh = function(visibleDomain, thresholds) {
     let thresh = thresholds[0];
@@ -174,144 +229,3 @@ let identifyThresh = function(visibleDomain, thresholds) {
 
     return thresh;
 };
-
-/**
- * Converts the amount of milliseconds into the session to the approximate
- * (maximum error of 1) index of that timepoint. For example, 0 milliseconds
- * would be converted into the 0th index, 35 millis results in 1 (assuming the
- * session was imaged at ~14 Hz), 106 millis results in 2, etc. Since this
- * conversion is usually done with both the start and end times, this function
- * is made specifically for converting the start and end times (in
- * milliseconds).
- *
- * @param  {array} relTimes An array of relative times whose elements correspond
- *                          to the time (in seconds) at which each imaging event
- *                          occured.
- * @return {array}          An array of length 2, the first element being the
- *                          index that corresponds to the converted start time,
- *                          and the second element being the index for the
- *                          converted end time.
- */
-let convertDomain = function(relTimes, startMillis, endMillis) {
-    let converted = _.map([startMillis, endMillis], millis => inexactBinarySearch(relTimes, millis / 1000));
-
-    // If inexactBinarySearch cannot find an exact match, it returns 1 less than
-    // its last search location. However, we want to override this in case
-    // endMillis is Infinity, which means that we want the very last index.
-    if (endMillis === Infinity) {
-        converted[1] = relTimes.length - 1;
-    }
-
-    return converted;
-};
-
-let requestFreshTraces = function(session, sessionId, relTimes, resolution, startIndex, endIndex) {
-    return session.timeline(sessionId, resolution, startIndex, endIndex).then(function(response) {
-        return response.data.data;
-    });
-};
-
-let applyThreshold = function(plotNode, traces, threshold) {
-    let traceNames = Object.keys(traces);
-    for (let traceName of traceNames) {
-
-        let trace = traces[traceName];
-        let variation = trace.variations[threshold.nick].trace;
-
-        let traceIndex = _.findIndex(plotNode.data, d => d.uid === trace.uuid);
-        if (traceIndex === -1) {
-            // This trace hasn't been plotted yet
-            Plotly.addTraces(plotNode, variation, trace.index);
-        } else {
-            plotNode.data[traceIndex] = variation;
-            Plotly.redraw(plotNode);
-        }
-    }
-};
-
-let createOrUpdateTrace = function(prevTrace, uuid, name, sessionStart, relTimes, fluorData, indexes, offset = 0) {
-    let trace = prevTrace;
-    if (trace === null) {
-        // Create outline
-        trace = {
-            x: [],
-            y: [],
-            type: 'scatter',
-            uid: uuid,
-            name: name
-        };
-    }
-
-    // Fill in the trace data with timeline data. relTimes.length should be
-    // equal to fluorData.length.
-    for (let i = 0; i < indexes.length; i++) {
-        let adjustedIndex = indexes[i] + offset;
-        trace.x[i + offset] = new Date(relativeTime(relTimes[adjustedIndex]));
-        trace.y[i + offset] = fluorData[adjustedIndex];
-    }
-
-    return trace;
-};
-
-/**
- * Performs an inexact binary search to find the index of the element that
- * is closest in value to the item given. Adapted from
- * http://oli.me.uk/2014/12/17/revisiting-searching-javascript-arrays-with-a-binary-search/
- */
-let inexactBinarySearch = function(list, item) {
-    let min = 0;
-    let max = list.length - 1;
-    let guess;
-    let lastGuess;
-
-    while (min <= max) {
-        lastGuess = guess;
-        guess = Math.floor((min + max) / 2);
-
-        if (list[guess] === item) {
-            return guess;
-        } else {
-            if (list[guess] < item) {
-                min = guess + 1;
-            } else {
-                max = guess - 1;
-            }
-        }
-    }
-
-    // A normal binary search would return -1 at this point. However, since
-    // we're doing an inexact binary search, we know the value of item
-    // is less than list[guess], so return guess - 1
-    return guess === 0 ? 0 : guess - 1;
-};
-
-/** Offset in milliseconds of timezone */
-let timezoneOffsetMillis = new Date().getTimezoneOffset() * 60 * 1000;
-
-/**
- * In order to get Plotly to display a date on the x-axis, we assume our
- * time series data starts at unix time 0 (1 Jan 1970). Doing this is the
- * least computationally expensive starting position for showing relative
- * times. Think of this less as a "hack" and more of a "workaround."
- *
- * N.B. Will not work as expected if relativeSeconds is greater than the
- * amount of seconds in one day
- *
- * @param utc If false, will account for timezone offset
- *
- * @return Unix time at the millisecond resolution that can be plotted and
- *         formatted with a time-only date format to reveal a pseudo-duration
- *         format.
- */
-let relativeTime = function(relativeSeconds, utc = false) {
-    // Plotly assumes input dates are in UTC, adjust for timezone offset
-    let millis = relativeSeconds * 1000;
-    if (!utc) {
-        millis += timezoneOffsetMillis;
-    }
-
-    return millis;
-};
-
-module.exports.relativeTime = relativeTime;
-module.exports.timezoneOffsetMillis = timezoneOffsetMillis;

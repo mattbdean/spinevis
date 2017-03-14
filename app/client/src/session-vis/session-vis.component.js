@@ -4,10 +4,10 @@ let _ = require('lodash');
 
 let tm = require('./trace-manager.js');
 let util = require('../core/util.js');
+let relTime = require('./relative-time.js');
 
 let TraceManager = tm.TraceManager;
-let relativeTime = tm.relativeTime;
-let timezoneOffsetMillis = tm.timezoneOffsetMillis;
+let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
 
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
@@ -72,6 +72,7 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
             /*plotNode = */timelineNode,
             /*sessionId = */$ctrl.sessionId,
             /*sessionStart = */$ctrl.sessionMeta.start_time,
+            /*sessionFrequency = */$ctrl.sessionMeta.volRate,
             /*relTimes = */$ctrl.sessionMeta.relTimes,
             /*thresholds = */[
                 {
@@ -88,19 +89,19 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
         );
 
         // Define our global trace
-        traceManager.putTrace('global', 'Global Fluorescence', $ctrl.sessionMeta.globalTC);
+        traceManager.putTrace('global', 'Global Fluorescence');
 
         // Keep track of the minimum y-axis value
         $ctrl.minGlobalF = _.min($ctrl.sessionMeta.globalTC);
     }).then(function() {
         return $http.get('/conf/plotly/markers.json');
-    }).then(function(markerData) {
-        $ctrl.markerData = markerData.data;
-        // Make sure that we have $ctrl.sessionMeta and $ctrl.markerData before
-        // sending any other HTTP requests that depend on that information
-        return session.behavior($ctrl.sessionId);
-    }).then(function(result) {
-        addBehaviorTraces(result.data.data, $ctrl.minGlobalF);
+    // }).then(function(markerData) {
+    //     $ctrl.markerData = markerData.data;
+    //     // Make sure that we have $ctrl.sessionMeta and $ctrl.markerData before
+    //     // sending any other HTTP requests that depend on that information
+    //     return session.behavior($ctrl.sessionId);
+    // }).then(function(result) {
+    //     addBehaviorTraces(result.data.data, $ctrl.minGlobalF);
     }).then(registerCallbacks);
 
     /**
