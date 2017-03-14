@@ -129,61 +129,6 @@ let postProcessTraceNames = function(input) {
     return _.map(input, i => i !== 'global' ? parseInt(i, 10) : 'global');
 };
 
-// Get timeline data
-router.get('/:id/timeline', function(req, res, next) {
-    let parameters = [param.sessionId(req.params.id)];
-    let contracts = [];
-
-    if (req.query.traceNames !== undefined && req.query.traceNames.trim() !== '') {
-        parameters.push(new Parameter(
-            'traceNames',
-            _.map(req.query.traceNames.split(','), t => t.trim()),
-            validateTraceNames,
-            {msg: 'Invalid trace names', status: 400},
-            postProcessTraceNames
-        ));
-    } else {
-        parameters.push(param.defaultValue('traceNames', ['global']));
-    }
-
-    // Optional query parameter
-    if (req.query.resolution !== undefined && req.query.resolution.trim() !== '') {
-        parameters.push(param.integerStrict('resolution', req.query.resolution, 1, 100));
-    } else {
-        parameters.push(param.defaultValue('resolution', 100));
-    }
-
-    // start and end are optional parameters as well
-    if (req.query.start !== undefined && req.query.start.trim() !== '' &&
-        req.query.end !== undefined && req.query.end.trim() !== '') {
-
-        parameters.push(param.integerStrict('start', req.query.start, 0));
-        parameters.push(param.integerStrict('end', req.query.end, 1));
-
-        contracts.push(new Contract(
-            'start', 'end',
-            function(start, end) { return start < end; },
-            'start must be less than end'
-        ));
-
-        if (req.query.bufferMult !== undefined && req.query.bufferMult.trim() !== '') {
-            parameters.push(param.integerStrict('bufferMult', req.query.bufferMult, 0, BUFFER_MULT_MAX));
-
-            if (req.query.extendBuffer !== undefined && req.query.extendBuffer.trim() !== '') {
-                let possibleValues = ['left', 'right'];
-                parameters.push(new Parameter(
-                    'extendBuffer',
-                    req.query.extendBuffer,
-                    (value) => validation.enumerated(possibleValues, value),
-                    {msg: 'extendBuffer must be one of ' + possibleValues, status: 400}
-                ));
-            }
-        }
-    }
-
-    runQuery(parameters, queries.getTimeline, res, next, false, contracts);
-});
-
 router.get('/:id/behavior', function(req, res, next) {
     let parameters = [param.sessionId(req.params.id)];
 
