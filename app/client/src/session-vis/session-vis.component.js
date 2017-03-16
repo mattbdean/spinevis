@@ -9,10 +9,13 @@ let relTime = require('./relative-time.js');
 let TraceManager = tm.TraceManager;
 let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
 
+const PLACEHOLDER_ID = '__placeholder__';
+const PLACEHOLDER_NAME = 'Add a trace';
+
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
-let ctrlDef = ['$http', '$window', function SessionVisController($http, $window) {
+let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http, $window, $scope) {
     let session = require('../core/session.js')($http);
     let $ctrl = this;
 
@@ -25,15 +28,14 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
 
     let traceManager = null;
 
+    $ctrl.placeholderId = PLACEHOLDER_ID;
+
     /**
      * Registers callbacks on the timeline node that are only available after
      * plotting.
      */
     let registerCallbacks = function() {
         traceManager.init();
-
-        // Define our global trace
-        traceManager.putTrace('global', 'Global Fluorescence');
 
         timelineNode.on('plotly_relayout', function(evt) {
             if (evt['xaxis.autorange'] && evt['xaxis.autorange'] === true) {
@@ -53,6 +55,31 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
         $window.onresize = function() {
             Plotly.Plots.resize(timelineNode);
         };
+
+        session.timeline($ctrl.sessionId).then(function(response) {
+            $ctrl.availableTraces = {[PLACEHOLDER_ID]: PLACEHOLDER_NAME};
+            $ctrl.unaddedTraces = [{codeName: PLACEHOLDER_ID, displayName: PLACEHOLDER_NAME}];
+            for (let codeName of response.data.data) {
+                let displayName = 'Mask ' + codeName;
+
+                // Override only when needed
+                if (codeName === 'global') displayName = 'Global Fluorescence';
+
+                $ctrl.availableTraces[codeName] = displayName;
+                $ctrl.unaddedTraces.push({codeName: codeName, displayName: displayName});
+            }
+
+            // Define our global trace
+            putTrace('global');
+        });
+
+        $scope.$watch('$ctrl.selectedTrace', function(newValue, oldValue) {
+            // newValue is the codeName of the trace, add it only if it is
+            // defined, non-null, and not the placeholder
+            if (newValue !== undefined && newValue !== null && newValue !== PLACEHOLDER_ID) {
+                putTrace(newValue);
+            }
+        });
     };
 
     session.get($ctrl.sessionId).then(function(result) {
@@ -161,6 +188,21 @@ let ctrlDef = ['$http', '$window', function SessionVisController($http, $window)
 
         let delta = Date.now() - startDelta;
         console.log('Created behavior traces and plotted in ' + (delta / 1000) + ' seconds');
+    };
+
+    let putTrace = function(codeName) {
+        let traceStructIndex = _.findIndex($ctrl.unaddedTraces, t => t.codeName === codeName);
+        // Ensure we only add each trace once
+        if (traceStructIndex < 0) {
+            console.error(`Attempted to put trace '${codeName}' more than once`);
+            return;
+        }
+
+        traceManager.putTrace(codeName, $ctrl.availableTraces[codeName]);
+        $ctrl.unaddedTraces.splice(traceStructIndex, 1);
+
+        // Initialize with placeholder trace data
+        $ctrl.selectedTrace = $ctrl.unaddedTraces[0].codeName;
     };
 }];
 
