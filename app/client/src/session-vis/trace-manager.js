@@ -6,11 +6,11 @@ let sessionGenerator = require('../core/session.js');
 let relTime = require('./relative-time.js');
 // let Plotly = require('plotly');
 
-/** One unit of padding is equal to 5% of the treshold's normalized visibleDomain */
-const PADDING_RATIO = 0.05;
+/** One unit of padding is equal to 10% of the treshold's normalized visibleDomain */
+const PADDING_RATIO = 0.1;
 /** The start/end of the domain is within 100% of the visible domain */
 const PADDING_THRESH_MULT = 1;
-/** Add 500% the visible domain once that threshold is crossed */
+/** Add 300% the visible domain once that threshold is crossed */
 const PADDING_ADD_MULT = 3;
 
 module.exports.TraceManager = class TraceManager {
