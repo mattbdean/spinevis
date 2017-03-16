@@ -85,7 +85,7 @@ module.exports.TraceManager = class TraceManager {
         return this.downsampler.process(codeName, _.map(this.thresholds, t => t.resolution)).then(function(data) {
             self.traces[codeName].downsampled = data.downsampled;
             self.traces[codeName].fullRes = data.fullRes;
-            displayNewTrace(self.plotNode, self.traces[codeName], self.displayRange, self.currentThresh, self.relTimes);
+            applyResolution(self.plotNode, [self.traces[codeName]], self.displayRange, self.currentThresh, self.relTimes);
         }).catch(function(err) {
             throw err;
         })
@@ -152,33 +152,64 @@ module.exports.TraceManager = class TraceManager {
             let displayRange = range.create(startIndex - paddingMultSize, endIndex + paddingMultSize);
             this.displayRange = range.boundBy(displayRange, this.absoluteBounds);
             this.currentThresh = newThreshold;
-            for (let codeName of Object.keys(this.traces)) {
-                displayNewTrace(this.plotNode, this.traces[codeName], this.displayRange, this.currentThresh, this.relTimes);
-            }
+            applyResolution(this.plotNode, this.traces, this.displayRange, this.currentThresh, this.relTimes);
         }
     }
 }
 
-let displayNewTrace = function(plotNode, traceData, displayRange, currentThresh, relTimes) {
-    let computedData = createCoordinateData(traceData, displayRange, currentThresh, relTimes);
+/**
+ * Applies a new resolution to the given traces.
+ *
+ * @param  {array} traces  An array of traces to add/update. All elements must
+ *                         be in the format used by this.traces. If any trace
+ *                         has not been added to the plot, it will be added
+ *                         here. If the trace already exists, it will be updated
+ *                         with new data appropriate for the given threshold.
+ */
+let applyResolution = function(plotNode, traces, displayRange, currentThresh, relTimes) {
+    let indexByUuid = uuid => _.findIndex(plotNode.data, d => d.uid === uuid);
 
-    let trace = {
-        x: computedData.x,
-        y: computedData.y,
-        type: 'scatter',
-        uid: traceData.uuid,
-        name: traceData.displayName
-    };
+    // Find all new traces by filtering all traces whose UUID does not exist in
+    // plot node's data object
+    let newTraceData = _.filter(traces, t => indexByUuid(t.uuid) < 0);
+    let newTraces = _.map(newTraceData, t => {
+        let computedData = createCoordinateData(t, displayRange, currentThresh, relTimes);
+        return {
+            x: computedData.x,
+            y: computedData.y,
+            type: 'scatter',
+            uid: t.uuid,
+            name: t.displayName
+        };
+    });
 
-    // Delete the trace if it already exists
-    let existingIndex = _.findIndex(plotNode.data, d => d.uid === traceData.uuid);
-    if (existingIndex >= 0) {
-        Plotly.deleteTraces(plotNode, existingIndex);
+    if (newTraces.length > 0) {
+        let indexes = _.map(newTraceData, t => t.index);
+        console.log(`Adding traces [${_.map(newTraceData, t => t.displayName)}] at indexes [${indexes}]`);
+        Plotly.addTraces(plotNode, newTraces, indexes);
     }
 
-    // Add the trace
-    Plotly.addTraces(plotNode, trace, traceData.index);
-}
+    // Identify pre-existing traces by getting the inverse of newTraces
+    let newUuids = _.map(newTraces, t => t.uid);
+    let oldTraceData = _.filter(traces, t => !newUuids.includes(t.uuid));
+
+    let updateX = [], updateY = [], updateIndexes = [];
+    for (let trace of oldTraceData) {
+        let computedData = createCoordinateData(trace, displayRange, currentThresh, relTimes);
+        updateX.push(computedData.x);
+        updateY.push(computedData.y)
+        updateIndexes.push(indexByUuid(trace.uuid));
+    }
+
+    if (oldTraceData.length > 0) {
+        let update = {
+            x: updateX,
+            y: updateY
+        };
+        console.log(`Updating traces [${_.map(oldTraceData, t => t.displayName)}] at indexes [${updateIndexes}]`);
+        Plotly.restyle(plotNode, update, updateIndexes);
+    }
+};
 
 let addDataToTrace = function(plotNode, traceData, range, currentThresh, relTimes) {
     let computedData = createCoordinateData(traceData, range, currentThresh, relTimes);

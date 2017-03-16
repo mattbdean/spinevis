@@ -191,7 +191,7 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
     };
 
     let putTrace = function(codeName) {
-        let traceStructIndex = _.findIndex($ctrl.unaddedTraces, t => t.codeName === codeName);
+        let traceStructIndex = _.findIndex($ctrl.unaddedTraces, t => t.codeName == codeName);
         // Ensure we only add each trace once
         if (traceStructIndex < 0) {
             console.error(`Attempted to put trace '${codeName}' more than once`);
