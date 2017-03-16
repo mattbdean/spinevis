@@ -122,13 +122,13 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
         $ctrl.minGlobalF = _.min($ctrl.sessionMeta.globalTC);
     }).then(function() {
         return $http.get('/conf/plotly/markers.json');
-    // }).then(function(markerData) {
-    //     $ctrl.markerData = markerData.data;
-    //     // Make sure that we have $ctrl.sessionMeta and $ctrl.markerData before
-    //     // sending any other HTTP requests that depend on that information
-    //     return session.behavior($ctrl.sessionId);
-    // }).then(function(result) {
-    //     addBehaviorTraces(result.data.data, $ctrl.minGlobalF);
+    }).then(function(markerData) {
+        $ctrl.markerData = markerData.data;
+        // Make sure that we have $ctrl.sessionMeta and $ctrl.markerData before
+        // sending any other HTTP requests that depend on that information
+        return session.behavior($ctrl.sessionId);
+    }).then(function(result) {
+        addBehaviorTraces(result.data.data, $ctrl.minGlobalF);
     }).then(registerCallbacks);
 
     /**
@@ -174,7 +174,7 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
             let marker = $ctrl.markerData[name];
 
             traces.push({
-                x: _.map(behaviorIndexes, index => new Date(relativeTime($ctrl.sessionMeta.relTimes[index]))),
+                x: _.map(behaviorIndexes, index => new Date(relTime.relativeMillis($ctrl.sessionMeta.relTimes[index]))),
                 y: _.fill(Array(behaviorIndexes.length), yValue),
                 name: name,
                 type: 'scatter',
