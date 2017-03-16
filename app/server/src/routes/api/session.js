@@ -148,7 +148,7 @@ router.get('/:id/timeline', function(req, res, next) {
 });
 
 let validateTraceNames = function(input) {
-    return input === 'global' || validation.integerStrict(name);
+    return input === 'global' || validation.integerStrict(input);
 };
 
 let postProcessTraceNames = function(input) {
