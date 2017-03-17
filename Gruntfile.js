@@ -27,7 +27,9 @@ module.exports = function(grunt) {
             ],
             options: {
                 // ECMAScript version 6
-                esversion: 6
+                esversion: 6,
+                // Ignore "don't make functions in a loop"
+                '-W083': true
             }
         },
         karma: {

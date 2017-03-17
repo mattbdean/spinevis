@@ -88,7 +88,7 @@ module.exports.TraceManager = class TraceManager {
             applyResolution(self.plotNode, [self.traces[codeName]], self.displayRange, self.currentThresh, self.relTimes);
         }).catch(function(err) {
             throw err;
-        })
+        });
     }
 
     /**
@@ -155,7 +155,7 @@ module.exports.TraceManager = class TraceManager {
             applyResolution(this.plotNode, this.traces, this.displayRange, this.currentThresh, this.relTimes);
         }
     }
-}
+};
 
 /**
  * Applies a new resolution to the given traces.
@@ -197,7 +197,7 @@ let applyResolution = function(plotNode, traces, displayRange, currentThresh, re
     for (let trace of oldTraceData) {
         let computedData = createCoordinateData(trace, displayRange, currentThresh, relTimes);
         updateX.push(computedData.x);
-        updateY.push(computedData.y)
+        updateY.push(computedData.y);
         updateIndexes.push(indexByUuid(trace.uuid));
     }
 
@@ -214,7 +214,7 @@ let applyResolution = function(plotNode, traces, displayRange, currentThresh, re
 let addDataToTrace = function(plotNode, traceData, range, currentThresh, relTimes) {
     let computedData = createCoordinateData(traceData, range, currentThresh, relTimes);
     Plotly.extendTraces(plotNode, {x: [computedData.x], y: [computedData.y]}, [traceData.index]);
-}
+};
 
 let createCoordinateData = function(traceData, displayRange, threshold, relTimes) {
     let variation = traceData.downsampled[threshold.resolution];
@@ -247,7 +247,7 @@ let createCoordinateData = function(traceData, displayRange, threshold, relTimes
     }
 
     return {x: x, y: y};
-}
+};
 
 let identifyThresh = function(visibleDomain, thresholds) {
     let thresh = thresholds[0];

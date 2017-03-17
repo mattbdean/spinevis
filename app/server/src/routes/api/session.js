@@ -141,7 +141,7 @@ router.get('/:id/timeline', function(req, res, next) {
             validateTraceNames,
             {msg: 'Invalid trace names', status: 400},
             postProcessTraceNames
-        ))
+        ));
     }
 
     runQuery(parameters, queries.getTimeline, res, next);

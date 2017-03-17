@@ -39,4 +39,4 @@ module.exports = {
         "symbol": "line-ns-open",
         "color": "blue"
     }
-}
+};

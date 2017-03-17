@@ -59,7 +59,7 @@ module.exports.toIndex = function(relTimes, millis) {
     // expected. We manually fix that here.
     return millis === Infinity || (millis / 1000) > relTimes[relTimes.length - 1] ?
         relTimes.length - 1 : inexactBinarySearch(relTimes, millis / 1000);
-}
+};
 
 /**
  * Performs an inexact binary search to find the index of the element that
@@ -91,4 +91,4 @@ let inexactBinarySearch = function(list, item) {
     // we're doing an inexact binary search, we know the value of item
     // is less than list[guess], so return guess - 1
     return guess === 0 ? 0 : guess - 1;
-}
+};

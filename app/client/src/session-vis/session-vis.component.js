@@ -45,7 +45,7 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
             // Register some callbacks to provide full functionality to the user
             registerCallbacks();
         });
-    }
+    };
 
     /**
      * Retrives metadata for this session and instantiates traceManager.
@@ -180,9 +180,9 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
             }
 
             // Define our global trace
-            putTrace('global').then(() => { console.timeEnd(timeId) });
+            putTrace('global').then(() => { console.timeEnd(timeId); });
         });
-    }
+    };
 
     /**
      * Registers callbacks on the timeline node that are only available after

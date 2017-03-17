@@ -12,13 +12,13 @@ module.exports = class Downsampler {
 
     process(traceName, resolutions) {
         if (traceName === undefined) throw new Error('traceName was undefined');
-        
+
         let self = this;
         return this.session.timeline(sessionId, traceName).then(function(fullRes) {
             return downsample(self.relTimes, fullRes.data.data[traceName], traceName, resolutions);
         });
     }
-}
+};
 
 let downsample = function(relTimes, fullRes, traceName, resolutions) {
     let id = `Downsample '${traceName}' (${fullRes.length} samples, resolutions=${resolutions})`;
@@ -59,7 +59,7 @@ let downsample = function(relTimes, fullRes, traceName, resolutions) {
             resolutionData = {
                 x: _.map(relTimes, t => new Date(relTime.relativeMillis(t))),
                 y: fullRes
-            }
+            };
         }
 
         downsampled[resolution] = resolutionData;
@@ -71,4 +71,4 @@ let downsample = function(relTimes, fullRes, traceName, resolutions) {
         fullRes: fullRes,
         downsampled: downsampled
     };
-}
+};
