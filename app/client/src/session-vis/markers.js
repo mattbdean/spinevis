@@ -1,4 +1,4 @@
-{
+module.exports = {
     "lick left": {
         "symbol": "triangle-down",
         "color": "red"
