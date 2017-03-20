@@ -8,9 +8,9 @@ let db = require('./database.js');
 let _ = require('lodash');
 
 const COLL_META = 'meta';
-const COLL_TIME = 'time';
 const COLL_BEHAVIOR = 'behavior';
 const COLL_MASK_TIME_COURSE = 'masktc';
+const COLL_VOLUMES = 'volumes';
 
 const RESOLUTION_FULL = 100; // 100% = all data
 
@@ -161,6 +161,22 @@ module.exports.getTimeline = function(sessionId, traceId) {
         }
     });
 };
+
+module.exports.getVolumes = function(sessionId, start, end) {
+    let query = {srcID: sessionId};
+
+    if (start === end || end === undefined) {
+        // If we know that we only have to retrieve one point we can optimize
+        // our query such that it only has to find one document
+        query.volNum = start;
+    } else {
+        // Retrieving a range of points
+        query.volNum = {$gte: start, $lt: end};
+    }
+    return db.mongo().collection(COLL_VOLUMES)
+        .find(query)
+        .toArray();
+}
 
 let createDynamicQuerySegment = function(key, values) {
     let segments = [];

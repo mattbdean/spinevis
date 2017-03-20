@@ -1,4 +1,5 @@
 let assert = require('assert');
+let expect = require('chai').expect;
 let _ = require('lodash');
 let db = require('../src/database.js');
 let queries = require('../src/queries.js');
@@ -152,4 +153,45 @@ describe('queries', function() {
             });
         });
     });
+
+    describe('getVolumes()', function() {
+        let cases = {
+            'should return only the requested range': [100, 150],
+            'should return data when start and end are equal': [100, 100],
+            'should allow the retrieval of only one point': [100, undefined]
+        };
+
+        let caseNames = Object.keys(cases);
+        for (let caseName of caseNames) {
+            it(caseName, function() {
+                let range = cases[caseName];
+                return testVolumeResult(range[0], range[1]);
+            });
+        }
+    });
 });
+
+let testVolumeResult = function(start, end) {
+    let sessionId;
+    return getFirstSessionId().then(function(id) {
+        sessionId = id;
+        return queries.getVolumes(sessionId, start, end);
+    }).then(function(volumes) {
+        expect(volumes).to.be.defined;
+        expect(Array.isArray(volumes)).to.be.true;
+        let length = end - start;
+        if (end === start || end === undefined) length = 1;
+        expect(volumes.length).to.be.equal(length);
+
+        let vol = volumes[0];
+        let lastVolNum = vol.volNum;
+        expect(lastVolNum).to.be.equal(start);
+
+        for (let i = 1; i < volumes.length; i++) {
+            vol = volumes[i];
+            expect(vol.srcID).to.equal(sessionId);
+            expect(vol.volNum).to.be.equal(lastVolNum + 1);
+            lastVolNum = vol.volNum;
+        }
+    });
+}
