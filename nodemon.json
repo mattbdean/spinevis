@@ -1,5 +1,6 @@
 {
     "watch": [
-        "app/server/src"
+        "app/server/src",
+        "server.js"
     ]
 }
