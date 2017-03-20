@@ -175,6 +175,7 @@ module.exports.getVolumes = function(sessionId, start, end) {
     }
     return db.mongo().collection(COLL_VOLUMES)
         .find(query)
+        .sort({volNum: 1})
         .toArray();
 }
 
