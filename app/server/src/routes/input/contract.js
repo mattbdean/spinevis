@@ -35,13 +35,18 @@ module.exports = function Contract(config) {
                 msg: config.messageOnBroken,
                 status: config.statusOnBroken,
                 data: {
-                    [this.p1Name]: p1.value,
-                    [this.p2Name]: p2.value
+                    [this.p1Name]: valueOf(p1.value),
+                    [this.p2Name]: valueOf(p2.value)
                 }
             };
         }
     };
 };
+
+let valueOf = function(x) {
+    if (x === undefined) return '(undefined)';
+    return x;
+}
 
 let verifyConfig = function(config) {
     let strings = ['p1Name', 'p2Name', 'messageOnBroken'];
