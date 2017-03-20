@@ -2,15 +2,16 @@ let express = require('express');
 let router = express.Router();
 let queries = require('../../queries.js');
 let responses = require('./responses.js');
-let param = require('./parameter.js');
-let Parameter = param.Parameter;
-let Contract = param.Contract;
-let validation = require('../validation.js');
+
+let input = require('../input');
+let Parameter = input.Parameter;
+let Contract = input.Contract;
+
+let validation = input.validation;
 let _ = require('lodash');
 
 /** Maximum sessions returned at one time */
 const MAX_SESSION_DATA = 100;
-const BUFFER_MULT_MAX = 3;
 
 /**
  * Runs a query and sends the result as JSON to the response. Takes input
@@ -74,37 +75,11 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
     });
 };
 
-/** Function to generate a function to vaildate the 'start' pagination property */
-let genStartValidationFn = function(input) {
-    return function(start) {
-        return validation.integer(input, 0, 0);
-    };
-};
-
-/** Function to generate a function to vaildate the 'limit' pagination property */
-let genLimitValidationFn = function(input) {
-    return function(limit) {
-        return validation.integer(limit, 20, 1, MAX_SESSION_DATA);
-    };
-};
-
 // Get 'light' session metadata for all sessions
 router.get('/', function(req, res, next) {
-    // Define our parameters and their values/locations, and what should be
-    // done if they're found to be invalid
     let parameters = [
-        new Parameter(
-            'start',
-            req.query.start,
-            genStartValidationFn(req.query.start),
-            {msg: 'Invalid start', status: 400}
-        ),
-        new Parameter(
-            'limit',
-            req.query.limit,
-            genLimitValidationFn(req.query.limit),
-            {msg: 'Invalid limit', status: 400}
-        )
+        input.integer('start', req.query.start, 0, 0),
+        input.integer('limit', req.query.limit, 20, 1, MAX_SESSION_DATA)
     ];
 
     runQuery(parameters, queries.findAllSessions, res, next, true);
@@ -112,47 +87,48 @@ router.get('/', function(req, res, next) {
 
 // Get 'heavy' session metadata for a specific session
 router.get('/:id', function(req, res, next) {
-    runQuery([param.sessionId(req.params.id)], queries.getSessionMeta, res, next);
+    runQuery([input.sessionId(req.params.id)], queries.getSessionMeta, res, next);
 });
 
-router.get('/:id/behavior', function(req, res, next) {
-    let parameters = [param.sessionId(req.params.id)];
+let validateTraceName = function(input) {
+    return input === 'global' || validation.integer(input);
+};
 
-    // Define an optional parameter
-    if (req.query.types !== undefined && req.query.types.trim() !== '') {
-        parameters.push(new Parameter(
-            'eventTypes',
-            _.map(req.query.types.split(','), type => type.trim()),
-            validation.alphabeticWords,
-            {msg: 'Invaild event type(s)', status: 400}
-        ));
-    }
+let postProcessTraceName = function(input) {
+    if (input !== undefined)
+        return input === 'global' ? 'global' : parseInt(input, 10);
+};
+
+router.get('/:id/behavior', function(req, res, next) {
+    let parameters = [
+        input.sessionId(req.params.id),
+        new Parameter({
+            name: 'types',
+            rawInput: req.query.types,
+            array: true,
+            optional: true,
+            validate: validation.alphabeticWords,
+            errorMessage: 'Invalid event types'
+        })
+    ];
+
     runQuery(parameters, queries.getBehavior, res, next);
 });
 
 router.get('/:id/timeline', function(req, res, next) {
-    let parameters = [param.sessionId(req.params.id)];
-
-    // `names` is optional
-    if (req.query.name !== undefined && req.query.name.trim() !== '') {
-        parameters.push(new Parameter(
-            'names',
-            req.query.name,
-            validateTraceNames,
-            {msg: 'Invalid trace names', status: 400},
-            postProcessTraceNames
-        ));
-    }
+    let parameters = [
+        input.sessionId(req.params.id),
+        new Parameter({
+            name: 'name',
+            rawInput: req.query.name,
+            validate: validateTraceName,
+            errorMessage: 'Invalid trace name',
+            optional: true,
+            postprocess: postProcessTraceName
+        })
+    ];
 
     runQuery(parameters, queries.getTimeline, res, next);
 });
-
-let validateTraceNames = function(input) {
-    return input === 'global' || validation.integerStrict(input);
-};
-
-let postProcessTraceNames = function(input) {
-    return input === 'global' ? 'global' : parseInt(input, 10);
-};
 
 module.exports = router;

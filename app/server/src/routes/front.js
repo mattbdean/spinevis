@@ -1,7 +1,7 @@
 let router = require('express').Router();
 let fs = require('fs');
 let path = require('path');
-let validation = require('./validation.js');
+let validation = require('./input/validation.js');
 let queries = require('../queries.js');
 
 let appName = require('../../../../package.json').name;

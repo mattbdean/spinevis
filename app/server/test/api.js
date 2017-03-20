@@ -82,7 +82,7 @@ describe('API v1', function() {
                         });
                 });
             });
-            it('should respond with only the requested event type', function() {
+            it('should respond with only the requested event types', function() {
                 let expectedStatus = 200;
                 // Space before 'lick left' is intentional, test trimming
                 let eventTypes = [' lick left', 'lick right'];

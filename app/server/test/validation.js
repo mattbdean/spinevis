@@ -1,5 +1,5 @@
 let assert = require('assert');
-let validation = require('../src/routes/validation.js');
+let validation = require('../src/routes/input/validation.js');
 
 let setUpSuite = function(validationFn, strict, validInput, invalidInput) {
     if (typeof validationFn === 'string') {
@@ -39,19 +39,14 @@ describe('input validation', function() {
         /*invalid = */['invalid!character', '__file__']
     );
 
-    setUpSuite('integer', false,
-        /*valid = */['4', '8', '994'],
-        /*invalid = */['bla', 'foo', 'bar']
-    );
-
-    setUpSuite(function integerStrict(input) { return validation.integerStrict(input, 0, 10); }, true,
-        /*valid = */['4', '8', '9', 3, ['4', '8']],
+    setUpSuite(function integer(input) { return validation.integer(input, 0, 10); }, true,
+        /*valid = */['4', '8', '9', 3, ],
         /*invalid = */['bla', 'foo', 'bar', '11', '15', 54, '5.5']
     );
 
     setUpSuite('alphabeticWords', true,
-        /*valid = */['hello there', 'something nice', ['array input', 'is cool']],
-        /*invalid = */['numb3r', 4, false, ['array input with', '!invalid!members!']]
+        /*valid = */['hello there', 'something nice'],
+        /*invalid = */['numb3r', 4, false]
     );
 
     setUpSuite(function enumerated(input) { return validation.enumerated(['a', 'b', 'c', '1'], input); }, true,
