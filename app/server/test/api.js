@@ -1,4 +1,5 @@
 let assert = require('assert');
+let expect = require('chai').expect;
 let request = require('supertest');
 let _ = require('lodash');
 let db = require('../src/database.js');
@@ -161,6 +162,62 @@ describe('API v1', function() {
                         .expect(200);
                 });
             });
+        });
+
+        describe(`GET ${routePrefix}/session/:id/volume`, function() {
+            let caseParams = {
+                'should recognize the start and end query parameters': {
+                    start: 200,
+                    end: 250,
+                    verifyBody: function(body) {
+                        expect(body.data[0].volNum).to.equal(200);
+                        expect(body.data[body.data.length - 1].volNum)
+                            .to.equal(249);
+                    },
+                    status: 200
+                },
+                'should allow specifying only one index': {
+                    start: 200,
+                    verifyBody: function(body) {
+                        expect(body.data.length).to.equal(1);
+                        expect(body.data[0].volNum).to.equal(200);
+                    },
+                    status: 200
+                },
+                'should allow only integer values for start and end': {
+                    start: 'not an integer',
+                    verifyBody: (body) => {},
+                    status: 400
+                },
+                'should ensure that start <= end': {
+                    start: 300,
+                    end: 200,
+                    verifyBody: (body) => {},
+                    status: 400
+                }
+            };
+
+            let expectations = Object.keys(caseParams);
+            for (let expectation of expectations) {
+                let testCase = caseParams[expectation];
+
+                it(expectation, function() {
+                    return queries.findAllSessions(0, 1).then(function(sessions) {
+                        let id = sessions[0]._id;
+                        let query = 'start=' + testCase.start;
+                        if (testCase.end !== undefined)
+                            query += '&end=' + testCase.end;
+
+                        return request(app)
+                            .get(`${routePrefix}/session/${id}/volume?${query}`)
+                            .expect(testCase.status)
+                            .expect(function(res) {
+                                testCase.verifyBody(res.body);
+                            });
+                    });
+                });
+
+            }
         });
     });
 });

@@ -11,11 +11,12 @@ module.exports.integer = function(name, input, defaultValue, min, max) {
         name: name,
         rawInput: input,
         validate: (input) => validation.integer(input, min, max),
-        defaultAllowed: true,
-        defaultValue: defaultValue,
+        defaultAllowed: defaultValue !== null,
+        defaultValue: defaultValue === null ? null : defaultValue,
         errorMessage: function(config) {
             return `${config.name} must be an integer in the range [${min}, ${max}]`;
-        }
+        },
+        postprocess: (input) => parseInt(input, 10)
     });
 };
 

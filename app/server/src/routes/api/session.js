@@ -131,4 +131,35 @@ router.get('/:id/timeline', function(req, res, next) {
     runQuery(parameters, queries.getTimeline, res, next);
 });
 
+router.get('/:id/volume', function(req, res, next) {
+    let parameters = [
+        input.sessionId(req.params.id),
+        // start is a required integer parameter with no default value that must
+        // be greater than 0
+        input.integer('start', req.query.start, null, 0),
+        // end is an optional integer parameter that must be greater than 0
+        new Parameter({
+            name: 'end',
+            rawInput: req.query.end,
+            validate: (input) => validation.integer(input, 0),
+            optional: true,
+            errorMessage: 'end must be an integer in the range [0, Infinity]',
+            postprocess: (input) => parseInt(input, 10)
+        })
+    ];
+
+    let contracts = [];
+
+    if (_.find(parameters, p => p.name === 'end').value !== undefined) {
+        contracts.push( new Contract({
+            p1Name: 'start',
+            p2Name: 'end',
+            verify: (start, end) => start <= end,
+            messageOnBroken: 'start must be less than or greater than end'
+        }) );
+    }
+
+    runQuery(parameters, queries.getVolumes, res, next, false, contracts);
+});
+
 module.exports = router;
