@@ -309,5 +309,19 @@ describe('parameter validation', function() {
             });
             expect(contract.valid).to.be.false;
         });
+
+        it('should throw an error when it can\'t find the parameter', function() {
+            let p1 = makeValidParameter('a');
+            let p2 = makeValidParameter('b');
+            let contract = new Contract({
+                p1Name: 'I don\'t exist',
+                p2Name: 'I also don\'t exist',
+                verify: forceValid,
+                messageOnBroken: 'error',
+                statusOnBroken: 400
+            });
+
+            expect(() => {contract.apply([p1, p2])}).to.throw(Error);
+        });
     });
 });
