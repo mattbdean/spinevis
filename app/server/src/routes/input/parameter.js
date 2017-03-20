@@ -193,7 +193,7 @@ let sanitizeConfig = function(config) {
 
     let invalidProperty = findInvalidProperty(c);
     if (invalidProperty !== undefined) {
-        throw new Error(`config.${invalidProperty} was invalid`);
+        throw new Error(`config.${invalidProperty} was missing or invalid`);
     }
 
     return c;
