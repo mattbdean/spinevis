@@ -2,8 +2,9 @@ div.container-fluid.session-meta-container
     ul.session-meta.text-center
         li(ng-repeat="meta in $ctrl.sessionFormattedMeta") {{meta}}
 
-
-div.container-fluid#plot-timeline
+div.container-fluid
+    div#plot-vis
+    div#plot-timeline
 
 div.container
     select(

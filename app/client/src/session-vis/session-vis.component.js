@@ -1,6 +1,7 @@
 let moment = require('moment');
 let $ = require('jquery');
 let _ = require('lodash');
+let tab64 = require('hughsk/tab64');
 
 let tm = require('./trace-manager.js');
 let util = require('../core/util.js');
@@ -27,6 +28,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
     $ctrl.sessionId = $window.sessionId;
 
     let timelineNode = $('#plot-timeline')[0];
+    let visNode = $('#plot-vis')[0];
 
     let traceManager = null;
 
@@ -44,6 +46,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
 
         // Array of functions that return a promise
         let promises = [];
+        let plotNodes = [];
 
         if (TIMELINE_ENABLE) {
             // Get basic session information. Wrap Promise constructor in a
@@ -59,17 +62,29 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
                 // Register some callbacks to provide full functionality to the user
                 registerTimelineCallbacks();
             }); });
+            plotNodes.push(timelineNode);
         }
 
         if (VOLUME_ENABLE) {
             promises.push(() => {
-                // do stuff here
+                initVisualizer();
+                return initVolumeTraces();
             });
+            plotNodes.push(visNode);
         }
 
+        $window.onresize = function() {
+            Plotly.Plots.resize(timelineNode);
+        };
         return initSessionMeta().then(function() {
             // Execute all Promise functions
             return $q.all(_.map(promises, p => p()));
+        }).then(function() {
+            $window.onresize = function() {
+                for (let plot of plotNodes) {
+                    Plotly.Plots.resize(plot);
+                }
+            };
         });
     };
 
@@ -93,6 +108,49 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
             ];
         });
     };
+
+    let initVolumeTraces = function() {
+        let traces = [];
+        for (let i = 0; i < $ctrl.sessionMeta.surfs.length; i++) {
+            let surf = $ctrl.sessionMeta.surfs[i];
+            traces.push({
+                name: 'surface ' + i,
+                x: surf.x,
+                y: surf.y,
+                z: surf.z,
+                surfacecolor: surf.surfacecolor,
+                showscale: false,
+                type: 'surface',
+                colorscale: 'Greys',
+                hoverinfo: 'none'
+            });
+        }
+        Plotly.addTraces(visNode, traces);
+        // Plotly.addTraces(visNode, $ctrl.sessionMeta.surfs);
+
+        return session.volume($ctrl.sessionId, 0).then(function(res) {
+            console.log(res.data.data);
+            console.log(_.compact(tab64.decode(res.data.data[0].pixelF, 'float32')));
+        })
+    };
+
+    let initVisualizer = function() {
+        let layout = {
+            paper_bgcolor: 'rgba(0.1,0.1,0.1,1)',
+            type: 'layout',
+            xaxis: {
+                showgrid: false,
+            },
+            yaxis: {
+                showgrid: false
+            },
+            font: {
+                family: 'Roboto, sans-serif'
+            }
+        };
+
+        Plotly.newPlot(visNode, [], layout);
+    }
 
     /**
      * Synchronously initializes a brand-new plot for the timeline.
@@ -228,10 +286,6 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
             // plotly_relayout events are also fired when the pan, zoom, lasso,
             // etc. buttons are clicked
         });
-
-        $window.onresize = function() {
-            Plotly.Plots.resize(timelineNode);
-        };
 
         $scope.$watch('$ctrl.selectedTrace', function(newValue, oldValue) {
             // newValue is the codeName of the trace, add it only if it is

@@ -29,4 +29,10 @@ class SessionApiImpl {
         let query = name !== undefined ? '?name=' + name : '';
         return this.$http.get(`${this.baseUrl}/${id}/timeline${query}`);
     }
+
+    volume(id, start, end) {
+        let query = '?start=' + start;
+        if (end !== undefined) query += '&end=' + end;
+        return this.$http.get(`${this.baseUrl}/${id}/volume${query}`);
+    }
 }

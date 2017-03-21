@@ -46,8 +46,11 @@ System.config({
       "moment",
       "jquery",
       "lodash",
+      "hughsk/tab64",
       "./trace-manager.js",
       "../core/util.js",
+      "./relative-time.js",
+      "./markers.js",
       "../core/session.js"
     ],
     "npm:moment@2.17.1.js": [
@@ -69,8 +72,10 @@ System.config({
     "src/session-vis/trace-manager.js": [
       "lodash",
       "uuid",
-      "../core/range.js",
-      "../core/session.js"
+      "./range.js",
+      "./downsampler.js",
+      "../core/session.js",
+      "./relative-time.js"
     ],
     "npm:jquery@3.1.1.js": [
       "npm:jquery@3.1.1/dist/jquery.js"
@@ -101,6 +106,22 @@ System.config({
     "npm:uuid@3.0.1/v4.js": [
       "./lib/rng-browser",
       "./lib/bytesToUuid"
+    ],
+    "github:hughsk/tab64@0.0.1.js": [
+      "github:hughsk/tab64@0.0.1/index.js"
+    ],
+    "github:hughsk/tab64@0.0.1/index.js": [
+      "dtype"
+    ],
+    "src/session-vis/downsampler.js": [
+      "lodash",
+      "./relative-time.js"
+    ],
+    "src/session-vis/range.js": [
+      "lodash"
+    ],
+    "npm:dtype@2.0.0.js": [
+      "npm:dtype@2.0.0/index"
     ]
   },
 
@@ -111,6 +132,8 @@ System.config({
     "babel-runtime": "npm:babel-runtime@5.8.38",
     "chai": "npm:chai@3.5.0",
     "core-js": "npm:core-js@1.2.7",
+    "dtype": "npm:dtype@2.0.0",
+    "hughsk/tab64": "github:hughsk/tab64@0.0.1",
     "jquery": "npm:jquery@3.1.1",
     "lodash": "npm:lodash@4.17.4",
     "moment": "npm:moment@2.17.1",

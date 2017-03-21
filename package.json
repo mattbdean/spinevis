@@ -59,6 +59,8 @@
       "angular": "npm:angular@^1.6.2",
       "angular-resource": "npm:angular-resource@^1.6.2",
       "chai": "npm:chai@^3.5.0",
+      "dtype": "npm:dtype@^2.0.0",
+      "hughsk/tab64": "github:hughsk/tab64@^0.0.1",
       "jquery": "npm:jquery@^3.1.1",
       "lodash": "npm:lodash@^4.17.4",
       "moment": "npm:moment@^2.17.1",
