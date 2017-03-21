@@ -17,7 +17,7 @@ const BEHAVIOR_Y = -10;
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
-let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http, $window, $scope) {
+let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController($http, $window, $scope, $q) {
     let session = require('../core/session.js')($http);
     let $ctrl = this;
 
@@ -30,20 +30,46 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
 
     let traceManager = null;
 
+    const TIMELINE_ENABLE = false;
+    const VOLUME_ENABLE = true;
+
     /**
      * Bootstraps this component. Written as a function to minimize clutter in
-     * controller function definition.
+     * controller function definition. Returns a Promise.
      */
     let init = function() {
-        // Get basic session information
+        if (!TIMELINE_ENABLE && !VOLUME_ENABLE) {
+            return Promise.resolve();
+        }
+
+        // Array of functions that return a promise
+        let promises = [];
+
+        if (TIMELINE_ENABLE) {
+            // Get basic session information. Wrap Promise constructor in a
+            // function so that we can control when the Promise will execute.
+            // If this $q() was not wrapped, this new Promise would execute
+            // before initSessionMeta(), yielding an error
+            promises.push(() => { return new $q(function(resolve, reject) {
+                // Synchronously create timeline layout
+                initTimeline();
+                // Initialize behavior and imaging traces
+                return resolve(Promise.all([initBehavior(BEHAVIOR_Y), initTraces()]));
+            }).then(function() {
+                // Register some callbacks to provide full functionality to the user
+                registerTimelineCallbacks();
+            }); });
+        }
+
+        if (VOLUME_ENABLE) {
+            promises.push(() => {
+                // do stuff here
+            });
+        }
+
         return initSessionMeta().then(function() {
-            // Synchronously create timeline layout
-            initTimeline();
-            // Initialize behavior and imaging traces
-            return Promise.all([initBehavior(BEHAVIOR_Y), initTraces()]);
-        }).then(function() {
-            // Register some callbacks to provide full functionality to the user
-            registerCallbacks();
+            // Execute all Promise functions
+            return $q.all(_.map(promises, p => p()));
         });
     };
 
@@ -65,29 +91,6 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
                 util.format.duration($ctrl.sessionMeta.start_time, $ctrl.sessionMeta.end_time),
                 'Run ' + $ctrl.sessionMeta.Run
             ];
-
-            // Instantiating is different than init()-ing
-            traceManager = new TraceManager(
-                /*$http = */$http,
-                /*plotNode = */timelineNode,
-                /*sessionId = */$ctrl.sessionId,
-                /*sessionStart = */$ctrl.sessionMeta.start_time,
-                /*sessionFrequency = */$ctrl.sessionMeta.volRate,
-                /*relTimes = */$ctrl.sessionMeta.relTimes,
-                /*thresholds = */[
-                    {
-                        visibleDomain: Infinity,
-                        resolution: 1,
-                        nick: 'all'
-                    },
-                    {
-                        visibleDomain: 5 * 60 * 1000, // 5 minutes
-                        resolution: 100,
-                        nick: '5min'
-                    }
-                ]
-            );
-
         });
     };
 
@@ -115,6 +118,28 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
 
         Plotly.newPlot(timelineNode, [], layout);
         console.timeEnd(timeId);
+
+        // Instantiating is different than init()-ing
+        traceManager = new TraceManager(
+            /*$http = */$http,
+            /*plotNode = */timelineNode,
+            /*sessionId = */$ctrl.sessionId,
+            /*sessionStart = */$ctrl.sessionMeta.start_time,
+            /*sessionFrequency = */$ctrl.sessionMeta.volRate,
+            /*relTimes = */$ctrl.sessionMeta.relTimes,
+            /*thresholds = */[
+                {
+                    visibleDomain: Infinity,
+                    resolution: 1,
+                    nick: 'all'
+                },
+                {
+                    visibleDomain: 5 * 60 * 1000, // 5 minutes
+                    resolution: 100,
+                    nick: '5min'
+                }
+            ]
+        );
     };
 
     /**
@@ -188,7 +213,7 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
      * Registers callbacks on the timeline node that are only available after
      * plotting.
      */
-    let registerCallbacks = function() {
+    let registerTimelineCallbacks = function() {
         timelineNode.on('plotly_relayout', function(evt) {
             if (evt['xaxis.autorange'] && evt['xaxis.autorange'] === true) {
                 // User has reset axes (at least the x-axis)
