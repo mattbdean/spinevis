@@ -3,6 +3,7 @@
 The following is a brief overview of spinevis' directory structure.
 
  - `app/` contains all core project files. Contains directories for the website and the server code.
+ - `docs/` contains project documentation
 
 ## Website
 
