@@ -14,7 +14,7 @@ let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
 
 const PLACEHOLDER_ID = '__placeholder__';
 const PLACEHOLDER_NAME = 'Add a trace';
-const BEHAVIOR_Y = -10;
+const BEHAVIOR_Y = 0;
 
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
@@ -162,8 +162,22 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
 
         // Simple layout data
         let layout = {
+            // yaxis is for fluorescence data
             yaxis: {
+                // Goes 25% to 100% of the element (where 0% is the bottom and
+                // 100% is the top)
+                domain: [0.25, 1.0],
                 title: 'Fluorescence'
+            },
+            // yaxis2 is for behavior data
+            yaxis2: {
+                // Goes from 10% to 20% of the element
+                domain: [0.1, 0.2],
+                // We don't care about the y-values, only x-values
+                showticklabels: false,
+                // Don't allow the user to accidentally move the data out of
+                // sight through zooming/panning
+                fixedrange: true
             },
             xaxis: {
                 title: 'Time',
@@ -229,6 +243,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
                     name: name,
                     type: 'scatter',
                     mode: 'markers',
+                    yaxis: 'y2', // Plot this on y-axis 2 (bottom subplot)
                     hoverinfo: 'skip', // change to 'none' if hover events become necessary
                     marker: marker
                 });
