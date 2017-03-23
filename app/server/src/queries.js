@@ -178,7 +178,7 @@ module.exports.getVolumes = function(sessionId, start, end) {
         .find(query)
         .sort({volNum: 1})
         .toArray();
-}
+};
 
 let createDynamicQuerySegment = function(key, values) {
     let segments = [];

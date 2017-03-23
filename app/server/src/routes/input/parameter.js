@@ -77,7 +77,7 @@ module.exports = function Parameter(config) {
             // valid
             valid = false;
             value = null;
-            error = createError(config, config.name + ' is required')
+            error = createError(config, config.name + ' is required');
         }
     } else {
         // rawInput is defined at this point
@@ -113,7 +113,7 @@ module.exports = function Parameter(config) {
     this.valid = valid;
     this.value = value;
     this.error = error;
-}
+};
 
 let validate = function(input, fn, config) {
     let value, error, valid;
@@ -151,7 +151,7 @@ let callDynamic = function(fn, input) {
     if (Array.isArray(input)) {
 
     }
-}
+};
 
 let applyTo = function(input, fn) {
     let out;
@@ -172,7 +172,7 @@ let createError = function(config, msg) {
         message: msg,
         status: config.errorStatus,
         data: {[config.name]: config.rawInput}
-    }
+    };
 };
 
 let findErrorMessage = function(config) {
@@ -214,7 +214,7 @@ let findInvalidProperty = function(config) {
     let name = config.name;
     if (name === undefined || name === null || name === '' || typeof name !== 'string') return 'name';
     // rawInput can be undefined, but it cannot be null
-    let inType = typeof config.rawInput
+    let inType = typeof config.rawInput;
     if (!(inType === 'undefined' || inType === 'string')) return 'rawInput';
     // optional, array, arrayTrim, and defaultAllowed are since we only use
     // it as a falsey or truthy value

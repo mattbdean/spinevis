@@ -46,7 +46,7 @@ module.exports = function Contract(config) {
 let valueOf = function(x) {
     if (x === undefined) return '(undefined)';
     return x;
-}
+};
 
 let verifyConfig = function(config) {
     let strings = ['p1Name', 'p2Name', 'messageOnBroken'];
@@ -63,4 +63,4 @@ let verifyConfig = function(config) {
         config.statusOnBroken = 400;
     if (typeof config.statusOnBroken !== 'number')
         throw new Error('config.statusOnBroken must be a number');
-}
+};

@@ -131,7 +131,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
         return session.volume($ctrl.sessionId, 0).then(function(res) {
             console.log(res.data.data);
             console.log(_.compact(tab64.decode(res.data.data[0].pixelF, 'float32')));
-        })
+        });
     };
 
     let initVisualizer = function() {
@@ -150,7 +150,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
         };
 
         Plotly.newPlot(visNode, [], layout);
-    }
+    };
 
     /**
      * Synchronously initializes a brand-new plot for the timeline.
