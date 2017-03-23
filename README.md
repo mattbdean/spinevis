@@ -39,3 +39,7 @@ spinevis is built with the [Grunt](http://gruntjs.com/) task runner.
 **watch** — Watches JS, CSS, and Pug files for changes and rebuilds the necessary components. Useful for developing.
 
 **run:bench** — Runs benchmarks
+
+## Contributing
+
+This project follows the branching model outlined [here](http://nvie.com/posts/a-successful-git-branching-model/).
