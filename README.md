@@ -43,3 +43,8 @@ spinevis is built with the [Grunt](http://gruntjs.com/) task runner.
 ## Contributing
 
 This project follows the branching model outlined [here](http://nvie.com/posts/a-successful-git-branching-model/).
+
+Before committing:
+
+ 1. Make sure all unit tests pass: `grunt test`
+ 2. Make sure there are no outstanding JSHint issues: `grunt jshint`
