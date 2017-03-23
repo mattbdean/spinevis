@@ -32,8 +32,8 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
 
     let traceManager = null;
 
-    const TIMELINE_ENABLE = false;
-    const VOLUME_ENABLE = true;
+    const TIMELINE_ENABLE = true;
+    const VOLUME_ENABLE = false;
 
     /**
      * Bootstraps this component. Written as a function to minimize clutter in
