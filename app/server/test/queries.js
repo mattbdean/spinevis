@@ -40,6 +40,17 @@ describe('queries', function() {
                 }
             });
         });
+
+        it('should return entries in descending order by start time', function() {
+            return queries.findAllSessions(0, 20).then(function(sessions) {
+                let lastStart = new Date(sessions[0].start_time).getTime();
+                for (let i = 1; i < sessions.length; i++) {
+                    let thisStart = new Date(sessions[i].start_time).getTime();
+                    expect(thisStart).to.be.below(lastStart);
+                    lastStart = thisStart;
+                }
+            });
+        });
     });
 
     describe('getSessionMeta()', function() {

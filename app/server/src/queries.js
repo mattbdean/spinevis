@@ -68,6 +68,7 @@ module.exports.findAllSessions = function(start, limit) {
         .project(projection)
         .skip(start)
         .limit(limit)
+        .sort({start_time: -1})
         .toArray();
 };
 
