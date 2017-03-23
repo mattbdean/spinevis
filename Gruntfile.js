@@ -1,5 +1,6 @@
 let fs = require('fs');
 let path = require('path');
+let conf = require('./build.conf.json');
 
 module.exports = function(grunt) {
     let pkg = grunt.file.readJSON('package.json');
@@ -49,7 +50,7 @@ module.exports = function(grunt) {
             noDbMode: {
                 src: [
                     'app/server/test/input.js',
-                    'app/server/test/validation.js',
+                    'app/server/test/validation.js'
                 ],
                 options: {
                     coverageFolder: 'build/reports/coverage/server'
@@ -163,8 +164,6 @@ module.exports = function(grunt) {
             }
         }
     });
-
-    let conf = require('./build.conf.json');
 
     // Created a .min.css file for every CSS file in the style directory that
     // isn't base.css

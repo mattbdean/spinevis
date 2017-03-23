@@ -120,7 +120,7 @@ let validate = function(input, fn, config) {
 
     let result, prevInput = input, tries = 0;
 
-    while (true) {
+    for (;;) {
         result = fn(prevInput);
         if (result === true) {
             // valid
@@ -144,13 +144,6 @@ let validate = function(input, fn, config) {
     }
 
     return [value, error, valid];
-};
-
-let callDynamic = function(fn, input) {
-    let r;
-    if (Array.isArray(input)) {
-
-    }
 };
 
 let applyTo = function(input, fn) {

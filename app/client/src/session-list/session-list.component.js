@@ -1,10 +1,11 @@
 let util = require('../core/util.js');
+let sessionApi = require('../core/session.js');
 let moment = require('moment');
 let numeral = require('numeral');
 let _ = require('lodash');
 
 let ctrlDef = ['$http', function($http) {
-    let session = require('../core/session.js')($http);
+    let session = sessionApi($http);
     let $ctrl = this;
 
     session.list().then(function(response) {

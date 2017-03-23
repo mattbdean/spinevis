@@ -10,7 +10,7 @@ let Contract = require('../src/routes/input/contract.js');
  */
 let constructParameter = function(config) {
     return function GeneratedParameterConstructor() {
-        new Parameter(config);
+        Parameter(config);
     };
 };
 

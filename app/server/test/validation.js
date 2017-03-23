@@ -40,7 +40,7 @@ describe('input validation', function() {
     );
 
     setUpSuite(function integer(input) { return validation.integer(input, 0, 10); }, true,
-        /*valid = */['4', '8', '9', 3, ],
+        /*valid = */['4', '8', '9', 3],
         /*invalid = */['bla', 'foo', 'bar', '11', '15', 54, '5.5']
     );
 

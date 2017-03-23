@@ -6,6 +6,7 @@ let tab64 = require('hughsk/tab64');
 let tm = require('./trace-manager.js');
 let util = require('../core/util.js');
 let relTime = require('./relative-time.js');
+let sessionApi = require('../core/session.js');
 const behaviorMarkers = require('./markers.js');
 
 let TraceManager = tm.TraceManager;
@@ -19,7 +20,7 @@ const BEHAVIOR_Y = -10;
 // let Plotly = require('plotly/plotly.js');
 
 let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController($http, $window, $scope, $q) {
-    let session = require('../core/session.js')($http);
+    let session = sessionApi($http);
     let $ctrl = this;
 
     // Fail fast if injection does as well
@@ -139,7 +140,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
             paper_bgcolor: 'rgba(0.1,0.1,0.1,1)',
             type: 'layout',
             xaxis: {
-                showgrid: false,
+                showgrid: false
             },
             yaxis: {
                 showgrid: false
@@ -304,7 +305,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
      * @return {Promise}       The result of traceManager.putTrace()
      */
     let putTrace = function(codeName) {
-        let traceStructIndex = _.findIndex($ctrl.unaddedTraces, t => t.codeName == codeName);
+        let traceStructIndex = _.findIndex($ctrl.unaddedTraces, t => t.codeName === codeName);
         // Ensure we only add each trace once
         if (traceStructIndex < 0) {
             console.error(`Attempted to put trace '${codeName}' more than once`);
