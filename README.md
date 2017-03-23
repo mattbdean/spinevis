@@ -10,7 +10,7 @@ Analyze dendritic activity in the web browser. Requires Node.js v7.0+.
 Getting the website up and running is simple. Make sure to install [jspm](http://jspm.io/) globally (`npm i jspm --global`).
 
 ```sh
-$ jspm install && npm install
+$ npm install && jspm install
 $ grunt build
 $ node server.js
 ```
