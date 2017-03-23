@@ -32,11 +32,9 @@ spinevis is built with the [Grunt](http://gruntjs.com/) task runner.
 **build** — Builds the project
 
  1. Cleans the build and final distribution folder
- 2. Runs browserify to bundle JavaScript app
- 3. Passes resulting file through Babel, then minifies
- 4. Minifies CSS
- 5. Renders Pug templates
- 6. Copies files from temporary build location to `app/server/public`
+ 2. Minifies CSS
+ 3. Runs Pug to generate static templates when available
+ 4. Copies all website assets to `app/server/public`
 
 **watch** — Watches JS, CSS, and Pug files for changes and rebuilds the necessary components. Useful for developing.
 
