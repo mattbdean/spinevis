@@ -6,12 +6,11 @@ node_js:
 services:
  - mongodb
 before_install:
- - npm install jspm
  - jspm config registries.github.auth $JSPM_GITHUB_AUTH_TOKEN
+install: npm install && jspm install
 before_script:
  - export DISPLAY=:99.0
  - sh -e /etc/init.d/xvfb start
- - jspm install
  # jspm install makes some changes that break the Karma tests, revert these
  - git checkout app/client/config.js
 script: grunt testCoverage
