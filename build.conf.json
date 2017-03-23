@@ -1,4 +1,4 @@
 {
-    "cssBuilds": ["index"],
-    "excludedTemplates": ["error.pug", "layout.pug"]
+    "cssBuilds": ["index", "session"],
+    "excludedTemplates": ["error.pug", "layout.pug", "session.pug"]
 }

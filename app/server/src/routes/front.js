@@ -1,9 +1,11 @@
-var express = require('express');
-var router = express.Router();
-var fs = require('fs');
-var path = require('path');
+let router = require('express').Router();
+let fs = require('fs');
+let path = require('path');
+let validation = require('./input/validation.js');
+let queries = require('../queries.js');
 
-var partialNameRegex = /^[a-z0-9-]+$/;
+let appName = require('../../../../package.json').name;
+let year = new Date().getFullYear();
 
 router.get('/', function(req, res, next) {
     sendView(res, 'index').catch(function(err) {
@@ -11,11 +13,25 @@ router.get('/', function(req, res, next) {
     });
 });
 
+router.get('/session/:id', function(req, res, next) {
+    let id = req.params.id;
+    if (!validation.sessionId(id)) {
+        return next({status: 400});
+    }
+    return queries.sessionExists(id).then((exists) => {
+        if (!exists)
+            return next({status: 404});
+        return res.render('session', {appName: appName, year: year, id: id});
+    });
+});
+
 // Serve partial templates for Angular. /partial/my-template retrieves the
 // template at partials/my-template.template.pug
 router.get('/partial/:name', function(req, res, next) {
-    if (partialNameRegex.test(req.params.name)) {
-        let relativePath = 'partials/' + req.params.name + '.template';
+    if (validation.partialName(req.params.name)) {
+        let templateBasename = req.params.name;
+
+        let relativePath = `partials/${templateBasename}.template`;
         let prerenderedFile = path.join(fileServeOptions.root, relativePath + '.html');
         // Prefer to use pre-rendered templates
         if (fs.existsSync(prerenderedFile)) {
@@ -24,7 +40,7 @@ router.get('/partial/:name', function(req, res, next) {
             });
         } else {
             // Fall back on dynamic rendering if no pre-rendered file is available
-            res.render(`partials/${req.params.name}.template.pug`);
+            res.render(relativePath + '.pug');
         }
     } else {
         sendError(next, 'Template Not Found');
