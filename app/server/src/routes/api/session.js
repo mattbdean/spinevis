@@ -77,9 +77,17 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
 
 // Get 'light' session metadata for all sessions
 router.get('/', function(req, res, next) {
+    let start = input.integer('start', req.query.start, 0, Infinity);
+    start.defaultAllowed = true;
+    start.defaultValue = 0;
+
+    let limit = input.integer('limit', req.query.limit, 1, MAX_SESSION_DATA);
+    limit.defaultAllowed = true;
+    limit.defaultValue = 20;
+
     let parameters = [
-        input.integer('start', req.query.start, 0, 0),
-        input.integer('limit', req.query.limit, 20, 1, MAX_SESSION_DATA)
+        new Parameter(start),
+        new Parameter(limit)
     ];
 
     runQuery(parameters, queries.findAllSessions, res, next, true);
@@ -132,11 +140,12 @@ router.get('/:id/timeline', function(req, res, next) {
 });
 
 router.get('/:id/volume', function(req, res, next) {
+    let start = input.integer('start', req.query.start, 0);
     let parameters = [
         input.sessionId(req.params.id),
         // start is a required integer parameter with no default value that must
         // be greater than 0
-        input.integer('start', req.query.start, null, 0),
+        new Parameter(input.integer('start', req.query.start, 0)),
         // end is an optional integer parameter that must be greater than 0
         new Parameter({
             name: 'end',
