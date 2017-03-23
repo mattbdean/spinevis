@@ -9,6 +9,10 @@ before_script:
   # Virtual screen for firefox to execute Karma tests
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
+  - npm install jspm
+  - jspm install
+  # JSPM makes some changes to config.js that breaks the unit tests, revert these
+  - git checkout app/client/config.js
 script: grunt testCoverage
 after_success: grunt uploadCoverage; grunt jshint
 addons:
