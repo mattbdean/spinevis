@@ -1,6 +1,6 @@
 # SpineVis
 
-<!-- [![Travis](https://img.shields.io/travis/thatJavaNerd/spinevis.svg)](https://travis-ci.org/thatJavaNerd/spinevis) -->
+[![Travis](https://img.shields.io/travis/thatJavaNerd/spinevis.svg)](https://travis-ci.org/thatJavaNerd/spinevis)
 <!-- [![Coveralls](https://img.shields.io/coveralls/thatJavaNerd/spinevis.svg)](https://coveralls.io/github/thatJavaNerd/spinevis) -->
 
 Analyze dendritic activity in the web browser
@@ -25,7 +25,7 @@ spinevis is built with the [Grunt](http://gruntjs.com/) task runner.
 
 **test** — Same as default
 
-**testCoverage** — Cleans the `build` and `.cache` directories and runs Mocha and Karma with code coverage. Coverage info can be found in `build/reports/coverage/`
+**testCoverage** — Cleans the `build` and `.cache` directories and Mocha tests that don't require a database connection and all Karma. Coverage info can be found in `build/reports/coverage/`
 
 **uploadCoverage** — Merges the coverage results from Mocha and Karma and sends it to Coveralls
 

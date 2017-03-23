@@ -45,6 +45,15 @@ module.exports = function(grunt) {
                 options: {
                     coverageFolder: 'build/reports/coverage/server'
                 }
+            },
+            noDbMode: {
+                src: [
+                    'app/server/test/input.js',
+                    'app/server/test/validation.js',
+                ],
+                options: {
+                    coverageFolder: 'build/reports/coverage/server'
+                }
             }
         },
         lcovMerge: {
@@ -243,7 +252,10 @@ module.exports = function(grunt) {
 
     grunt.registerTask('default', ['test']);
     grunt.registerTask('test', ['mochaTest', 'karma']);
-    grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul', 'karma']);
+    grunt.registerTask('noDbModeWarn', function() {
+        grunt.log.writeln('WARNING: Some tests have been skipped due to no access to a database');
+    });
+    grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
     grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'copy']);
 };
