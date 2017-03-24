@@ -1,6 +1,8 @@
 # SpineVis
 
 [![Travis](https://img.shields.io/travis/thatJavaNerd/spinevis.svg)](https://travis-ci.org/thatJavaNerd/spinevis)
+[![Known Vulnerabilities](https://snyk.io/test/github/thatjavanerd/spinevis/badge.svg)](https://snyk.io/test/github/thatjavanerd/spinevis)
+[![GitHub tag](https://img.shields.io/github/tag/thatJavaNerd/spinevis.svg)](https://github.com/thatJavaNerd/spinevis/tags)
 <!-- [![Coveralls](https://img.shields.io/coveralls/thatJavaNerd/spinevis.svg)](https://coveralls.io/github/thatJavaNerd/spinevis) -->
 
 Analyze dendritic activity in the web browser. Requires Node.js v7.0+.
