@@ -336,7 +336,10 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
     };
 
     // leggo
-    init();
+    init().catch(function(err) {
+        $ctrl.criticalError = err.message;
+        console.error(err);
+    });
 }];
 
 module.exports = {

@@ -1,13 +1,17 @@
-div.container-fluid.session-meta-container
-    ul.session-meta.text-center
-        li(ng-repeat="meta in $ctrl.sessionFormattedMeta") {{meta}}
+div(ng-show="!$ctrl.criticalError")
+    div.container-fluid.session-meta-container
+        ul.session-meta.text-center
+            li(ng-repeat="meta in $ctrl.sessionFormattedMeta") {{meta}}
 
-div.container-fluid
-    div#plot-vis
-    div#plot-timeline
+    div.container-fluid
+        div#plot-vis
+        div#plot-timeline
 
-div.container
-    select(
-        ng-model='$ctrl.selectedTrace'
-        ng-options='name.codeName as name.displayName for name in $ctrl.unaddedTraces'
-    )
+    div.container
+        select(
+            ng-model='$ctrl.selectedTrace'
+            ng-options='name.codeName as name.displayName for name in $ctrl.unaddedTraces'
+        )
+
+div(ng-show="$ctrl.criticalError")
+    p.text-center.text-danger.big-bad-error-msg An error has occured: {{$ctrl.criticalError}}
