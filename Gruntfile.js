@@ -85,12 +85,6 @@ module.exports = function(grunt) {
             }
         },
         copy: {
-            fonts: {
-                cwd: 'node_modules/bootstrap/dist/fonts/',
-                src: '*',
-                dest: build + 'fonts',
-                expand: true
-            },
             rawAssets: {
                 cwd: 'app/client/_assets/raw',
                 src: '**',

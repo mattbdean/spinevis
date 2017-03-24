@@ -130,11 +130,13 @@ System.config({
     "angular-resource": "npm:angular-resource@1.6.2",
     "babel": "npm:babel-core@5.8.38",
     "babel-runtime": "npm:babel-runtime@5.8.38",
+    "bootstrap": "github:twbs/bootstrap@3.3.7",
     "chai": "npm:chai@3.5.0",
     "core-js": "npm:core-js@1.2.7",
+    "css": "github:systemjs/plugin-css@0.1.33",
     "dtype": "npm:dtype@2.0.0",
     "hughsk/tab64": "github:hughsk/tab64@0.0.1",
-    "jquery": "npm:jquery@3.1.1",
+    "jquery": "npm:jquery@3.2.1",
     "lodash": "npm:lodash@4.17.4",
     "moment": "npm:moment@2.17.1",
     "moment-duration-format": "npm:moment-duration-format@1.3.0",
@@ -172,6 +174,9 @@ System.config({
     },
     "github:jspm/nodelibs-vm@0.1.0": {
       "vm-browserify": "npm:vm-browserify@0.0.4"
+    },
+    "github:twbs/bootstrap@3.3.7": {
+      "jquery": "npm:jquery@3.2.1"
     },
     "npm:asn1.js@4.9.1": {
       "bn.js": "npm:bn.js@4.11.6",
