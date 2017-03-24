@@ -1,6 +1,5 @@
 System.config({
-  // Little hack, see https://github.com/computmaxer/karma-jspm/issues/91#issuecomment-136216912
-  baseURL: (typeof __karma__ !== "undefined") ? "base" : "/scripts",
+  baseURL: "/scripts",
   defaultJSExtensions: true,
   transpiler: "babel",
   babelOptions: {
@@ -34,10 +33,10 @@ System.config({
     ],
     "src/session-list/session-list.component.js": [
       "../core/util.js",
+      "../core/session.js",
       "moment",
       "numeral",
-      "lodash",
-      "../core/session.js"
+      "lodash"
     ],
     "src/core/core.module.js": [
       "angular"
@@ -50,8 +49,8 @@ System.config({
       "./trace-manager.js",
       "../core/util.js",
       "./relative-time.js",
-      "./markers.js",
-      "../core/session.js"
+      "../core/session.js",
+      "./markers.js"
     ],
     "npm:moment@2.17.1.js": [
       "npm:moment@2.17.1/moment.js"
@@ -122,6 +121,9 @@ System.config({
     ],
     "npm:dtype@2.0.0.js": [
       "npm:dtype@2.0.0/index"
+    ],
+    "npm:jquery@3.2.1.js": [
+      "npm:jquery@3.2.1/dist/jquery.js"
     ]
   },
 
