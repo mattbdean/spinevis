@@ -1,5 +1,6 @@
 let fs = require('fs');
 let path = require('path');
+let bundle = require('jspm/lib/bundle');
 
 module.exports = function(grunt) {
     let pkg = grunt.file.readJSON('package.json');
@@ -241,6 +242,8 @@ module.exports = function(grunt) {
         grunt.loadNpmTasks(`grunt-${tasks[i]}`);
     }
 
+    registerDepcacheTask(grunt, 'depcache', 'src/app.module.js');
+
     grunt.registerTask('default', ['test']);
     grunt.registerTask('test', ['mochaTest', 'karma']);
     grunt.registerTask('noDbModeWarn', function() {
@@ -248,5 +251,16 @@ module.exports = function(grunt) {
     });
     grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
-    grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'copy']);
+    grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'depcache', 'copy']);
+};
+
+let registerDepcacheTask = function(grunt, name, entryPoint) {
+    grunt.registerTask(name, 'Injects dependency cache into JSPM\'s config.js', function() {
+        let done = this.async();
+
+        bundle.depCache(entryPoint).then(function(res) {
+            grunt.log.ok(`Updated dependency cache for ${entryPoint} in config.js`);
+            done();
+        });
+    });
 };
