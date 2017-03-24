@@ -3,6 +3,7 @@
 
 let fs = require('fs');
 let os = require('os');
+let path = require('path');
 
 let spdy = require('spdy');
 let _ = require('lodash');
@@ -10,6 +11,7 @@ let colors = require('colors/safe');
 
 let listEndpoints = require('express-list-endpoints');
 let createApp = require('./app/server/src/server.js');
+let packageJson = require('./package.json');
 
 // Catch unhandled Promises
 process.on('unhandledRejection', function(reason, p) {
@@ -17,10 +19,15 @@ process.on('unhandledRejection', function(reason, p) {
     throw reason;
 });
 
+if (hasArgument('--help')) {
+    printHelp();
+    process.exit(0);
+}
+
 // Gather some information from command line arguments and environmental variables
 const options = {
     port: process.env.PORT || 8080,
-    noHttp2: process.argv.includes('--no-http2')
+    noHttp2: hasArgument('--no-http2')
 };
 
 bootstrap(options);
@@ -91,6 +98,15 @@ async function spdyConf() {
     };
 };
 
+function printHelp() {
+    let script = path.basename(__filename);
+    console.log(colors.bold(`spinevis v${packageJson.version}`));
+    console.log('\nUsage:');
+    console.log(`$ ${script} [--no-http2] [--help]`);
+    console.log('  --no-http2: Disables HTTP/2');
+    console.log('  --help: Prints this help message');
+};
+
 /**
  * Logs a list of available endpoints to stdout
  *
@@ -102,7 +118,7 @@ function logEndpoints(app) {
     for (let e of endpoints) {
         console.log(`  ${_.join(e.methods, ', ')} ${e.path}`);
     }
-}
+};
 
 /**
  * Ensures that a file or directory at a given path is readable. Returns a
@@ -127,4 +143,18 @@ function readFile(file) {
             else resolve(data)
         });
     });
+};
+
+/**
+ * Returns true if any argument to this function is included in process.argv
+ * @return Boolean [description]
+ */
+function hasArgument() {
+    let names = Array.prototype.slice.call(arguments);
+    for (let name of names) {
+        if (process.argv.includes(name))
+            return true;
+    }
+
+    return false;
 }
