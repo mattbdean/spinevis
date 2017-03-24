@@ -15,6 +15,7 @@ let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
 const PLACEHOLDER_ID = '__placeholder__';
 const PLACEHOLDER_NAME = 'Add a trace';
 const BEHAVIOR_Y = 0;
+const DEFAULT_PLOT_OPTIONS = {displaylogo: false};
 
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
@@ -150,7 +151,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
             }
         };
 
-        Plotly.newPlot(visNode, [], layout);
+        Plotly.newPlot(visNode, [], layout, DEFAULT_PLOT_OPTIONS);
     };
 
     /**
@@ -189,7 +190,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
             showlegend: true
         };
 
-        Plotly.newPlot(timelineNode, [], layout);
+        Plotly.newPlot(timelineNode, [], layout, DEFAULT_PLOT_OPTIONS);
         console.timeEnd(timeId);
 
         // Instantiating is different than init()-ing
