@@ -5,7 +5,7 @@
 [![GitHub tag](https://img.shields.io/github/tag/thatJavaNerd/spinevis.svg)](https://github.com/thatJavaNerd/spinevis/tags)
 <!-- [![Coveralls](https://img.shields.io/coveralls/thatJavaNerd/spinevis.svg)](https://coveralls.io/github/thatJavaNerd/spinevis) -->
 
-Analyze dendritic activity in the web browser. Requires Node.js v7.0+.
+Analyze dendritic activity in the web browser. Requires Node.js v7.6+.
 
 ## Getting Started
 
@@ -16,6 +16,16 @@ $ npm install && jspm install
 $ grunt build
 $ node server.js
 ```
+
+## Running
+
+You can start the server using the `server.js` file:
+
+```sh
+$ ./server.js [--no-http2]
+```
+
+To enable HTTP/2, see [here](https://github.com/thatJavaNerd/spinevis/blob/master/docs/http2.md).
 
 ## Building
 

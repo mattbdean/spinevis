@@ -5,3 +5,6 @@ todo.txt
 .cache/
 build/
 app/server/public/
+
+server.crt
+server.key
