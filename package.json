@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "main": "server.js",
-  "repository": "thatJavaNerd/spinevis",
+  "repository": "https://github.com/thatJavaNerd/spinevis",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

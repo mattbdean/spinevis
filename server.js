@@ -105,6 +105,7 @@ function printHelp() {
     console.log(`$ ${script} [--no-http2] [--help]`);
     console.log('  --no-http2: Disables HTTP/2');
     console.log('  --help: Prints this help message');
+    console.log(`\nFor more see ${colors.bold(packageJson.repository)}`);
 };
 
 /**
