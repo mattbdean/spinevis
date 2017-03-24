@@ -6,6 +6,7 @@ let os = require('os');
 
 let spdy = require('spdy');
 let _ = require('lodash');
+let colors = require('colors/safe');
 
 let listEndpoints = require('express-list-endpoints');
 let createApp = require('./app/server/src/server.js');
@@ -30,12 +31,12 @@ async function bootstrap(options) {
     if (!options.noHttp2) {
         try {
             spdyOptions = await spdyConf();
-            console.log('HTTP/2 enabled');
+            console.log(colors.green('HTTP/2 enabled'));
         } catch (ex) {
-            console.error('WARNING: Starting in non-HTTP/2 mode:', ex.message);
+            console.error(colors.red('WARNING: Starting in non-HTTP/2 mode: ' + ex.message));
         }
     } else {
-        console.log('HTTP/2 disabled by user (via --no-http2)');
+        console.log(colors.blue('HTTP/2 disabled by user (via --no-http2)'));
     }
 
     let app = await createApp();
@@ -45,7 +46,7 @@ async function bootstrap(options) {
     let protocol = spdyOptions === null ? 'http' : 'https';
     let url = `${protocol}://${os.hostname()}:${options.port}`;
 
-    console.log('\nMagic is happening at ' + url);
+    console.log('\nMagic is happening at ' + colors.bold(url));
 };
 
 function startServer(app, spdyOptions, port) {
