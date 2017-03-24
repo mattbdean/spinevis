@@ -1,6 +1,5 @@
 System.config({
-  // Little hack, see https://github.com/computmaxer/karma-jspm/issues/91#issuecomment-136216912
-  baseURL: (typeof __karma__ !== "undefined") ? "base" : "/scripts",
+  baseURL: "/scripts",
   defaultJSExtensions: true,
   transpiler: "babel",
   babelOptions: {
@@ -34,10 +33,10 @@ System.config({
     ],
     "src/session-list/session-list.component.js": [
       "../core/util.js",
+      "../core/session.js",
       "moment",
       "numeral",
-      "lodash",
-      "../core/session.js"
+      "lodash"
     ],
     "src/core/core.module.js": [
       "angular"
@@ -50,8 +49,8 @@ System.config({
       "./trace-manager.js",
       "../core/util.js",
       "./relative-time.js",
-      "./markers.js",
-      "../core/session.js"
+      "../core/session.js",
+      "./markers.js"
     ],
     "npm:moment@2.17.1.js": [
       "npm:moment@2.17.1/moment.js"
@@ -122,6 +121,9 @@ System.config({
     ],
     "npm:dtype@2.0.0.js": [
       "npm:dtype@2.0.0/index"
+    ],
+    "npm:jquery@3.2.1.js": [
+      "npm:jquery@3.2.1/dist/jquery.js"
     ]
   },
 
@@ -130,11 +132,13 @@ System.config({
     "angular-resource": "npm:angular-resource@1.6.2",
     "babel": "npm:babel-core@5.8.38",
     "babel-runtime": "npm:babel-runtime@5.8.38",
+    "bootstrap": "github:twbs/bootstrap@3.3.7",
     "chai": "npm:chai@3.5.0",
     "core-js": "npm:core-js@1.2.7",
+    "css": "github:systemjs/plugin-css@0.1.33",
     "dtype": "npm:dtype@2.0.0",
     "hughsk/tab64": "github:hughsk/tab64@0.0.1",
-    "jquery": "npm:jquery@3.1.1",
+    "jquery": "npm:jquery@3.2.1",
     "lodash": "npm:lodash@4.17.4",
     "moment": "npm:moment@2.17.1",
     "moment-duration-format": "npm:moment-duration-format@1.3.0",
@@ -172,6 +176,9 @@ System.config({
     },
     "github:jspm/nodelibs-vm@0.1.0": {
       "vm-browserify": "npm:vm-browserify@0.0.4"
+    },
+    "github:twbs/bootstrap@3.3.7": {
+      "jquery": "npm:jquery@3.2.1"
     },
     "npm:asn1.js@4.9.1": {
       "bn.js": "npm:bn.js@4.11.6",

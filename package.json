@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "main": "server.js",
-  "repository": "thatJavaNerd/spinevis",
+  "repository": "https://github.com/thatJavaNerd/spinevis",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -12,14 +12,15 @@
   "author": "Matthew Dean <deanmatthew16@gmail.com>",
   "dependencies": {
     "body-parser": "^1.15.2",
-    "bootstrap": "^3.3.7",
+    "colors": "^1.1.2",
     "express": "^4.14.0",
     "express-list-endpoints": "^3.0.0",
     "helmet": "^3.1.0",
     "lodash": "^4.17.4",
     "mongodb": "^2.2.11",
     "morgan": "^1.7.0",
-    "pug": "^2.0.0-beta6"
+    "pug": "^2.0.0-beta6",
+    "spdy": "^3.4.4"
   },
   "devDependencies": {
     "angular-mocks": "^1.6.1",
@@ -39,7 +40,7 @@
     "grunt-mocha-istanbul": "^5.0.2",
     "grunt-mocha-test": "^0.13.2",
     "grunt-run": "^0.6.0",
-    "jspm": "^0.16.52",
+    "jspm": "^0.16.53",
     "karma": "^1.3.0",
     "karma-chrome-launcher": "^2.0.0",
     "karma-coverage": "^1.1.1",
@@ -58,7 +59,9 @@
     "dependencies": {
       "angular": "npm:angular@^1.6.2",
       "angular-resource": "npm:angular-resource@^1.6.2",
+      "bootstrap": "github:twbs/bootstrap@^3.3.7",
       "chai": "npm:chai@^3.5.0",
+      "css": "github:systemjs/plugin-css@^0.1.33",
       "dtype": "npm:dtype@^2.0.0",
       "hughsk/tab64": "github:hughsk/tab64@^0.0.1",
       "jquery": "npm:jquery@^3.1.1",

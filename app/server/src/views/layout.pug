@@ -16,6 +16,7 @@ html
             script(src='/scripts/jspm_packages/system.js')
             script(src='/scripts/config.js')
             script.
+                System.import('bootstrap/css/bootstrap.min.css!');
                 System.import('/scripts/app.module.js').then(function() {
                     angular.bootstrap(document, ['spinevis'])
                 });
