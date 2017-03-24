@@ -23,6 +23,7 @@ module.exports = function(grunt) {
         jshint: {
             all: [
                 'Gruntfile.js',
+                'karma.conf.js',
                 'app/client/!(build|jspm_packages)/**/*.js',
                 'app/server/src/**/*.js'
             ],
