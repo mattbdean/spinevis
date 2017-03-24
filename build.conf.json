@@ -1,4 +1,0 @@
-{
-    "cssBuilds": ["index", "session"],
-    "excludedTemplates": ["error.pug", "layout.pug", "session.pug"]
-}

@@ -1,6 +1,5 @@
 let fs = require('fs');
 let path = require('path');
-let conf = require('./build.conf.json');
 
 module.exports = function(grunt) {
     let pkg = grunt.file.readJSON('package.json');
@@ -165,21 +164,18 @@ module.exports = function(grunt) {
         }
     });
 
-    // Created a .min.css file for every CSS file in the style directory that
-    // isn't base.css
-    let cssminProp = 'cssmin.build.files';
-    let files = [];
-    conf.cssBuilds.forEach(css => {
-        files.push({
-            src: [
-                'app/client/_assets/style/base.css',
-                `app/client/_assets/style/${css}.css`,
-                'node_modules/bootstrap/dist/css/bootstrap.css'
-            ],
-            dest: build + `style/${css}.min.css`
+    // Created a .min.css file for every CSS file in the style directory
+    let cssFiles = grunt.file.expand('app/client/_assets/style/*.css');
+    let minifyTargets = [];
+
+    // Create cssmin.build.files dynamically
+    for (let cssFile of cssFiles) {
+        minifyTargets.push({
+            src: cssFile,
+            dest: build + `style/${path.basename(cssFile, '.css')}.min.css`
         });
-    });
-    grunt.config(cssminProp, files);
+    }
+    grunt.config('cssmin.build.files', minifyTargets);
 
     let walkTree = function(dir) {
         if (dir.endsWith('/'))
@@ -212,6 +208,8 @@ module.exports = function(grunt) {
         appName: pkg.name
     };
 
+    let excludedTemplates = ["error.pug", "layout.pug", "session.pug"];
+
     // All views that can't be rendered statically or shouldn't be rendered
     // directly
     walkTree(srcDir).forEach(view => {
@@ -219,7 +217,7 @@ module.exports = function(grunt) {
         let relativeName = view.slice(srcDir.length);
 
         // Ignore dynamic views
-        if (conf.excludedTemplates.includes(relativeName)) {
+        if (excludedTemplates.includes(relativeName)) {
             return;
         }
 
