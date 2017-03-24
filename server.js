@@ -54,13 +54,13 @@ async function bootstrap(options) {
     let url = `${protocol}://${os.hostname()}:${options.port}`;
 
     console.log('\nMagic is happening at ' + colors.bold(url));
-};
+}
 
 function startServer(app, spdyOptions, port) {
     // Use a spdy server if spdyOptions is not null, otherwise use the Express app
     let server = spdyOptions ? spdy.createServer(spdyOptions, app) : app;
     return server.listen(port);
-};
+}
 
 /**
  * Creates a configuration object that can be accepted by a spdy server.
@@ -96,7 +96,7 @@ async function spdyConf() {
         key: files[0],
         cert: files[1]
     };
-};
+}
 
 function printHelp() {
     let script = path.basename(__filename);
@@ -106,7 +106,7 @@ function printHelp() {
     console.log('  --no-http2: Disables HTTP/2');
     console.log('  --help: Prints this help message');
     console.log(`\nFor more see ${colors.bold(packageJson.repository)}`);
-};
+}
 
 /**
  * Logs a list of available endpoints to stdout
@@ -119,7 +119,7 @@ function logEndpoints(app) {
     for (let e of endpoints) {
         console.log(`  ${_.join(e.methods, ', ')} ${e.path}`);
     }
-};
+}
 
 /**
  * Ensures that a file or directory at a given path is readable. Returns a
@@ -132,7 +132,7 @@ function ensureReadable(path) {
             else resolve(path);
         });
     });
-};
+}
 
 /**
  * Reads the contents of a file. Returns a Promise.
@@ -144,7 +144,7 @@ function readFile(file) {
             else resolve(data)
         });
     });
-};
+}
 
 /**
  * Returns true if any argument to this function is included in process.argv
