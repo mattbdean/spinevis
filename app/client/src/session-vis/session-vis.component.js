@@ -20,7 +20,7 @@ const DEFAULT_PLOT_OPTIONS = {displaylogo: false};
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
-let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController($http, $window, $scope, $q) {
+let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http, $window, $scope) {
     let session = sessionApi($http);
     let $ctrl = this;
 
@@ -48,44 +48,41 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
 
         // Array of functions that return a promise
         let promises = [];
+        // Array of HTML elements that contain a Plotly plot
         let plotNodes = [];
 
         if (TIMELINE_ENABLE) {
-            // Get basic session information. Wrap Promise constructor in a
-            // function so that we can control when the Promise will execute.
-            // If this $q() was not wrapped, this new Promise would execute
-            // before initSessionMeta(), yielding an error
-            promises.push(() => { return new $q(function(resolve, reject) {
-                // Synchronously create timeline layout
-                initTimeline();
-                // Initialize behavior and imaging traces
-                return resolve(Promise.all([initBehavior(BEHAVIOR_Y), initTraces()]));
-            }).then(function() {
-                // Register some callbacks to provide full functionality to the user
-                registerTimelineCallbacks();
-            }); });
+            // Wrap Promise constructor in a function so that we can control
+            // when the Promise will execute. If Promise() was not wrapped, it
+            // would execute before initSessionMeta(), undoubtedly yielding an
+            // error.
+            promises.push(() => {
+                // Create timeline layout
+                return initTimeline().then(function() {
+                    // Initialize behavior and imaging traces
+                    return Promise.all([initBehavior(BEHAVIOR_Y), initTraces()]);
+                // Register some callbacks to provide full functionality to the
+                // user.
+                }).then(registerTimelineCallbacks);
+            });
             plotNodes.push(timelineNode);
         }
 
         if (VOLUME_ENABLE) {
             promises.push(() => {
-                initVisualizer();
-                return initVolumeTraces();
+                return initVisualizer().then(initVolumeTraces);
             });
             plotNodes.push(visNode);
         }
 
-        $window.onresize = function() {
-            Plotly.Plots.resize(timelineNode);
-        };
+        // Both plots require session metadata, grab that before creating them
         return initSessionMeta().then(function() {
-            // Execute all Promise functions
-            return $q.all(_.map(promises, p => p()));
+            // Execute all Promise-yielding functions that create Plotly plots
+            return Promise.all(_.map(promises, p => p()));
         }).then(function() {
+            // Resize the plots when the window resizes
             $window.onresize = function() {
-                for (let plot of plotNodes) {
-                    Plotly.Plots.resize(plot);
-                }
+                return Promise.all(_.map(plotNodes, p => Plotly.Plots.resize(p)));
             };
         });
     };
@@ -127,12 +124,13 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
                 hoverinfo: 'none'
             });
         }
-        Plotly.addTraces(visNode, traces);
-        // Plotly.addTraces(visNode, $ctrl.sessionMeta.surfs);
 
-        return session.volume($ctrl.sessionId, 0).then(function(res) {
-            console.log(res.data.data);
-            console.log(_.compact(tab64.decode(res.data.data[0].pixelF, 'float32')));
+        // return Plotly.addTraces(visNode, $ctrl.sessionMeta.surfs);
+        return Plotly.addTraces(visNode, traces).then(function() {
+            return session.volume($ctrl.sessionId, 0);
+        }).then(function(res) {
+            // console.log(res.data.data);
+            // console.log(_.compact(tab64.decode(res.data.data[0].pixelF, 'float32')));
         });
     };
 
@@ -151,7 +149,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
             }
         };
 
-        Plotly.newPlot(visNode, [], layout, DEFAULT_PLOT_OPTIONS);
+        return Plotly.newPlot(visNode, [], layout, DEFAULT_PLOT_OPTIONS);
     };
 
     /**
@@ -190,9 +188,6 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
             showlegend: true
         };
 
-        Plotly.newPlot(timelineNode, [], layout, DEFAULT_PLOT_OPTIONS);
-        console.timeEnd(timeId);
-
         // Instantiating is different than init()-ing
         traceManager = new TraceManager(
             /*$http = */$http,
@@ -214,6 +209,10 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
                 }
             ]
         );
+
+        return Plotly.newPlot(timelineNode, [], layout, DEFAULT_PLOT_OPTIONS).then(function() {
+            console.timeEnd(timeId);
+        });
     };
 
     /**
@@ -250,9 +249,9 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
                 });
             }
 
-            Plotly.addTraces(timelineNode, traces);
-
-            console.timeEnd(timeId);
+            return Plotly.addTraces(timelineNode, traces).then(function() {
+                console.timeEnd(timeId);
+            });
         });
     };
 
@@ -280,7 +279,7 @@ let ctrlDef = ['$http', '$window', '$scope', '$q', function SessionVisController
             }
 
             // Define our global trace
-            putTrace('global').then(() => { console.timeEnd(timeId); });
+            return putTrace('global').then(() => { console.timeEnd(timeId); });
         });
     };
 
