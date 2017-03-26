@@ -86,6 +86,9 @@ module.exports = function(grunt) {
                 }
             }
         },
+        depcache: {
+            dist: ['src/app.module.js']
+        },
         copy: {
             rawAssets: {
                 cwd: 'app/client/_assets/raw',
@@ -232,6 +235,7 @@ module.exports = function(grunt) {
         'contrib-pug',
         'contrib-watch',
         'coveralls',
+        'jspm-depcache',
         'karma',
         'lcov-merge',
         'mocha-test',
@@ -243,8 +247,6 @@ module.exports = function(grunt) {
         grunt.loadNpmTasks(`grunt-${tasks[i]}`);
     }
 
-    registerDepcacheTask(grunt, 'depcache', 'src/app.module.js');
-
     grunt.registerTask('default', ['test']);
     grunt.registerTask('test', ['mochaTest', 'karma']);
     grunt.registerTask('noDbModeWarn', function() {
@@ -253,15 +255,4 @@ module.exports = function(grunt) {
     grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
     grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'depcache', 'copy']);
-};
-
-let registerDepcacheTask = function(grunt, name, entryPoint) {
-    grunt.registerTask(name, 'Injects dependency cache into JSPM\'s config.js', function() {
-        let done = this.async();
-
-        bundle.depCache(entryPoint).then(function(res) {
-            grunt.log.ok(`Updated dependency cache for ${entryPoint} in config.js`);
-            done();
-        });
-    });
 };
