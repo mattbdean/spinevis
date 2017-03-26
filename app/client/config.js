@@ -29,6 +29,8 @@ System.config({
     "src/session-vis/session-vis.module.js": [
       "angular",
       "../core/core.module.js",
+      "../timeline/timeline.module.js",
+      "../volume/volume.module.js",
       "./session-vis.component.js"
     ],
     "src/session-list/session-list.component.js": [
@@ -44,13 +46,11 @@ System.config({
     "src/session-vis/session-vis.component.js": [
       "moment",
       "jquery",
-      "lodash",
       "hughsk/tab64",
-      "./trace-manager.js",
+      "lodash",
       "../core/util.js",
-      "./relative-time.js",
       "../core/session.js",
-      "./markers.js"
+      "../core/plotdefaults.js"
     ],
     "npm:moment@2.17.1.js": [
       "npm:moment@2.17.1/moment.js"
@@ -124,6 +124,44 @@ System.config({
     ],
     "npm:jquery@3.2.1.js": [
       "npm:jquery@3.2.1/dist/jquery.js"
+    ],
+    "src/timeline/timeline.module.js": [
+      "angular",
+      "./timeline.component.js"
+    ],
+    "src/volume/volume.module.js": [
+      "angular",
+      "./volume.component.js"
+    ],
+    "src/timeline/timeline.component.js": [
+      "lodash",
+      "jquery",
+      "./markers.js",
+      "./trace-manager.js",
+      "./relative-time.js",
+      "../core/session.js",
+      "../core/plotdefaults.js"
+    ],
+    "src/volume/volume.component.js": [
+      "jquery",
+      "hughsk/tab64",
+      "../core/plotdefaults.js",
+      "../core/session.js"
+    ],
+    "src/timeline/trace-manager.js": [
+      "lodash",
+      "uuid",
+      "./range.js",
+      "./downsampler.js",
+      "../core/session.js",
+      "./relative-time.js"
+    ],
+    "src/timeline/range.js": [
+      "lodash"
+    ],
+    "src/timeline/downsampler.js": [
+      "lodash",
+      "./relative-time.js"
     ]
   },
 
