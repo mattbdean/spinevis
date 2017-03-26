@@ -24,13 +24,12 @@ if (hasArgument('--help')) {
     process.exit(0);
 }
 
-// Gather some information from command line arguments and environmental variables
-const options = {
+// Gather some information from command line arguments and environmental
+// variables to start the server
+bootstrap({
     port: process.env.PORT || 8080,
     noHttp2: hasArgument('--no-http2')
-};
-
-bootstrap(options);
+});
 
 async function bootstrap(options) {
     let spdyOptions = null;
