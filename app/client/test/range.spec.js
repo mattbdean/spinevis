@@ -1,7 +1,7 @@
 let chai = require('chai');
 let expect = chai.expect;
 
-let range = require('../src/session-vis/range.js');
+let range = require('../src/timeline/range.js');
 
 describe('range', function() {
     describe('create', function() {
