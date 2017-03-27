@@ -10,6 +10,7 @@ describe('range', function() {
             expect(r.start).to.be.equal(5);
             expect(r.end).to.be.equal(15);
             expect(r.delta).to.be.equal(10);
+            expect(r.middle).to.be.equal(10);
         });
     });
 

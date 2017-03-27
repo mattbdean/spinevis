@@ -3,9 +3,7 @@ let tab64 = require('hughsk/tab64');
 
 let defaultPlotOptions = require('../core/plotdefaults.js');
 let sessionApi = require('../core/session.js');
-
-const EVENT_META = 'meta';
-const EVENT_INITIALIZED = 'initialized';
+let events = require('../session-vis/events.js');
 
 let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     let $ctrl = this;
@@ -13,7 +11,7 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
 
     // Wait for a parent component (i.e. session-vis) to send the session
     // metadata through an event. Immediately unsubscribe.
-    let unsubscribe = $scope.$on(EVENT_META, (event, data) => {
+    let unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
         unsubscribe();
         init(data);
     });
@@ -29,10 +27,11 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
 
         return initPlot()
         .then(initTraces)
+        .then(registerCallbacks)
         .then(function() {
             // Tell the parent scope (i.e. session-vis) that we've finished
             // initializing
-            $scope.$emit(EVENT_INITIALIZED, plotNode);
+            $scope.$emit(events.INITIALIZED, plotNode);
         });
     };
 
@@ -52,6 +51,18 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
         };
 
         return Plotly.newPlot(plotNode, [], layout, defaultPlotOptions);
+    };
+
+    let registerCallbacks = function() {
+        $scope.$on(events.DATA_FOCUS_CHANGE, (event, newIndex) => {
+            let relTime = require('../timeline/relative-time.js');
+            let moment = require('moment');
+            if (newIndex < 0) newIndex = 0;
+            if (newIndex > $ctrl.sessionMeta.relTimes.length - 1)
+                newIndex = $ctrl.sessionMeta.relTimes.length - 1;
+
+            // TODO do something with newIndex
+        });
     };
 
     let initTraces = function() {

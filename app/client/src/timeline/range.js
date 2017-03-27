@@ -31,5 +31,10 @@ module.exports.copy = function(range) {
 
 module.exports.create = function(start, end) {
     if (end < start) throw new Error(`backwards range (expecting ${start} to be less than ${end})`);
-    return {start: start, end: end, delta: end - start};
+    return {
+        start: start,
+        end: end,
+        delta: end - start,
+        middle: start + (end - start) / 2
+    };
 };

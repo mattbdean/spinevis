@@ -4,17 +4,18 @@ let $ = require('jquery');
 const behaviorMarkers = require('./markers.js');
 let TraceManager = require('./trace-manager.js');
 let relTime = require('./relative-time.js');
+let range = require('./range.js');
 let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
 let sessionApi = require('../core/session.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
-
-const EVENT_META = 'meta';
-const EVENT_INITIALIZED = 'initialized';
+let events = require('../session-vis/events.js');
 
 const PLACEHOLDER_ID = '__placeholder__';
 const PLACEHOLDER_NAME = 'Add a trace';
 
 const BEHAVIOR_Y = 0;
+// A vertical line will be drawn at 50% of the plot
+const DATA_FOCUS_POSITION = 0.5;
 
 let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, $window, $scope) {
     let $ctrl = this;
@@ -22,7 +23,7 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
 
     // Wait for a parent component (i.e. session-vis) to send the session
     // metadata through an event. Immediately unsubscribe.
-    let unsubscribe = $scope.$on(EVENT_META, (event, data) => {
+    let unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
         unsubscribe();
         init(data);
     });
@@ -41,9 +42,10 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
         .then(initTraces)
         .then(registerCallbacks)
         .then(function() {
+            onTimepointSelected($ctrl.sessionMeta.relTimes.length * DATA_FOCUS_POSITION);
             // Tell the parent scope (i.e. session-vis) that we've finished
             // initializing
-            $scope.$emit(EVENT_INITIALIZED, plotNode);
+            $scope.$emit(events.INITIALIZED, plotNode);
         });
     };
 
@@ -54,13 +56,15 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
         let timeId = 'Create empty timeline';
         console.time(timeId);
 
+        let fluorGraphStart = 0.25;
+
         // Simple layout data
         let layout = {
             // yaxis is for fluorescence data
             yaxis: {
                 // Goes 25% to 100% of the element (where 0% is the bottom and
                 // 100% is the top)
-                domain: [0.25, 1.0],
+                domain: [fluorGraphStart, 1.0],
                 title: 'Fluorescence'
             },
             // yaxis2 is for behavior data
@@ -80,6 +84,19 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
             font: {
                 family: 'Roboto, sans-serif'
             },
+            shapes: [{
+                type: 'line',
+                xref: 'paper',
+                yref: 'paper',
+                x0: DATA_FOCUS_POSITION,
+                x1: DATA_FOCUS_POSITION,
+                y0: fluorGraphStart,
+                y1: 1,
+                line: {
+                    color: 'red',
+                    width: 1.5
+                }
+            }],
             showlegend: true
         };
 
@@ -184,18 +201,27 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
      */
     let registerCallbacks = function() {
         plotNode.on('plotly_relayout', function(evt) {
+            // plotly_relayout events also fired when the pan, zoom, lasso, etc.
+            // buttons are clicked as well as when the graph viewport changes
+
+            let domainMillis;
+
             if (evt['xaxis.autorange'] && evt['xaxis.autorange'] === true) {
                 // User has reset axes (at least the x-axis)
-                traceManager.onDomainChange(0, Infinity);
+                domainMillis = range.create(0, Infinity);
             } else if (evt['xaxis.range[0]']) {
                 // Zooming/panning around gives definitive ranges
-                let startMillis = new Date(evt['xaxis.range[0]']).getTime() - timezoneOffsetMillis;
-                let endMillis = new Date(evt['xaxis.range[1]']).getTime() - timezoneOffsetMillis;
-
-                traceManager.onDomainChange(startMillis, endMillis);
+                startMillis = new Date(evt['xaxis.range[0]']).getTime() - timezoneOffsetMillis;
+                endMillis = new Date(evt['xaxis.range[1]']).getTime() - timezoneOffsetMillis;
+                domainMillis = range.create(startMillis, endMillis);
             }
-            // plotly_relayout events are also fired when the pan, zoom, lasso,
-            // etc. buttons are clicked
+
+            if (domainMillis !== undefined) {
+                traceManager.onDomainChange(domainMillis.start, domainMillis.end);
+                let middleIndex = relTime.toIndex($ctrl.sessionMeta.relTimes, domainMillis.middle);
+
+                onTimepointSelected(middleIndex);
+            }
         });
 
         $scope.$watch('$ctrl.selectedTrace', function(newValue, oldValue) {
@@ -228,6 +254,16 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
             // Initialize with placeholder trace data
             $ctrl.selectedTrace = $ctrl.unaddedTraces[0].codeName;
         });
+    };
+
+    let onTimepointSelected = function(newIndex) {
+        // Tell the parent scope (i.e. session-vis) that the user has selected a
+        // timepoint to analyze. In this case, that timepoint is at the location
+        // at which the vertical line is drawn. Prefer Math.ceil over Math.floor
+        // because floor()'ing the index tends to push the index naturally leans
+        // to the left. Using ceil corrects this such that newIndex will only be
+        // at maximum 1 or 2 indexes from the "true" value.
+        $scope.$emit(events.DATA_FOCUS_CHANGE_NOTIF, Math.ceil(newIndex + 1));
     };
 }];
 

@@ -3,12 +3,10 @@ let $ = require('jquery');
 let tab64 = require('hughsk/tab64');
 let _ = require('lodash');
 
+let events = require('./events.js');
 let util = require('../core/util.js');
 let sessionApi = require('../core/session.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
-
-const EVENT_META = 'meta';
-const EVENT_INITIALIZED = 'initialized';
 
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
@@ -27,7 +25,7 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
 
     // Watch for events from children scopes (e.g. the timeline component)
     // notifying us that they're finished initializing
-    $scope.$on(EVENT_INITIALIZED, (event, plotNode) => {
+    $scope.$on(events.INITIALIZED, (event, plotNode) => {
         if (plotNodes.has(plotNode)) {
             console.error('Attempted to add plot node more than once:');
             console.error(plotNode);
@@ -35,6 +33,10 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
         }
 
         plotNodes.add(plotNode);
+    });
+
+    $scope.$on(events.DATA_FOCUS_CHANGE_NOTIF, (event, newIndex) => {
+        $scope.$broadcast(events.DATA_FOCUS_CHANGE, newIndex);
     });
 
     // Resize the plots when the window resizes
@@ -55,7 +57,7 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
         return initSessionMeta().then(function(meta) {
             // Notify all child scopes (e.g. the timeline component) that
             // the session metadata is ready
-            $scope.$broadcast(EVENT_META, meta);
+            $scope.$broadcast(events.META_LOADED, meta);
         });
     };
 
