@@ -7,7 +7,7 @@ let sessionApi = require('../core/session.js');
 const EVENT_META = 'meta';
 const EVENT_INITIALIZED = 'initialized';
 
-let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, $window, $scope) {
+let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     let $ctrl = this;
     let session = sessionApi($http);
 
