@@ -1,6 +1,10 @@
 let _ = require('lodash');
 let $ = require('jquery');
 
+let WatchJS = require('watchjs');
+let watch = WatchJS.watch;
+let unwatch = WatchJS.unwatch;
+
 const behaviorMarkers = require('./markers.js');
 let TraceManager = require('./trace-manager.js');
 let relTime = require('./relative-time.js');
@@ -32,6 +36,7 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
 
     let traceManager = null;
     let sessionId = null;
+    let lastFocusChangeEvent = null;
 
     let init = function(data) {
         $ctrl.sessionMeta = data;
@@ -42,7 +47,9 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
         .then(initTraces)
         .then(registerCallbacks)
         .then(function() {
-            onTimepointSelected($ctrl.sessionMeta.relTimes.length * DATA_FOCUS_POSITION);
+            // Emit a DATA_FOCUS_CHANGE event with high priority so that volume
+            // will get some initial data
+            emitDataFocusChange($ctrl.sessionMeta.relTimes.length * DATA_FOCUS_POSITION, true);
             // Tell the parent scope (i.e. session-vis) that we've finished
             // initializing
             $scope.$emit(events.INITIALIZED, plotNode);
@@ -218,17 +225,36 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
 
             if (domainMillis !== undefined) {
                 traceManager.onDomainChange(domainMillis.start, domainMillis.end);
-                let middleIndex = relTime.toIndex($ctrl.sessionMeta.relTimes, domainMillis.middle);
 
-                onTimepointSelected(middleIndex);
+                let selectedIndex = domainMillis.start +
+                    (domainMillis.end - domainMillis.start) * DATA_FOCUS_POSITION;
+
+                // User settled on this timepoint, it is high priority
+                onTimepointSelected(selectedIndex, true);
             }
         });
 
-        $scope.$watch('$ctrl.selectedTrace', function(newValue, oldValue) {
-            // newValue is the codeName of the trace, add it only if it is
-            // defined, non-null, and not the placeholder
-            if (newValue !== undefined && newValue !== null && newValue !== PLACEHOLDER_ID) {
-                putTrace(newValue);
+        let onXaxisRangeChange = (prop, action, newValue, oldValue) => {
+            let millisecondValue = _.map(newValue, x => new Date(x).getTime() - timezoneOffsetMillis);
+            let middleMillis = millisecondValue[0] +
+                ((millisecondValue[1] - millisecondValue[0]) * DATA_FOCUS_POSITION);
+
+            // A dragging event is low priority
+            onTimepointSelected(middleMillis, false);
+        };
+
+        // Watch the '_dragging' property of the plot node. When true, the user
+        // is dragging the timeline around.
+        watch(plotNode, '_dragging', (prop, action, newValue, oldValue) => {
+            if (newValue) {
+                // The user has started dragging, watch the xaxis property
+                // maintained by Plotly so that we can emit DATA_FOCUS_CHANGE
+                // events to the volume component
+                watch(plotNode._fullLayout.xaxis, 'range', onXaxisRangeChange);
+            } else {
+                // The user is no longer dragging so we don't care about the
+                // x-axis range anymore
+                unwatch(plotNode._fullLayout.xaxis, 'range', onXaxisRangeChange);
             }
         });
     };
@@ -256,21 +282,71 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
         });
     };
 
-    let onTimepointSelected = function(newIndex) {
+    /**
+     * Converts newMillis into an index and calls `emitDataFocusChange` with
+     * that index.
+     *
+     * @param  {number}  newMillis
+     * @param  {Boolean} [isHighPriority=false] If this event should be treated
+     *                                          with high priority. What that
+     *                                          actually means is really up to
+     *                                          whatever component receives this
+     *                                          event (e.g. volume)
+     */
+    let onTimepointSelected = function(newMillis, isHighPriority = false) {
+        let newIndex;
+        // Manually set newIndex to 0 when newMillis < 0 because relTime.toIndex
+        // returns a minimum of 1
+        if (newMillis < 0)
+            newIndex = 0;
+        else
+            // Add 1 to adjust for some small error that always understates the
+            // actual value of the new index
+            newIndex = relTime.toIndex($ctrl.sessionMeta.relTimes, newMillis) + 1;
+
+        // Check bounds
+        if (newIndex < 0) newIndex = 0;
+        if (newIndex > $ctrl.sessionMeta.relTimes.length - 1)
+            newIndex = $ctrl.sessionMeta.relTimes.length - 1;
+
+        emitDataFocusChange(newIndex, isHighPriority);
+    };
+
+    /**
+     * Emits an event of type events.DATA_FOCUS_CHANGE_NOTIF. The contents of
+     * the event data are the sanitized parameters to this function
+     *
+     * @param  {number}  newIndex
+     * @param  {Boolean} [isHighPriority=false] See onTimepointSelected
+     */
+    let emitDataFocusChange = function(newIndex, isHighPriority = false) {
         // Tell the parent scope (i.e. session-vis) that the user has selected a
         // timepoint to analyze. In this case, that timepoint is at the location
         // at which the vertical line is drawn. Prefer Math.ceil over Math.floor
         // because floor()'ing the index tends to push the index naturally leans
         // to the left. Using ceil corrects this such that newIndex will only be
         // at maximum 1 or 2 indexes from the "true" value.
-        $scope.$emit(events.DATA_FOCUS_CHANGE_NOTIF, Math.ceil(newIndex + 1));
+
+        // Prevent sending more than 1 of the same event in a row
+        let actualIndex = Math.ceil(newIndex);
+        // Ensure value is a boolean
+        let actualHighPriority = !!isHighPriority;
+        if (lastFocusChangeEvent !== null &&
+            lastFocusChangeEvent.index === actualIndex &&
+            lastFocusChangeEvent.highPriority === actualHighPriority)
+            return;
+
+        let eventData = {
+            index: actualIndex,
+            highPriority: actualHighPriority
+        };
+
+        $scope.$emit(events.DATA_FOCUS_CHANGE_NOTIF, eventData);
+        lastFocusChangeEvent = eventData;
     };
 }];
 
 module.exports = {
     templateUrl: '/partial/timeline',
-    controller: ctrlDef,
-    bindings: {
-        onMetaLoaded: '&'
-    }
+    controller: ctrlDef
 };

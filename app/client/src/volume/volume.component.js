@@ -54,14 +54,9 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     };
 
     let registerCallbacks = function() {
-        $scope.$on(events.DATA_FOCUS_CHANGE, (event, newIndex) => {
-            let relTime = require('../timeline/relative-time.js');
-            let moment = require('moment');
-            if (newIndex < 0) newIndex = 0;
-            if (newIndex > $ctrl.sessionMeta.relTimes.length - 1)
-                newIndex = $ctrl.sessionMeta.relTimes.length - 1;
-
+        $scope.$on(events.DATA_FOCUS_CHANGE, (event, newFocus) => {
             // TODO do something with newIndex
+            console.log(newFocus);
         });
     };
 

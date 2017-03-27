@@ -182,6 +182,7 @@ System.config({
     "moment-duration-format": "npm:moment-duration-format@1.3.0",
     "numeral": "npm:numeral@2.0.4",
     "uuid": "npm:uuid@3.0.1",
+    "watchjs": "npm:watchjs@0.0.0",
     "github:jspm/nodelibs-assert@0.1.0": {
       "assert": "npm:assert@1.4.1"
     },
