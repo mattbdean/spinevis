@@ -2,7 +2,7 @@ let _ = require('lodash');
 let $ = require('jquery');
 
 const behaviorMarkers = require('./markers.js');
-let TraceManager = require('./trace-manager.js').TraceManager;
+let TraceManager = require('./trace-manager.js');
 let relTime = require('./relative-time.js');
 let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
 let sessionApi = require('../core/session.js');

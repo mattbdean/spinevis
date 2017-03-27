@@ -13,7 +13,7 @@ const PADDING_THRESH_MULT = 1;
 /** Add 300% the visible domain once that threshold is crossed */
 const PADDING_ADD_MULT = 3;
 
-module.exports.TraceManager = class TraceManager {
+module.exports = class TraceManager {
     /**
      * Instantiates a new TraceManager.
      *
