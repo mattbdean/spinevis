@@ -367,12 +367,16 @@ System.config({
     ],
     "npm:inherits@2.0.1.js": [
       "npm:inherits@2.0.1/inherits_browser.js"
+    ],
+    "npm:angular@1.6.3.js": [
+      "npm:angular@1.6.3/angular"
     ]
   },
 
   map: {
-    "angular": "npm:angular@1.6.2",
+    "angular": "npm:angular@1.6.3",
     "angular-resource": "npm:angular-resource@1.6.2",
+    "angularjs-slider": "npm:angularjs-slider@6.1.1",
     "async": "npm:async@2.2.0",
     "babel": "npm:babel-core@5.8.38",
     "babel-runtime": "npm:babel-runtime@5.8.38",
@@ -452,6 +456,10 @@ System.config({
       "fs": "github:jspm/nodelibs-fs@0.1.2",
       "module": "github:jspm/nodelibs-module@0.1.0",
       "path": "github:jspm/nodelibs-path@0.1.0",
+      "process": "github:jspm/nodelibs-process@0.1.2"
+    },
+    "npm:angularjs-slider@6.1.1": {
+      "angular": "npm:angular@1.6.3",
       "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:asn1.js@4.9.1": {

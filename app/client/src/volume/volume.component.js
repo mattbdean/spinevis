@@ -16,10 +16,6 @@ const CACHE_SIZE = 5000;
 // words, the total buffer size will be `BUFFER_PADDING * 2`
 const BUFFER_PADDING = 50;
 
-// These to be changed later or changed with an Angular view model
-const LO_THRESH = 30;
-const HI_THRESH = 1000;
-
 let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     let $ctrl = this;
     let session = sessionApi($http);
@@ -52,6 +48,22 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     };
 
     let cache = new LRU(CACHE_SIZE);
+
+    $ctrl.sliders = {
+        threshold: {
+            model: {
+                lo: 30,  // Default min value
+                hi: 400, // Default max value
+            },
+            options: {
+                // Values vary from [-100, 5000], the user can change the min
+                // and max value by increments/decrements of 10
+                floor: -100,
+                ceil: 5000,
+                step: 10
+            }
+        }
+    };
 
     let init = function(data) {
         $ctrl.sessionMeta = data;
@@ -172,6 +184,10 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
                 .then(applyIntensityUpdate);
             }
         });
+
+        $scope.$watchCollection('$ctrl.sliders.threshold.model', function(newVal, oldVal) {
+            applyIntensityUpdate();
+        });
     };
 
     let findUpdateData = function(index) {
@@ -232,6 +248,9 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
         // This function is adapted from here:
         // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L706
 
+        let loThresh = $ctrl.sliders.threshold.model.lo;
+        let hiThresh = $ctrl.sliders.threshold.model.hi;
+
         // Process new intensity data and update GL objects directly for
         // efficiency
         for (let m = 0; m < state.traces.length; m++) {
@@ -251,8 +270,8 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
                             state.webGlData[m] = [];
 
 
-                        state.webGlData[m][count] = (intensity.get(r, c) - LO_THRESH) /
-                                (HI_THRESH - LO_THRESH);
+                        state.webGlData[m][count] = (intensity.get(r, c) - loThresh) /
+                                (hiThresh - loThresh);
 
                         count += 10;
                     }
@@ -268,6 +287,6 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
 }];
 
 module.exports = {
-    template: '<div id="plot-volume" />',
+    templateUrl: '/partial/volume',
     controller: ctrlDef
 };

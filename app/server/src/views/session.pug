@@ -9,5 +9,9 @@ block prepend scripts
     script.
         var sessionId = "#{id}";
 
+block append scripts
+    script.
+        System.import('angularjs-slider/dist/rzslider.min.css!');
+
 block content
     session-vis

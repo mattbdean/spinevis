@@ -61,6 +61,7 @@
     "dependencies": {
       "angular": "npm:angular@^1.6.2",
       "angular-resource": "npm:angular-resource@^1.6.2",
+      "angularjs-slider": "npm:angularjs-slider@^6.1.1",
       "async": "npm:async@^2.2.0",
       "bit-twiddle": "npm:bit-twiddle@^1.0.2",
       "bootstrap": "github:twbs/bootstrap@^3.3.7",
