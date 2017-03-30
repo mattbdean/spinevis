@@ -20,7 +20,8 @@
     "mongodb": "^2.2.11",
     "morgan": "^1.7.0",
     "pug": "^2.0.0-beta6",
-    "spdy": "^3.4.4"
+    "spdy": "^3.4.4",
+    "tinycolor2": "^1.4.1"
   },
   "devDependencies": {
     "angular-mocks": "^1.6.1",
@@ -60,6 +61,7 @@
     "dependencies": {
       "angular": "npm:angular@^1.6.2",
       "angular-resource": "npm:angular-resource@^1.6.2",
+      "bit-twiddle": "npm:bit-twiddle@^1.0.2",
       "bootstrap": "github:twbs/bootstrap@^3.3.7",
       "chai": "npm:chai@^3.5.0",
       "css": "github:systemjs/plugin-css@^0.1.33",
@@ -69,7 +71,14 @@
       "lodash": "npm:lodash@^4.17.4",
       "moment": "npm:moment@^2.17.1",
       "moment-duration-format": "npm:moment-duration-format@^1.3.0",
+      "ndarray": "npm:ndarray@^1.0.18",
+      "ndarray-fill": "npm:ndarray-fill@^1.0.2",
+      "ndarray-gradient": "npm:ndarray-gradient@^1.0.0",
+      "ndarray-homography": "npm:ndarray-homography@^1.0.0",
+      "ndarray-ops": "npm:ndarray-ops@^1.2.2",
       "numeral": "npm:numeral@^2.0.4",
+      "tinycolor2": "npm:tinycolor2@^1.4.1",
+      "typedarray-pool": "npm:typedarray-pool@^1.1.0",
       "uuid": "npm:uuid@^3.0.1",
       "watchjs": "npm:watchjs@^0.0.0"
     },

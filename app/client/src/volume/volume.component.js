@@ -1,9 +1,18 @@
 let $ = require('jquery');
 let tab64 = require('hughsk/tab64');
+let _ = require('lodash');
 
+let renderUtil = require('./render-util.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
 let sessionApi = require('../core/session.js');
 let events = require('../session-vis/events.js');
+
+// Some arbitrary number for now
+const CACHE_SIZE = 150;
+
+// These to be changed later or changed with an Angular view model
+const LO_THRESH = 30;
+const HI_THRESH = 1000;
 
 let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     let $ctrl = this;
@@ -21,12 +30,25 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     let traceManager = null;
     let sessionId = null;
 
+    let state = {
+        // shape and tptr are from legacy code and are lazy-initialized when
+        // processInitialData is called
+        shape: null,
+        tptr: null,
+        // Gets populated in processInitialData()
+        traces: [],
+        coords: [],
+        upsampledCoords: [],
+        webGlData: []
+    }
+
     let init = function(data) {
         $ctrl.sessionMeta = data;
         sessionId = data._id;
 
         return initPlot()
         .then(initTraces)
+        .then(processInitialData)
         .then(registerCallbacks)
         .then(function() {
             // Tell the parent scope (i.e. session-vis) that we've finished
@@ -47,17 +69,16 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
             },
             font: {
                 family: 'Roboto, sans-serif'
+            },
+            margin: {
+                r: 0,
+                b: 0,
+                t: 0,
+                l: 0
             }
         };
 
         return Plotly.newPlot(plotNode, [], layout, defaultPlotOptions);
-    };
-
-    let registerCallbacks = function() {
-        $scope.$on(events.DATA_FOCUS_CHANGE, (event, newFocus) => {
-            // TODO do something with newIndex
-            console.log(newFocus);
-        });
     };
 
     let initTraces = function() {
@@ -77,13 +98,133 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
             });
         }
 
-        // return Plotly.addTraces(plotNode, $ctrl.sessionMeta.surfs);
-        return Plotly.addTraces(plotNode, traces).then(function() {
-            return session.volume(sessionId, 0);
-        }).then(function(res) {
-            // console.log(res.data.data);
-            // console.log(_.compact(tab64.decode(res.data.data[0].pixelF, 'float32')));
+        return Plotly.addTraces(plotNode, traces);
+    };
+
+    let processInitialData = function() {
+        // These arrays will eventually all be equal to the amount of traces
+        // in the initial data (plotNode.(...).traces.length)
+        let coords = [],
+            upsampledCoords = [],
+            webGlData = [];
+
+        // plotNode.(...).traces is an object mapping plot IDs to plot data
+        for (let traceId of Object.keys(plotNode._fullLayout.scene._scene.traces)) {
+            // Assume all traces are instances of SurfaceTrace, meaning that
+            // trace.surface is defined
+            let trace = plotNode._fullLayout.scene._scene.traces[traceId];
+
+            let index = trace.data.index;
+
+            // Get configuration to pass to getTverts to make the data webGL
+            // compatible
+            let paramCoords = renderUtil.getParams(trace).coords;
+            state.coords[index] = paramCoords;
+
+            // Upsample the trace's x, y, and z data
+            let rawDataProperties = ['x', 'y', 'z'];
+            state.upsampledCoords[index] = _.map(rawDataProperties, (prop) => {
+                return renderUtil.getUpsampled(trace, trace.data[prop]);
+            });
+
+            // Upsample trace's intensity data
+            let upsampledIntensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
+
+            state.webGlData[index] = renderUtil.getTverts(trace.surface, {
+                coords: paramCoords,
+                intensity: upsampledIntensity
+            });
+
+            // opacity < 0.99
+            trace.surface.opacity = Math.min(trace.surface.opacity, 0.99);
+
+            state.traces[index] = trace;
+        }
+
+        // Lazy-init shape and tptr
+        if (state.shape === null) {
+            state.shape = state.traces[0].surface.shape.slice(0);
+            // Don't know what this is
+            state.tptr = (state.shape[0] - 1) * (state.shape[1] - 1) * 6 * 10;
+        }
+
+        applyIntensityUpdate();
+    };
+
+    let registerCallbacks = function() {
+        $scope.$on(events.DATA_FOCUS_CHANGE, (event, focusEvent) => {
+            if (focusEvent.highPriority) {
+                console.log('Attending to high priority update for index ' + focusEvent.index);
+                findUpdateData(focusEvent.index)
+                .then(decodeIntensityUpdate)
+                .then(applyIntensityUpdate);
+            }
         });
+    };
+
+    let findUpdateData = function(index) {
+        return session.volume(sessionId, index)
+        .then(function(res) {
+            let data = res.data.data;
+            data = tab64.decode(res.data.data[0].pixelF, 'float32');
+            return data;
+        });
+    };
+
+    let decodeIntensityUpdate = function(updateData) {
+        // Doesn't matter what trace well pull as long as its type is 'surface'.
+        // We just want to find out the shape of the data
+        let someTrace = state.traces[0];
+
+        let count = 0;
+        for (let i = 0; i < someTrace.data.surfacecolor.length; i++) {
+            // length is constant for all someTrace.surfacecolor[i]
+            for (let j = 0; j < someTrace.data.surfacecolor[0].length; j++) {
+                for (let k = 0; k < state.traces.length; k++) {
+                    // updateData is a 1-dimensional array, but we have to use
+                    // it like a 3-dimensional array
+                    state.traces[k].data.surfacecolor[i][j] = updateData[count++];
+                }
+            }
+        }
+    };
+
+    let applyIntensityUpdate = function() {
+        // This function is adapted from here:
+        // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L706
+
+        // Process new intensity data and update GL objects directly for
+        // efficiency
+        for (let m = 0; m < state.traces.length; m++) {
+            // Upsample the intensity to fit the upsampled x, y, and z coordinates
+            let trace = state.traces[m];
+            let intensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
+            // Change the intensity values in tverts (webGL-compatible
+            // representation of the entire surface object)
+            let count = 6, r, c;
+            for (let i = 0; i < state.shape[0] - 1; ++i) {
+                for (let j = 0; j < state.shape[1] - 1; ++j) {
+                    for (let k = 0; k < 6; ++k) {
+                        r = i + renderUtil.QUAD[k][0];
+                        c = j + renderUtil.QUAD[k][1];
+
+                        if (state.webGlData[m] === undefined)
+                            state.webGlData[m] = [];
+
+
+                        state.webGlData[m][count] = (intensity.get(r, c) - LO_THRESH) /
+                                (HI_THRESH - LO_THRESH);
+
+                        count += 10;
+                    }
+                }
+            }
+
+            state.traces[m].surface._coordinateBuffer.update(state.webGlData[m].subarray(0, state.tptr));
+        }
+
+        // Force a GL-level redraw
+        state.traces[0].scene.glplot.redraw();
     };
 }];
 
