@@ -141,7 +141,7 @@ System.config({
       "./markers.js",
       "./trace-manager.js",
       "./relative-time.js",
-      "./range.js",
+      "../core/range.js",
       "../core/session.js",
       "../core/plotdefaults.js",
       "../session-vis/events.js"
@@ -150,7 +150,9 @@ System.config({
       "jquery",
       "hughsk/tab64",
       "lodash",
+      "lru-cache",
       "./render-util.js",
+      "../core/range.js",
       "../core/plotdefaults.js",
       "../core/session.js",
       "../session-vis/events.js"
@@ -158,7 +160,7 @@ System.config({
     "src/timeline/trace-manager.js": [
       "lodash",
       "uuid",
-      "./range.js",
+      "../core/range.js",
       "./downsampler.js",
       "../core/session.js",
       "./relative-time.js"
@@ -330,12 +332,48 @@ System.config({
     ],
     "npm:esprima@1.1.1/esprima.js": [
       "process"
+    ],
+    "npm:lru-cache@4.0.2.js": [
+      "npm:lru-cache@4.0.2/lib/lru-cache.js"
+    ],
+    "npm:lru-cache@4.0.2/lib/lru-cache.js": [
+      "pseudomap",
+      "util",
+      "yallist"
+    ],
+    "npm:yallist@2.1.2.js": [
+      "npm:yallist@2.1.2/yallist.js"
+    ],
+    "npm:pseudomap@1.0.2.js": [
+      "npm:pseudomap@1.0.2/map.js"
+    ],
+    "github:jspm/nodelibs-util@0.1.0.js": [
+      "github:jspm/nodelibs-util@0.1.0/index"
+    ],
+    "npm:pseudomap@1.0.2/map.js": [
+      "./pseudomap",
+      "process"
+    ],
+    "github:jspm/nodelibs-util@0.1.0/index.js": [
+      "util"
+    ],
+    "npm:util@0.10.3.js": [
+      "npm:util@0.10.3/util.js"
+    ],
+    "npm:util@0.10.3/util.js": [
+      "./support/isBufferBrowser",
+      "inherits",
+      "process"
+    ],
+    "npm:inherits@2.0.1.js": [
+      "npm:inherits@2.0.1/inherits_browser.js"
     ]
   },
 
   map: {
     "angular": "npm:angular@1.6.2",
     "angular-resource": "npm:angular-resource@1.6.2",
+    "async": "npm:async@2.2.0",
     "babel": "npm:babel-core@5.8.38",
     "babel-runtime": "npm:babel-runtime@5.8.38",
     "bit-twiddle": "npm:bit-twiddle@1.0.2",
@@ -347,6 +385,7 @@ System.config({
     "hughsk/tab64": "github:hughsk/tab64@0.0.1",
     "jquery": "npm:jquery@3.2.1",
     "lodash": "npm:lodash@4.17.4",
+    "lru-cache": "npm:lru-cache@4.0.2",
     "moment": "npm:moment@2.17.1",
     "moment-duration-format": "npm:moment-duration-format@1.3.0",
     "ndarray": "npm:ndarray@1.0.18",
@@ -427,6 +466,11 @@ System.config({
       "buffer": "github:jspm/nodelibs-buffer@0.1.0",
       "process": "github:jspm/nodelibs-process@0.1.2",
       "util": "npm:util@0.10.3"
+    },
+    "npm:async@2.2.0": {
+      "buffer": "github:jspm/nodelibs-buffer@0.1.0",
+      "lodash": "npm:lodash@4.17.4",
+      "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:babel-runtime@5.8.38": {
       "process": "github:jspm/nodelibs-process@0.1.2"
@@ -679,6 +723,11 @@ System.config({
     "npm:lazy-cache@1.0.4": {
       "process": "github:jspm/nodelibs-process@0.1.2"
     },
+    "npm:lru-cache@4.0.2": {
+      "pseudomap": "npm:pseudomap@1.0.2",
+      "util": "github:jspm/nodelibs-util@0.1.0",
+      "yallist": "npm:yallist@2.1.2"
+    },
     "npm:miller-rabin@4.0.0": {
       "bn.js": "npm:bn.js@4.11.6",
       "brorand": "npm:brorand@1.1.0"
@@ -730,6 +779,9 @@ System.config({
       "assert": "github:jspm/nodelibs-assert@0.1.0",
       "fs": "github:jspm/nodelibs-fs@0.1.2",
       "vm": "github:jspm/nodelibs-vm@0.1.0"
+    },
+    "npm:pseudomap@1.0.2": {
+      "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:public-encrypt@4.0.0": {
       "bn.js": "npm:bn.js@4.11.6",
