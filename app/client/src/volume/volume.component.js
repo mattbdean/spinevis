@@ -51,6 +51,7 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
 
     $ctrl.sliders = {
         threshold: {
+            label: 'Threshold',
             model: {
                 lo: 30,  // Default min value
                 hi: 400, // Default max value

@@ -21,3 +21,11 @@ p.big-bad-error-msg {
     text-align: center;
     font-size: 24px;
 }
+
+div#plot-volume {
+    width: 66%;
+}
+
+div#options {
+    width: 33%;
+}

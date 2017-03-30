@@ -1,8 +1,9 @@
-div#plot-volume
-
-div.options
+div#options.pull-left
+    p: strong(ng-bind='$ctrl.sliders.threshold.label')
     rzslider(
         rz-slider-model='$ctrl.sliders.threshold.model.lo'
         rz-slider-high='$ctrl.sliders.threshold.model.hi'
         rz-slider-options='$ctrl.sliders.threshold.options'
     )
+
+div#plot-volume.pull-right
