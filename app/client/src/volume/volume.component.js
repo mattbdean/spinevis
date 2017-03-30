@@ -49,7 +49,7 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
 
     let cache = new LRU(CACHE_SIZE);
 
-    $ctrl.sliders = {
+    $ctrl.controls = {
         threshold: {
             label: 'Threshold',
             model: {
@@ -62,6 +62,16 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
                 floor: -100,
                 ceil: 5000,
                 step: 10
+            }
+        },
+        opacity: {
+            label: 'Opacity',
+            model: 80, // Defaults to 80%
+            options: {
+                floor: 0,
+                ceil: 100,
+                step: 1,
+                translate: (value) => value + '%'
             }
         }
     };
@@ -186,7 +196,7 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
             }
         });
 
-        $scope.$watchCollection('$ctrl.sliders.threshold.model', function(newVal, oldVal) {
+        $scope.$watchCollection('$ctrl.controls.threshold.model', function(newVal, oldVal) {
             applyIntensityUpdate();
         });
     };
@@ -249,8 +259,8 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
         // This function is adapted from here:
         // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L706
 
-        let loThresh = $ctrl.sliders.threshold.model.lo;
-        let hiThresh = $ctrl.sliders.threshold.model.hi;
+        let loThresh = $ctrl.controls.threshold.model.lo;
+        let hiThresh = $ctrl.controls.threshold.model.hi;
 
         // Process new intensity data and update GL objects directly for
         // efficiency

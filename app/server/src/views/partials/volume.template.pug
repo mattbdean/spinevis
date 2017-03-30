@@ -1,9 +1,17 @@
 div#options.pull-left
-    p: strong(ng-bind='$ctrl.sliders.threshold.label')
+    p: strong(ng-bind='$ctrl.controls.threshold.label')
     rzslider(
-        rz-slider-model='$ctrl.sliders.threshold.model.lo'
-        rz-slider-high='$ctrl.sliders.threshold.model.hi'
-        rz-slider-options='$ctrl.sliders.threshold.options'
+        rz-slider-model='$ctrl.controls.threshold.model.lo'
+        rz-slider-high='$ctrl.controls.threshold.model.hi'
+        rz-slider-options='$ctrl.controls.threshold.options'
+    )
+
+    p: strong(ng-bind='$ctrl.controls.opacity.label')
+    rzslider(
+        rz-slider-model='$ctrl.controls.opacity.model'
+        rz-slider-options='$ctrl.controls.opacity.options'
     )
 
 div#plot-volume.pull-right
+
+div.clearfix
