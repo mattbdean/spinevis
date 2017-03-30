@@ -29,3 +29,7 @@ div#plot-volume {
 div#options {
     width: 33%;
 }
+
+div.control {
+    padding: 10px;
+}
