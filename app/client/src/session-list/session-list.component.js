@@ -4,7 +4,10 @@ let moment = require('moment');
 let numeral = require('numeral');
 let _ = require('lodash');
 
-let ctrlDef = ['$http', function($http) {
+let ctrlDef = ['$http', 'Title', function($http, Title) {
+    // Use base title
+    Title.useBase();
+
     let session = sessionApi($http);
     let $ctrl = this;
 

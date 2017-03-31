@@ -8,10 +8,22 @@ let util = require('../core/util.js');
 let sessionApi = require('../core/session.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
 
+const METADATA_DEFAULTS = {
+    Animal: '(loading)',
+    // start_time and end_time are expected to be an ISO 8601-formatted string,
+    // like what the API will return. Set these values to the current date.
+    start_time: moment().format(),
+    end_time: moment().format(),
+    Run: '(loading)'
+};
+
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
-let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http, $window, $scope) {
+let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisController($http, $window, $scope, Title) {
+    // Use base title until we get some information
+    Title.useBase();
+
     let session = sessionApi($http);
     let $ctrl = this;
 
@@ -19,6 +31,10 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
     if ($window.sessionId === undefined)
         throw new ReferenceError('Expecting sessionId to be injected via $window');
     $ctrl.sessionId = $window.sessionId;
+
+    // Set this as the title in case an unhandled error occurs when loading
+    // the rest of this component
+    Title.set($ctrl.sessionId);
 
     // Use a Set to prevent potential excessive calls to Plotly.Plots.resize()
     let plotNodes = new Set();
@@ -55,6 +71,7 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
     let init = function() {
         // Both plots require session metadata, grab that before creating them
         return initSessionMeta().then(function(meta) {
+            Title.set(`${meta.Animal} on ${util.format.dateShort(meta.start_time)}`);
             // Notify all child scopes (e.g. the timeline component) that
             // the session metadata is ready
             $scope.$broadcast(events.META_LOADED, meta);
@@ -73,16 +90,26 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
             let metadata = result.data.data;
 
             // Grab specific elements from the session metadata to display at the top
-            $ctrl.sessionFormattedMeta = [
-                'Animal ' + metadata.Animal,
-                util.format.dateTime(metadata.start_time),
-                util.format.duration(metadata.start_time, metadata.end_time),
-                'Run ' + metadata.Run
-            ];
+            $ctrl.sessionFormattedMeta = createFormattedMetadata(metadata)
 
             return result.data.data;
         });
     };
+
+    /**
+     * Creates an array of formatted metadata. `source` should be an object
+     * that is similar to the data returned by `GET /api/v1/session/:id`
+     *
+     * @param  {object} source Object to pull data from
+     */
+    let createFormattedMetadata = (source) => [
+        'Animal ' + source.Animal,
+        util.format.dateTime(source.start_time),
+        util.format.duration(source.start_time, source.end_time),
+        'Run ' + source.Run
+    ];
+
+    $ctrl.sessionFormattedMeta = createFormattedMetadata(METADATA_DEFAULTS);
 
     // leggo
     init().catch(function(err) {
