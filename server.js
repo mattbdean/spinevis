@@ -32,6 +32,7 @@ bootstrap({
 });
 
 async function bootstrap(options) {
+    console.log(colors.bold('Starting spinevis v' + packageJson.version));
     let spdyOptions = null;
 
     if (!options.noHttp2) {
