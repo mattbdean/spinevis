@@ -42,8 +42,30 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
         $ctrl.sessionMeta = data;
         sessionId = data._id;
 
-        return initPlot()
-        .then(initBehavior)
+        // Instantiating is different than init()-ing
+        traceManager = new TraceManager(
+            /*$http = */$http,
+            /*plotNode = */plotNode,
+            /*sessionId = */sessionId,
+            /*sessionStart = */$ctrl.sessionMeta.start_time,
+            /*sessionFrequency = */$ctrl.sessionMeta.volRate,
+            /*relTimes = */$ctrl.sessionMeta.relTimes,
+            /*thresholds = */[
+                {
+                    visibleDomain: Infinity,
+                    resolution: 1,
+                    nick: 'all'
+                },
+                {
+                    visibleDomain: 5 * 60 * 1000, // 5 minutes
+                    resolution: 100,
+                    nick: '5min'
+                }
+            ]
+        );
+
+
+        return initBehavior()
         .then(initTraces)
         .then(registerCallbacks)
         .then(function() {
@@ -106,28 +128,6 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
             }],
             showlegend: true
         };
-
-        // Instantiating is different than init()-ing
-        traceManager = new TraceManager(
-            /*$http = */$http,
-            /*plotNode = */plotNode,
-            /*sessionId = */sessionId,
-            /*sessionStart = */$ctrl.sessionMeta.start_time,
-            /*sessionFrequency = */$ctrl.sessionMeta.volRate,
-            /*relTimes = */$ctrl.sessionMeta.relTimes,
-            /*thresholds = */[
-                {
-                    visibleDomain: Infinity,
-                    resolution: 1,
-                    nick: 'all'
-                },
-                {
-                    visibleDomain: 5 * 60 * 1000, // 5 minutes
-                    resolution: 100,
-                    nick: '5min'
-                }
-            ]
-        );
 
         return Plotly.newPlot(plotNode, [], layout, defaultPlotOptions).then(function() {
             console.timeEnd(timeId);
@@ -344,6 +344,9 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
         $scope.$emit(events.DATA_FOCUS_CHANGE_NOTIF, eventData);
         lastFocusChangeEvent = eventData;
     };
+
+    // Initialize only empty graph
+    initPlot();
 }];
 
 module.exports = {

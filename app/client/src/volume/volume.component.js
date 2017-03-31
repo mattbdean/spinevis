@@ -90,8 +90,7 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
         sessionId = data._id;
         indexRange = range.create(0, data.nSamples);
 
-        return initPlot()
-        .then(initTraces)
+        return initTraces()
         .then(processInitialData)
         .then(registerCallbacks)
         .then(function() {
@@ -103,7 +102,8 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
 
     let initPlot = function() {
         let layout = {
-            paper_bgcolor: 'rgba(0.1,0.1,0.1,1)',
+            paper_bgcolor: 'rgb(22, 22, 22)',
+            plot_bgcolor: 'rgb(22, 22, 22)',
             type: 'layout',
             xaxis: {
                 showgrid: false
@@ -385,6 +385,9 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     let forceGlRedraw = function() {
         state.traces[0].scene.glplot.redraw();
     };
+
+    // Initialize only empty graph
+    initPlot();
 }];
 
 module.exports = {
