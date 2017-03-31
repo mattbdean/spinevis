@@ -203,7 +203,7 @@ module.exports = function(grunt) {
 
     // Data to be passed to every template
     let data = {
-        year: new Date().getFullYear()
+        year: "2016 - " + new Date().getFullYear()
     };
 
     let excludedTemplates = ["error.pug", "layout.pug", "session.pug"];
