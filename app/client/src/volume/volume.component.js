@@ -210,7 +210,7 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
         });
 
         $scope.$watch('$ctrl.controls.opacity.model', (newVal) => {
-            changeOpacity(newVal / 100);
+            updateOpacity(newVal / 100);
         });
     };
 
