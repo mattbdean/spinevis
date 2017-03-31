@@ -3,6 +3,10 @@ require('moment-duration-format');
 let paramCase = require('param-case');
 
 const FORMAT_DATE = 'D MMMM YYYY';
+
+// Use moment's default formatting for the current locale
+const FORMAT_DATE_SHORT = 'l';
+
 const FORMAT_DATE_TIME = 'D MMMM YYYY, h:mm:ss a';
 const FORMAT_DURATION = 'h[h] m[m]';
 
@@ -18,6 +22,9 @@ module.exports = {
         },
         date: function(date) {
             return moment(date).format(FORMAT_DATE);
+        },
+        dateShort: function(date) {
+            return moment(date).format(FORMAT_DATE_SHORT);
         },
         dateTime: function(date) {
             return moment(date).format(FORMAT_DATE_TIME);

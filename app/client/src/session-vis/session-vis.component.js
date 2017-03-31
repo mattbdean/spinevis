@@ -11,7 +11,10 @@ let defaultPlotOptions = require('../core/plotdefaults.js');
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
-let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http, $window, $scope) {
+let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisController($http, $window, $scope, Title) {
+    // Use base title until we get some information
+    Title.useBase();
+
     let session = sessionApi($http);
     let $ctrl = this;
 
@@ -19,6 +22,10 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
     if ($window.sessionId === undefined)
         throw new ReferenceError('Expecting sessionId to be injected via $window');
     $ctrl.sessionId = $window.sessionId;
+
+    // Set this as the title in case an unhandled error occurs when loading
+    // the rest of this component
+    Title.set($ctrl.sessionId);
 
     // Use a Set to prevent potential excessive calls to Plotly.Plots.resize()
     let plotNodes = new Set();
@@ -55,6 +62,7 @@ let ctrlDef = ['$http', '$window', '$scope', function SessionVisController($http
     let init = function() {
         // Both plots require session metadata, grab that before creating them
         return initSessionMeta().then(function(meta) {
+            Title.set(`${meta.Animal} on ${util.format.dateShort(meta.start_time)}`);
             // Notify all child scopes (e.g. the timeline component) that
             // the session metadata is ready
             $scope.$broadcast(events.META_LOADED, meta);

@@ -24,6 +24,7 @@ System.config({
     ],
     "src/session-list/session-list.module.js": [
       "angular",
+      "../core/core.module.js",
       "./session-list.component.js",
       "../core/util.js"
     ],
@@ -43,7 +44,8 @@ System.config({
       "lodash"
     ],
     "src/core/core.module.js": [
-      "angular"
+      "angular",
+      "./title.factory.js"
     ],
     "src/session-vis/session-vis.component.js": [
       "moment",

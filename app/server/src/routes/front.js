@@ -4,7 +4,6 @@ let path = require('path');
 let validation = require('./input/validation.js');
 let queries = require('../queries.js');
 
-let appName = require('../../../../package.json').name;
 let year = new Date().getFullYear();
 
 router.get('/', function(req, res, next) {
@@ -21,7 +20,7 @@ router.get('/session/:id', function(req, res, next) {
     return queries.sessionExists(id).then((exists) => {
         if (!exists)
             return next({status: 404});
-        return res.render('session', {appName: appName, year: year, id: id});
+        return res.render('session', {appName: 'spinevis', year: year, id: id});
     });
 });
 
