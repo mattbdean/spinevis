@@ -8,6 +8,15 @@ let util = require('../core/util.js');
 let sessionApi = require('../core/session.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
 
+const METADATA_DEFAULTS = {
+    Animal: '(loading)',
+    // start_time and end_time are expected to be an ISO 8601-formatted string,
+    // like what the API will return. Set these values to the current date.
+    start_time: moment().format(),
+    end_time: moment().format(),
+    Run: '(loading)'
+};
+
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
@@ -81,16 +90,26 @@ let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisControl
             let metadata = result.data.data;
 
             // Grab specific elements from the session metadata to display at the top
-            $ctrl.sessionFormattedMeta = [
-                'Animal ' + metadata.Animal,
-                util.format.dateTime(metadata.start_time),
-                util.format.duration(metadata.start_time, metadata.end_time),
-                'Run ' + metadata.Run
-            ];
+            $ctrl.sessionFormattedMeta = createFormattedMetadata(metadata)
 
             return result.data.data;
         });
     };
+
+    /**
+     * Creates an array of formatted metadata. `source` should be an object
+     * that is similar to the data returned by `GET /api/v1/session/:id`
+     *
+     * @param  {object} source Object to pull data from
+     */
+    let createFormattedMetadata = (source) => [
+        'Animal ' + source.Animal,
+        util.format.dateTime(source.start_time),
+        util.format.duration(source.start_time, source.end_time),
+        'Run ' + source.Run
+    ];
+
+    $ctrl.sessionFormattedMeta = createFormattedMetadata(METADATA_DEFAULTS);
 
     // leggo
     init().catch(function(err) {
