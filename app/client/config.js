@@ -132,7 +132,8 @@ System.config({
     ],
     "src/volume/volume.module.js": [
       "angular",
-      "./volume.component.js"
+      "./volume.component.js",
+      "angularjs-slider"
     ],
     "src/timeline/timeline.component.js": [
       "lodash",
@@ -150,7 +151,11 @@ System.config({
       "jquery",
       "hughsk/tab64",
       "lodash",
+      "tinycolor2",
+      "colormap",
       "lru-cache",
+      "ndarray-pack",
+      "ndarray-ops",
       "./render-util.js",
       "../core/range.js",
       "../core/plotdefaults.js",
@@ -370,6 +375,39 @@ System.config({
     ],
     "npm:angular@1.6.3.js": [
       "npm:angular@1.6.3/angular"
+    ],
+    "npm:angularjs-slider@6.1.1.js": [
+      "npm:angularjs-slider@6.1.1/dist/rzslider.js"
+    ],
+    "npm:ndarray-pack@1.2.1.js": [
+      "npm:ndarray-pack@1.2.1/convert.js"
+    ],
+    "npm:angularjs-slider@6.1.1/dist/rzslider.js": [
+      "angular"
+    ],
+    "npm:ndarray-pack@1.2.1/convert.js": [
+      "ndarray",
+      "./doConvert"
+    ],
+    "npm:ndarray-pack@1.2.1/doConvert.js": [
+      "cwise-compiler"
+    ],
+    "npm:colormap@2.2.0.js": [
+      "npm:colormap@2.2.0/index.js"
+    ],
+    "npm:colormap@2.2.0/index.js": [
+      "arraytools",
+      "clone",
+      "./colorScales"
+    ],
+    "npm:arraytools@1.1.2.js": [
+      "npm:arraytools@1.1.2/index.js"
+    ],
+    "npm:clone@1.0.2.js": [
+      "npm:clone@1.0.2/clone.js"
+    ],
+    "npm:clone@1.0.2/clone.js": [
+      "buffer"
     ]
   },
 
@@ -383,6 +421,7 @@ System.config({
     "bit-twiddle": "npm:bit-twiddle@1.0.2",
     "bootstrap": "github:twbs/bootstrap@3.3.7",
     "chai": "npm:chai@3.5.0",
+    "colormap": "npm:colormap@2.2.0",
     "core-js": "npm:core-js@1.2.7",
     "css": "github:systemjs/plugin-css@0.1.33",
     "dtype": "npm:dtype@2.0.0",
@@ -397,6 +436,7 @@ System.config({
     "ndarray-gradient": "npm:ndarray-gradient@1.0.0",
     "ndarray-homography": "npm:ndarray-homography@1.0.0",
     "ndarray-ops": "npm:ndarray-ops@1.2.2",
+    "ndarray-pack": "npm:ndarray-pack@1.2.1",
     "numeral": "npm:numeral@2.0.4",
     "tinycolor2": "npm:tinycolor2@1.4.1",
     "typedarray-pool": "npm:typedarray-pool@1.1.0",
@@ -564,6 +604,14 @@ System.config({
       "center-align": "npm:center-align@0.1.3",
       "right-align": "npm:right-align@0.1.3",
       "wordwrap": "npm:wordwrap@0.0.2"
+    },
+    "npm:clone@1.0.2": {
+      "buffer": "github:jspm/nodelibs-buffer@0.1.0",
+      "vm": "github:jspm/nodelibs-vm@0.1.0"
+    },
+    "npm:colormap@2.2.0": {
+      "arraytools": "npm:arraytools@1.1.2",
+      "clone": "npm:clone@1.0.2"
     },
     "npm:concat-stream@1.4.10": {
       "buffer": "github:jspm/nodelibs-buffer@0.1.0",
@@ -753,6 +801,10 @@ System.config({
     },
     "npm:ndarray-ops@1.2.2": {
       "cwise-compiler": "npm:cwise-compiler@1.1.2"
+    },
+    "npm:ndarray-pack@1.2.1": {
+      "cwise-compiler": "npm:cwise-compiler@1.1.2",
+      "ndarray": "npm:ndarray@1.0.18"
     },
     "npm:ndarray-warp@1.0.1": {
       "cwise": "npm:cwise@1.0.10",
