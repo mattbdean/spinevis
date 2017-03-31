@@ -24,14 +24,16 @@ System.config({
     ],
     "src/session-list/session-list.module.js": [
       "angular",
-      "./session-list.component.js"
+      "./session-list.component.js",
+      "../core/util.js"
     ],
     "src/session-vis/session-vis.module.js": [
       "angular",
       "../core/core.module.js",
       "../timeline/timeline.module.js",
       "../volume/volume.module.js",
-      "./session-vis.component.js"
+      "./session-vis.component.js",
+      "../core/util.js"
     ],
     "src/session-list/session-list.component.js": [
       "../core/util.js",
@@ -61,7 +63,8 @@ System.config({
     ],
     "src/core/util.js": [
       "moment",
-      "moment-duration-format"
+      "moment-duration-format",
+      "param-case"
     ],
     "src/core/session.js": [
       "lodash"
@@ -133,7 +136,9 @@ System.config({
     "src/volume/volume.module.js": [
       "angular",
       "./volume.component.js",
-      "angularjs-slider"
+      "../core/util.js",
+      "angularjs-slider",
+      "angularjs-slider/dist/rzslider.min.css!"
     ],
     "src/timeline/timeline.component.js": [
       "lodash",
@@ -408,6 +413,24 @@ System.config({
     ],
     "npm:clone@1.0.2/clone.js": [
       "buffer"
+    ],
+    "npm:param-case@2.1.1.js": [
+      "npm:param-case@2.1.1/param-case.js"
+    ],
+    "npm:param-case@2.1.1/param-case.js": [
+      "no-case"
+    ],
+    "npm:no-case@2.3.1.js": [
+      "npm:no-case@2.3.1/no-case.js"
+    ],
+    "npm:no-case@2.3.1/no-case.js": [
+      "lower-case",
+      "./vendor/non-word-regexp",
+      "./vendor/camel-case-regexp",
+      "./vendor/camel-case-upper-regexp"
+    ],
+    "npm:lower-case@1.1.4.js": [
+      "npm:lower-case@1.1.4/lower-case.js"
     ]
   },
 
@@ -438,6 +461,7 @@ System.config({
     "ndarray-ops": "npm:ndarray-ops@1.2.2",
     "ndarray-pack": "npm:ndarray-pack@1.2.1",
     "numeral": "npm:numeral@2.0.4",
+    "param-case": "npm:param-case@2.1.1",
     "tinycolor2": "npm:tinycolor2@1.4.1",
     "typedarray-pool": "npm:typedarray-pool@1.1.0",
     "uuid": "npm:uuid@3.0.1",
@@ -814,8 +838,14 @@ System.config({
       "iota-array": "npm:iota-array@1.0.0",
       "is-buffer": "npm:is-buffer@1.1.5"
     },
+    "npm:no-case@2.3.1": {
+      "lower-case": "npm:lower-case@1.1.4"
+    },
     "npm:numeral@2.0.4": {
       "process": "github:jspm/nodelibs-process@0.1.2"
+    },
+    "npm:param-case@2.1.1": {
+      "no-case": "npm:no-case@2.3.1"
     },
     "npm:parse-asn1@5.0.0": {
       "asn1.js": "npm:asn1.js@4.9.1",

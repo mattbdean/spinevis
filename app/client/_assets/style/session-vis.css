@@ -21,17 +21,3 @@ p.big-bad-error-msg {
     text-align: center;
     font-size: 24px;
 }
-
-div#options {
-    float: left;
-    width: 33%;
-    max-width: 500px;
-}
-
-div#plot-volume {
-    overflow: hidden;
-}
-
-div.control {
-    padding: 10px;
-}

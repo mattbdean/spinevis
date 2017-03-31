@@ -13,6 +13,7 @@ let defaultPlotOptions = require('../core/plotdefaults.js');
 let sessionApi = require('../core/session.js');
 let events = require('../session-vis/events.js');
 
+
 // Amount of data in the LRU cache. Pretty arbitrary.
 const CACHE_SIZE = 5000;
 
