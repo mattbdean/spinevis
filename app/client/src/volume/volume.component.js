@@ -92,6 +92,7 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
 
         return initTraces()
         .then(processInitialData)
+        .then(() => initMasks(data.masks.Pts, data.masks.Polys))
         .then(registerCallbacks)
         .then(function() {
             // Tell the parent scope (i.e. session-vis) that we've finished
@@ -139,6 +140,31 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
                 type: 'surface',
                 colorscale: 'Greys',
                 hoverinfo: 'none'
+            });
+        }
+
+        return Plotly.addTraces(plotNode, traces);
+    };
+
+    let initMasks = function(points, polys) {
+        if (points.length !== polys.length)
+            console.error('points.length was not equal to polys.length');
+
+        let traces = [];
+        for (let i = points.length - 1; i >= 0; i--) {
+            traces.push({
+                name: 'mask ' + i,
+                x: points[i][0],
+                y: points[i][1],
+                z: points[i][2],
+                i: polys[i][0],
+                j: polys[i][1],
+                k: polys[i][2],
+                color: 'gray',
+                showscale: false,
+                opacity: 0.1,
+                type: 'mesh3d',
+                hoverinfo: 'name'
             });
         }
 
