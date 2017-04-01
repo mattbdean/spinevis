@@ -25,3 +25,15 @@ p.big-bad-error-msg {
 visual-settings {
     max-width: 500px;
 }
+
+/* Enough space for the volume component and controls */
+div.top {
+    height: 450px;
+}
+
+mask-toggles {
+    overflow-y: scroll;
+    overflow-x: auto;
+    /* Same as div.top */
+    height: 450px;
+}

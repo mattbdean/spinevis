@@ -34,6 +34,7 @@ System.config({
       "../timeline/timeline.module.js",
       "../volume/volume.module.js",
       "../visual-settings/visual-settings.module.js",
+      "../mask-toggles/mask-toggles.module.js",
       "./session-vis.component.js",
       "../core/util.js"
     ],
@@ -444,11 +445,27 @@ System.config({
     "src/visual-settings/visual-settings.component.js": [
       "../session-vis/events.js",
       "./defaults.js"
+    ],
+    "src/mask-toggles/mask-toggles.module.js": [
+      "angular",
+      "./mask-toggles.component.js",
+      "angular-bootstrap-toggle",
+      "angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.css!",
+      "../core/util.js"
+    ],
+    "src/mask-toggles/mask-toggles.component.js": [
+      "lodash",
+      "../session-vis/events.js",
+      "../core/session.js"
+    ],
+    "github:ziscloud/angular-bootstrap-toggle@0.1.2.js": [
+      "github:ziscloud/angular-bootstrap-toggle@0.1.2/dist/angular-bootstrap-toggle.min.js"
     ]
   },
 
   map: {
     "angular": "npm:angular@1.6.3",
+    "angular-bootstrap-toggle": "github:ziscloud/angular-bootstrap-toggle@0.1.2",
     "angular-resource": "npm:angular-resource@1.6.2",
     "angularjs-slider": "npm:angularjs-slider@6.1.1",
     "async": "npm:async@2.2.0",

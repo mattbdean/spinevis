@@ -9,6 +9,8 @@ let events = [
     'SIBLING_NOTIF',
     // Sent when the the user has settled on a point in the timeline
     'DATA_FOCUS_CHANGE',
+    // The user has enabled or disabled a trace from the mask-toggles component
+    'MASK_TOGGLED',
 
     ////////////////////////////////////////////////////////////////////////////
     // Settings

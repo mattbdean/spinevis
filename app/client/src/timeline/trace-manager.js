@@ -66,6 +66,13 @@ module.exports = class TraceManager {
     }
 
     putTrace(codeName, displayName, index = Object.keys(this.traces).length) {
+        if (this.traces[codeName] !== undefined) {
+            console.error(`Attempted to add trace with code name ` +
+                `"${codeName}" more than once`);
+            // Caller is expecting a promise value
+            return Promise.resolve();
+        }
+
         // Allocate a variable location for each resolution
         let emptyData = {};
         for (let thresh of this.thresholds) {
@@ -89,6 +96,23 @@ module.exports = class TraceManager {
         }).catch(function(err) {
             throw err;
         });
+    }
+
+    removeTrace(codeName) {
+        if (this.traces[codeName] === undefined) {
+            console.error('Attempted to remove non-existant trace with code ' +
+                'name ' + codeName);
+
+            // Caller expects a promise to be returned
+            return Promise.resolve();
+        }
+
+        let self = this;
+
+        let trace = this.traces[codeName];
+        return Plotly.deleteTraces(this.plotNode, trace.index).then(function() {
+            delete self.traces[codeName];
+        });;
     }
 
     /**
