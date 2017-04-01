@@ -313,7 +313,7 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
     };
 
     /**
-     * Emits an event of type events.DATA_FOCUS_CHANGE_NOTIF. The contents of
+     * Emits an event of type events.SIBLING_NOTIF. The contents of
      * the event data are the sanitized parameters to this function
      *
      * @param  {number}  newIndex
@@ -341,7 +341,11 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
             highPriority: actualHighPriority
         };
 
-        $scope.$emit(events.DATA_FOCUS_CHANGE_NOTIF, eventData);
+        $scope.$emit(events.SIBLING_NOTIF, {
+            // We want the parent to send this type of event
+            type: events.DATA_FOCUS_CHANGE,
+            data: eventData
+        });
         lastFocusChangeEvent = eventData;
     };
 

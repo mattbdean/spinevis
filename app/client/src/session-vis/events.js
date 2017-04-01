@@ -3,16 +3,24 @@ let events = [
     'META_LOADED',
     // A component has been initialized
     'INITIALIZED',
-    // Emitted up from timeline when the user selects a new timepoint
-    'DATA_FOCUS_CHANGE_NOTIF',
-    // Broadcasted back down from session-vis in response to DATA_FOCUS_CHANGE_NOTIF
-    'DATA_FOCUS_CHANGE'
+    // Sent to notify sibling scopes. Data must be an object with a 'type'
+    // property (one of the values in this array) and a 'data' property of
+    // any type
+    'SIBLING_NOTIF',
+    // Sent when the the user has settled on a point in the timeline
+    'DATA_FOCUS_CHANGE',
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Settings
+    ////////////////////////////////////////////////////////////////////////////
+    'SET_THRESHOLD',
+    'SET_OPACITY'
 ];
 
 let eventMap = {};
 
 for (let e of events) {
-    eventMap[e] = e.toLowerCase();
+    eventMap[e] = e;
 }
 
 module.exports = eventMap;

@@ -21,3 +21,7 @@ p.big-bad-error-msg {
     text-align: center;
     font-size: 24px;
 }
+
+visual-settings {
+    max-width: 500px;
+}

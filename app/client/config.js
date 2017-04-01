@@ -33,6 +33,7 @@ System.config({
       "../core/core.module.js",
       "../timeline/timeline.module.js",
       "../volume/volume.module.js",
+      "../visual-settings/visual-settings.module.js",
       "./session-vis.component.js",
       "../core/util.js"
     ],
@@ -52,6 +53,7 @@ System.config({
       "jquery",
       "hughsk/tab64",
       "lodash",
+      "colormap",
       "./events.js",
       "../core/util.js",
       "../core/session.js",
@@ -137,10 +139,7 @@ System.config({
     ],
     "src/volume/volume.module.js": [
       "angular",
-      "./volume.component.js",
-      "../core/util.js",
-      "angularjs-slider",
-      "angularjs-slider/dist/rzslider.min.css!"
+      "./volume.component.js"
     ],
     "src/timeline/timeline.component.js": [
       "lodash",
@@ -167,7 +166,8 @@ System.config({
       "../core/range.js",
       "../core/plotdefaults.js",
       "../core/session.js",
-      "../session-vis/events.js"
+      "../session-vis/events.js",
+      "../visual-settings/defaults.js"
     ],
     "src/timeline/trace-manager.js": [
       "lodash",
@@ -433,6 +433,17 @@ System.config({
     ],
     "npm:lower-case@1.1.4.js": [
       "npm:lower-case@1.1.4/lower-case.js"
+    ],
+    "src/visual-settings/visual-settings.module.js": [
+      "angular",
+      "./visual-settings.component.js",
+      "../core/util.js",
+      "angularjs-slider",
+      "angularjs-slider/dist/rzslider.min.css!"
+    ],
+    "src/visual-settings/visual-settings.component.js": [
+      "../session-vis/events.js",
+      "./defaults.js"
     ]
   },
 

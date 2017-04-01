@@ -52,8 +52,11 @@ let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisControl
         plotNodes.add(plotNode);
     });
 
-    $scope.$on(events.DATA_FOCUS_CHANGE_NOTIF, (event, newIndex) => {
-        $scope.$broadcast(events.DATA_FOCUS_CHANGE, newIndex);
+    // A child scope has requested us to send a notification to its sibling
+    // scopes
+    $scope.$on(events.SIBLING_NOTIF, (event, spec) => {
+        // spec.type is a value in events.*
+        $scope.$broadcast(spec.type, spec.data);
     });
 
     // Resize the plots when the window resizes
@@ -94,7 +97,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisControl
             let metadata = result.data.data;
 
             // Grab specific elements from the session metadata to display at the top
-            $ctrl.sessionFormattedMeta = createFormattedMetadata(metadata)
+            $ctrl.sessionFormattedMeta = createFormattedMetadata(metadata);
 
             return result.data.data;
         });
