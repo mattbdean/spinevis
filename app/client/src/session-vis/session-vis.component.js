@@ -2,6 +2,7 @@ let moment = require('moment');
 let $ = require('jquery');
 let tab64 = require('hughsk/tab64');
 let _ = require('lodash');
+let colormap = require('colormap');
 
 let events = require('./events.js');
 let util = require('../core/util.js');
@@ -74,7 +75,10 @@ let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisControl
             Title.set(`${meta.Animal} on ${util.format.dateShort(meta.start_time)}`);
             // Notify all child scopes (e.g. the timeline component) that
             // the session metadata is ready
-            $scope.$broadcast(events.META_LOADED, meta);
+            $scope.$broadcast(events.META_LOADED, {
+                metadata: meta,
+                colors: createMaskColors(meta.masks.Pts.length)
+            });
         });
     };
 
@@ -110,6 +114,21 @@ let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisControl
     ];
 
     $ctrl.sessionFormattedMeta = createFormattedMetadata(METADATA_DEFAULTS);
+
+    /*
+     * Creates `limit` number of colors using `colormap` in 'rgb' format (e.g.
+     * "rgb(0,0,0)").
+     */
+    let createMaskColors = function(limit) {
+        if (typeof limit !== "number")
+            throw new Error('limit was not a number (was ' + typeof limit + ')');
+
+        return colormap({
+            name: 'jet',
+            nshades: limit,
+            format: 'rgb'
+        });
+    };
 
     // leggo
     init().catch(function(err) {

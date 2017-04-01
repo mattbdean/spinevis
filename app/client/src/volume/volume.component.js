@@ -87,12 +87,13 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     };
 
     let init = function(data) {
-        $ctrl.sessionMeta = data;
-        sessionId = data._id;
+        $ctrl.sessionMeta = data.metadata;
+        sessionId = data.metadata._id;
         indexRange = range.create(0, data.nSamples);
 
         return initTraces()
         .then(processInitialData)
+        .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors))
         .then(registerCallbacks)
         .then(function() {
             // Tell the parent scope (i.e. session-vis) that we've finished
@@ -140,6 +141,30 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
                 type: 'surface',
                 colorscale: 'Greys',
                 hoverinfo: 'none'
+            });
+        }
+
+        return Plotly.addTraces(plotNode, traces);
+    };
+
+    let initMasks = function(points, polys, colors) {
+        // points, polys, and colors are arrays of the same length
+
+        let traces = [];
+        for (let i = points.length - 1; i >= 0; i--) {
+            traces.push({
+                name: 'Mask ' + i,
+                x: points[i][0],
+                y: points[i][1],
+                z: points[i][2],
+                i: polys[i][0],
+                j: polys[i][1],
+                k: polys[i][2],
+                color: colors[i],
+                showscale: false,
+                opacity: 0.1,
+                type: 'mesh3d',
+                hoverinfo: 'name'
             });
         }
 

@@ -39,8 +39,8 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
     let lastFocusChangeEvent = null;
 
     let init = function(data) {
-        $ctrl.sessionMeta = data;
-        sessionId = data._id;
+        $ctrl.sessionMeta = data.metadata;
+        sessionId = $ctrl.sessionMeta._id;
 
         // Instantiating is different than init()-ing
         traceManager = new TraceManager(
