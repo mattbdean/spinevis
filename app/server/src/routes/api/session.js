@@ -159,7 +159,7 @@ router.get('/:id/volume', function(req, res, next) {
             p1Name: 'start',
             p2Name: 'end',
             verify: (start, end) => start <= end,
-            messageOnBroken: 'start must be less than or greater than end'
+            messageOnBroken: 'start must be less than or equal to end'
         }) );
     }
 
