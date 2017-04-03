@@ -35,10 +35,10 @@ module.exports.fromPadding = function(center, padding) {
 
 module.exports.create = function(start, end) {
     if (end < start) throw new Error(`backwards range (expecting ${start} to be less than ${end})`);
-    return {
+    return Object.freeze({
         start: start,
         end: end,
         delta: end - start,
         middle: start + (end - start) / 2
-    };
+    });
 };

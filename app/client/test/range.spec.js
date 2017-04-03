@@ -5,12 +5,15 @@ let range = require('../src/core/range.js');
 
 describe('range', function() {
     describe('create', function() {
-        it('should create a 3-property object', function() {
+        it('should create a frozen 4-property object', function() {
             let r = range.create(5, 15);
             expect(r.start).to.be.equal(5);
             expect(r.end).to.be.equal(15);
             expect(r.delta).to.be.equal(10);
             expect(r.middle).to.be.equal(10);
+
+            r.start = 100;
+            expect(r.start).to.be.equal(5);
         });
     });
 
