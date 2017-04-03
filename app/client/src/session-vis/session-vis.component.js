@@ -21,9 +21,9 @@ const METADATA_DEFAULTS = {
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
-let ctrlDef = ['$http', '$window', '$scope', 'Title', 'session', function SessionVisController($http, $window, $scope, Title, session) {
+let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function SessionVisController($http, $window, $scope, title, session) {
     // Use base title until we get some information
-    Title.useBase();
+    title.useBase();
 
     let $ctrl = this;
 
@@ -34,7 +34,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'Title', 'session', function Sessio
 
     // Set this as the title in case an unhandled error occurs when loading
     // the rest of this component
-    Title.set($ctrl.sessionId);
+    title.set($ctrl.sessionId);
 
     // Use a Set to prevent potential excessive calls to Plotly.Plots.resize()
     let plotNodes = new Set();
@@ -74,7 +74,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'Title', 'session', function Sessio
     let init = function() {
         // Both plots require session metadata, grab that before creating them
         return initSessionMeta().then(function(meta) {
-            Title.set(`${meta.Animal} on ${util.format.dateShort(meta.start_time)}`);
+            title.set(`${meta.Animal} on ${util.format.dateShort(meta.start_time)}`);
 
             let maskColors = createMaskColors(meta.masks.Pts.length);
             // Specifically make the global trace blue

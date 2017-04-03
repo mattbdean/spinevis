@@ -3,9 +3,9 @@ let moment = require('moment');
 let numeral = require('numeral');
 let _ = require('lodash');
 
-let ctrlDef = ['$http', 'Title', 'session', function($http, Title, session) {
+let ctrlDef = ['$http', 'title', 'session', function($http, title, session) {
     // Use base title
-    Title.useBase();
+    title.useBase();
 
     let $ctrl = this;
 

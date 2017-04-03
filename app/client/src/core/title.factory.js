@@ -3,9 +3,9 @@ const BASE = 'spinevis';
 let factoryDef = ['$window', function($window) {
     /**
      * Sets the document's title (using $window.document.title). For example:
-     * `Title.set('hello')` will change the title of the tab to
+     * `title.set('hello')` will change the title of the tab to
      * "spinevis | hello". If `where` is undefined, only the app name will be
-     * shown: `Title.set()` results in a title of "spinevis".
+     * shown: `title.set()` results in a title of "spinevis".
      *
      * @param {*} where
      */
@@ -20,7 +20,7 @@ let factoryDef = ['$window', function($window) {
     };
 
     /**
-     * Sets the title to the base. Equivalent to calling `Title.set()`.
+     * Sets the title to the base. Equivalent to calling `title.set()`.
      */
     let useBase = () => { set(); };
 
@@ -31,6 +31,6 @@ let factoryDef = ['$window', function($window) {
 }];
 
 module.exports = {
-    name: 'Title',
+    name: 'title',
     def: factoryDef
 };
