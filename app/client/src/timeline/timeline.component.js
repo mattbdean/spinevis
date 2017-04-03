@@ -50,6 +50,7 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
             /*sessionStart = */$ctrl.sessionMeta.start_time,
             /*sessionFrequency = */$ctrl.sessionMeta.volRate,
             /*relTimes = */$ctrl.sessionMeta.relTimes,
+            /*colors = */data.colors,
             /*thresholds = */[
                 {
                     visibleDomain: Infinity,
@@ -66,7 +67,7 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
 
 
         return initBehavior()
-        .then(initTraces)
+        .then(() => traceManager.init())
         .then(registerCallbacks)
         .then(function() {
             // Emit a DATA_FOCUS_CHANGE event with high priority so that volume
@@ -174,35 +175,6 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
     };
 
     /**
-     * Initializes the trace manager, fetches the names of all available traces,
-     * and plots the global trace.
-     * @return {Promise} A Promise with no result to allow for chaining
-     */
-    let initTraces = function() {
-        let timeId = 'Grab trace names and plot global trace';
-        console.time(timeId);
-        traceManager.init(timeId);
-
-        return session.timeline(sessionId).then(function(response) {
-            $ctrl.availableTraces = {[PLACEHOLDER_ID]: PLACEHOLDER_NAME};
-            $ctrl.unaddedTraces = [{codeName: PLACEHOLDER_ID, displayName: PLACEHOLDER_NAME}];
-
-            for (let codeName of response.data.data) {
-                let displayName = 'Mask ' + codeName;
-
-                // Override only when needed
-                if (codeName === 'global') displayName = 'Global Fluorescence';
-
-                $ctrl.availableTraces[codeName] = displayName;
-                $ctrl.unaddedTraces.push({codeName: codeName, displayName: displayName});
-            }
-
-            // Define our global trace
-            return putTrace('global').then(() => { console.timeEnd(timeId); });
-        });
-    };
-
-    /**
      * Registers callbacks on the timeline node that are only available after
      * plotting.
      */
@@ -234,6 +206,10 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
             }
         });
 
+        $scope.$on(events.MASK_TOGGLED, (event, data) => {
+            updateTrace(data);
+        });
+
         let onXaxisRangeChange = (prop, action, newValue, oldValue) => {
             let millisecondValue = _.map(newValue, x => new Date(x).getTime() - timezoneOffsetMillis);
             let middleMillis = millisecondValue[0] +
@@ -260,26 +236,19 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
     };
 
     /**
-     * Adds a trace to the TraceManager, which subsequently adds it to the
-     * timeline.
-     * @param  {string|Number} codeName The name of the trace (e.g. "global", 0,
-     *                                  1, etc.)
-     * @return {Promise}       The result of traceManager.putTrace()
+     * Updates a trace through the TraceManager, which subsequently adds or
+     * removes it from/to the timeline.
+     *
+     * @param {object} mask An object with a 'codeName' and 'displayName'
+     *                      property
+     * @return {Promise}    The result of traceManager.putTrace()
      */
-    let putTrace = function(codeName) {
-        let traceStructIndex = _.findIndex($ctrl.unaddedTraces, t => t.codeName === codeName);
-        // Ensure we only add each trace once
-        if (traceStructIndex < 0) {
-            console.error(`Attempted to put trace '${codeName}' more than once`);
-            return;
+    let updateTrace = function(mask) {
+        if (mask.enabled) {
+            return traceManager.putTrace(mask.codeName, mask.displayName);
+        } else {
+            return traceManager.removeTrace(mask.codeName)
         }
-
-        return traceManager.putTrace(codeName, $ctrl.availableTraces[codeName]).then(function() {
-            $ctrl.unaddedTraces.splice(traceStructIndex, 1);
-
-            // Initialize with placeholder trace data
-            $ctrl.selectedTrace = $ctrl.unaddedTraces[0].codeName;
-        });
     };
 
     /**
@@ -313,7 +282,7 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
     };
 
     /**
-     * Emits an event of type events.DATA_FOCUS_CHANGE_NOTIF. The contents of
+     * Emits an event of type events.SIBLING_NOTIF. The contents of
      * the event data are the sanitized parameters to this function
      *
      * @param  {number}  newIndex
@@ -341,7 +310,11 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
             highPriority: actualHighPriority
         };
 
-        $scope.$emit(events.DATA_FOCUS_CHANGE_NOTIF, eventData);
+        $scope.$emit(events.SIBLING_NOTIF, {
+            // We want the parent to send this type of event
+            type: events.DATA_FOCUS_CHANGE,
+            data: eventData
+        });
         lastFocusChangeEvent = eventData;
     };
 

@@ -4,8 +4,12 @@ div(ng-show="!$ctrl.criticalError")
             li(ng-repeat="meta in $ctrl.sessionFormattedMeta") {{meta}}
 
     div.container-fluid
-        volume
-        timeline
+        div.row.top
+            visual-settings.col-md-3
+            volume.col-md-6
+            mask-toggles.col-md-3
+        div.row
+            timeline.col-md-12
 
 div(ng-show="$ctrl.criticalError")
     p.text-center.text-danger.big-bad-error-msg An error has occured

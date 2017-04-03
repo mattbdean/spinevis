@@ -1,0 +1,6 @@
+input.form-control(ng-model='query' placeholder='Filter masks')
+
+div.mask-toggle.row(ng-repeat='mask in $ctrl.masks | filter:{displayName: query} track by mask.codeName')
+    p.col-xs-8(ng-bind='mask.displayName')
+    div.color-preview.col-xs-2(ng-style='{"background-color": $ctrl.colors[mask.codeName]}')
+    toggle.col-xs-2(ng-model='mask.enabled', ng-change='$ctrl.toggled(mask)')

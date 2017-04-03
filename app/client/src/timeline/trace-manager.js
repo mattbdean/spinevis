@@ -33,12 +33,13 @@ module.exports = class TraceManager {
      *                        Leave Infinity for entire domain. `nick` is a
      *                        nickname for the threshold.
      */
-    constructor($http, plotNode, sessionId, sessionStart, sessionFrequency, relTimes, thresholds) {
+    constructor($http, plotNode, sessionId, sessionStart, sessionFrequency, relTimes, colors, thresholds) {
         this.session = sessionGenerator($http);
         this.plotNode = plotNode;
         this.sessionId = sessionId;
         this.sessionStart = sessionStart;
         this.relTimes = relTimes;
+        this.colors = colors;
         this.thresholds = _.orderBy(thresholds, ['visibleDomain'], ['desc']);
 
         // Assign each threshold a fixed padding width
@@ -66,6 +67,13 @@ module.exports = class TraceManager {
     }
 
     putTrace(codeName, displayName, index = Object.keys(this.traces).length) {
+        if (this.traces[codeName] !== undefined) {
+            console.error(`Attempted to add trace with code name ` +
+                `"${codeName}" more than once`);
+            // Caller is expecting a promise value
+            return Promise.resolve();
+        }
+
         // Allocate a variable location for each resolution
         let emptyData = {};
         for (let thresh of this.thresholds) {
@@ -78,6 +86,7 @@ module.exports = class TraceManager {
             displayName: displayName,
             downsampled: emptyData,
             uuid: uuid.v4(),
+            color: this.colors[codeName],
             fullRes: null // placeholder
         };
 
@@ -89,6 +98,23 @@ module.exports = class TraceManager {
         }).catch(function(err) {
             throw err;
         });
+    }
+
+    removeTrace(codeName) {
+        if (this.traces[codeName] === undefined) {
+            console.error('Attempted to remove non-existant trace with code ' +
+                'name ' + codeName);
+
+            // Caller expects a promise to be returned
+            return Promise.resolve();
+        }
+
+        let self = this;
+
+        let trace = this.traces[codeName];
+        return Plotly.deleteTraces(this.plotNode, trace.index).then(function() {
+            delete self.traces[codeName];
+        });;
     }
 
     /**
@@ -174,10 +200,12 @@ let applyResolution = function(plotNode, traces, displayRange, currentThresh, re
     let newTraceData = _.filter(traces, t => indexByUuid(t.uuid) < 0);
     let newTraces = _.map(newTraceData, t => {
         let computedData = createCoordinateData(t, displayRange, currentThresh, relTimes);
+        console.log(t.color);
         return {
             x: computedData.x,
             y: computedData.y,
             type: 'scatter',
+            line: { color: t.color },
             uid: t.uuid,
             name: t.displayName
         };

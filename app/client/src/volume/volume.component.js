@@ -12,7 +12,7 @@ let range = require('../core/range.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
 let sessionApi = require('../core/session.js');
 let events = require('../session-vis/events.js');
-
+let defaultSettings = require('../visual-settings/defaults.js');
 
 // Amount of data in the LRU cache. Pretty arbitrary.
 const CACHE_SIZE = 5000;
@@ -26,6 +26,28 @@ const N_COLORS = 256;
 
 let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
     let $ctrl = this;
+
+    let settings = defaultSettings;
+    // Opacity is displayed as a number 0-100 but we need a number from 0-1
+    settings.opacity /= 100;
+
+    // Don't pollute function scope with call-once handler functions
+    (function() {
+        // Convenience function
+        let handle = (eventType, handlerFn) => {
+            $scope.$on(eventType, (event, data) => { handlerFn(data); });
+        };
+
+        handle(events.SET_THRESHOLD, (threshold) => {
+            settings.threshold = threshold;
+            applyIntensityUpdate();
+        });
+
+        handle(events.SET_OPACITY, (opacity) => {
+            updateOpacity(opacity);
+        });
+    })();
+
     let session = sessionApi($http);
 
     // Wait for a parent component (i.e. session-vis) to send the session
@@ -57,35 +79,6 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
 
     let cache = new LRU(CACHE_SIZE);
 
-    $ctrl.controls = {
-        threshold: {
-            label: 'Threshold',
-            // Current values live here, defaults to [30, 400]
-            model: {
-                lo: 30,
-                hi: 400,
-            },
-            options: {
-                // Values vary from [-100, 5000], the user can change the min
-                // and max value by increments/decrements of 10
-                floor: -100,
-                ceil: 5000,
-                step: 10
-            }
-        },
-        opacity: {
-            label: 'Opacity',
-            // Current value lives here, defaults to 80%
-            model: 80,
-            options: {
-                floor: 0,
-                ceil: 100,
-                step: 1,
-                translate: (value) => value + '%'
-            }
-        }
-    };
-
     let init = function(data) {
         $ctrl.sessionMeta = data.metadata;
         sessionId = data.metadata._id;
@@ -96,6 +89,9 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
         .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors))
         .then(registerCallbacks)
         .then(function() {
+            // Set initial opacity
+            updateOpacity(settings.opacity);
+
             // Tell the parent scope (i.e. session-vis) that we've finished
             // initializing
             $scope.$emit(events.INITIALIZED, plotNode);
@@ -151,7 +147,7 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
         // points, polys, and colors are arrays of the same length
 
         let traces = [];
-        for (let i = points.length - 1; i >= 0; i--) {
+        for (let i = 0; i < points.length; i++) {
             traces.push({
                 name: 'Mask ' + i,
                 x: points[i][0],
@@ -230,14 +226,6 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
                 .then(applyIntensityUpdate);
             }
         });
-
-        $scope.$watchCollection('$ctrl.controls.threshold.model', (newVal, oldVal) => {
-            applyIntensityUpdate();
-        });
-
-        $scope.$watch('$ctrl.controls.opacity.model', (newVal) => {
-            updateOpacity(newVal / 100);
-        });
     };
 
     let findUpdateData = function(index) {
@@ -298,8 +286,8 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
         // This function is adapted from here:
         // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L706
 
-        let loThresh = $ctrl.controls.threshold.model.lo;
-        let hiThresh = $ctrl.controls.threshold.model.hi;
+        let loThresh = settings.threshold.lo;
+        let hiThresh = settings.threshold.hi;
 
         // Process new intensity data and update GL objects directly for
         // efficiency
@@ -339,6 +327,9 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
      * @param  {number} newOpacity A value between 0 and 1
      */
     let updateOpacity = function(newOpacity) {
+        // Make a note of the new opacity
+        settings.opacity = newOpacity;
+
         for (let i = 0; i < state.traces.length; i++) {
             state.traces[i].surface.opacity = newOpacity;
         }
