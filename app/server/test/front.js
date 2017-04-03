@@ -43,7 +43,7 @@ describe('Public HTML endpoints', function() {
     describe('partials', function() {
         // Dynamically create tests for partials, make sure every partial in the
         // list responds withi 200 OK
-        for (let partial of ['session-list', 'session-vis']) {
+        for (let partial of ['session-list', 'session-vis', 'timeline', 'volume']) {
             describe('GET /partial/' + partial, function() {
                 it('should respond with 200 OK', function() {
                     return expectHtml(app, '/partial/' + partial)
