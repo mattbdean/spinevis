@@ -1,14 +1,14 @@
+let _ = require('lodash');
 let express = require('express');
+let Parameter = require('pinput/parameter');
+let Contract = require('pinput/contract');
+
 let router = express.Router();
 let queries = require('../../queries.js');
 let responses = require('./responses.js');
+let validation = require('../validation.js');
+let input = require('./input.js');
 
-let input = require('../input');
-let Parameter = input.Parameter;
-let Contract = input.Contract;
-
-let validation = input.validation;
-let _ = require('lodash');
 
 /** Maximum sessions returned at one time */
 const MAX_SESSION_DATA = 100;
@@ -31,7 +31,7 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
     }
 
     for (let contract of contracts) {
-        contract.apply(parameters);
+        contract.check(parameters);
         if (contract.valid === false) {
             return next(responses.errorObj(contract.error));
         }
@@ -156,8 +156,7 @@ router.get('/:id/volume', function(req, res, next) {
 
     if (_.find(parameters, p => p.name === 'end').value !== undefined) {
         contracts.push( new Contract({
-            p1Name: 'start',
-            p2Name: 'end',
+            names: ['start', 'end'],
             verify: (start, end) => start <= end,
             messageOnBroken: 'start must be less than or equal to end'
         }) );

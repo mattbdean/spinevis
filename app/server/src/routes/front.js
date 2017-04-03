@@ -1,7 +1,7 @@
 let router = require('express').Router();
 let fs = require('fs');
 let path = require('path');
-let validation = require('./input/validation.js');
+let validation = require('./validation.js');
 let queries = require('../queries.js');
 
 let year = new Date().getFullYear();

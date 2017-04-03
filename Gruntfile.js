@@ -50,7 +50,6 @@ module.exports = function(grunt) {
             },
             noDbMode: {
                 src: [
-                    'app/server/test/input.js',
                     'app/server/test/validation.js'
                 ],
                 options: {

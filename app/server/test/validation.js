@@ -1,5 +1,5 @@
 let assert = require('assert');
-let validation = require('../src/routes/input/validation.js');
+let validation = require('../src/routes/validation.js');
 
 let setUpSuite = function(validationFn, strict, validInput, invalidInput) {
     if (typeof validationFn === 'string') {

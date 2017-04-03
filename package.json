@@ -19,6 +19,7 @@
     "lodash": "^4.17.4",
     "mongodb": "^2.2.11",
     "morgan": "^1.7.0",
+    "pinput": "^1.1.1",
     "pug": "^2.0.0-beta6",
     "spdy": "^3.4.4",
     "tinycolor2": "^1.4.1"
