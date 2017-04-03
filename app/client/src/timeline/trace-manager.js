@@ -33,12 +33,13 @@ module.exports = class TraceManager {
      *                        Leave Infinity for entire domain. `nick` is a
      *                        nickname for the threshold.
      */
-    constructor($http, plotNode, sessionId, sessionStart, sessionFrequency, relTimes, thresholds) {
+    constructor($http, plotNode, sessionId, sessionStart, sessionFrequency, relTimes, colors, thresholds) {
         this.session = sessionGenerator($http);
         this.plotNode = plotNode;
         this.sessionId = sessionId;
         this.sessionStart = sessionStart;
         this.relTimes = relTimes;
+        this.colors = colors;
         this.thresholds = _.orderBy(thresholds, ['visibleDomain'], ['desc']);
 
         // Assign each threshold a fixed padding width
@@ -85,6 +86,7 @@ module.exports = class TraceManager {
             displayName: displayName,
             downsampled: emptyData,
             uuid: uuid.v4(),
+            color: this.colors[codeName],
             fullRes: null // placeholder
         };
 
@@ -198,10 +200,12 @@ let applyResolution = function(plotNode, traces, displayRange, currentThresh, re
     let newTraceData = _.filter(traces, t => indexByUuid(t.uuid) < 0);
     let newTraces = _.map(newTraceData, t => {
         let computedData = createCoordinateData(t, displayRange, currentThresh, relTimes);
+        console.log(t.color);
         return {
             x: computedData.x,
             y: computedData.y,
             type: 'scatter',
+            line: { color: t.color },
             uid: t.uuid,
             name: t.displayName
         };

@@ -50,6 +50,7 @@ let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, 
             /*sessionStart = */$ctrl.sessionMeta.start_time,
             /*sessionFrequency = */$ctrl.sessionMeta.volRate,
             /*relTimes = */$ctrl.sessionMeta.relTimes,
+            /*colors = */data.colors,
             /*thresholds = */[
                 {
                     visibleDomain: Infinity,

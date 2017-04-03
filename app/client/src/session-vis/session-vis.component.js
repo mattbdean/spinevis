@@ -3,6 +3,7 @@ let $ = require('jquery');
 let tab64 = require('hughsk/tab64');
 let _ = require('lodash');
 let colormap = require('colormap');
+let tinycolor = require('tinycolor2');
 
 let events = require('./events.js');
 let util = require('../core/util.js');
@@ -76,11 +77,16 @@ let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisControl
         // Both plots require session metadata, grab that before creating them
         return initSessionMeta().then(function(meta) {
             Title.set(`${meta.Animal} on ${util.format.dateShort(meta.start_time)}`);
+
+            let maskColors = createMaskColors(meta.masks.Pts.length);
+            // Specifically make the global trace blue
+            maskColors.global = '#1F77B4';
+
             // Notify all child scopes (e.g. the timeline component) that
             // the session metadata is ready
             $scope.$broadcast(events.META_LOADED, {
                 metadata: meta,
-                colors: createMaskColors(meta.masks.Pts.length)
+                colors: maskColors
             });
         });
     };
@@ -126,11 +132,11 @@ let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisControl
         if (typeof limit !== "number")
             throw new Error('limit was not a number (was ' + typeof limit + ')');
 
-        return colormap({
-            name: 'jet',
+        return _.shuffle(colormap({
+            colormap: 'hsv',
             nshades: limit,
-            format: 'rgb'
-        });
+            format: 'rgbaString'
+        }));
     };
 
     // leggo

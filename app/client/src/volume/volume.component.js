@@ -147,7 +147,7 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
         // points, polys, and colors are arrays of the same length
 
         let traces = [];
-        for (let i = points.length - 1; i >= 0; i--) {
+        for (let i = 0; i < points.length; i++) {
             traces.push({
                 name: 'Mask ' + i,
                 x: points[i][0],
