@@ -1,4 +1,6 @@
-div(ng-repeat='mask in $ctrl.masks track by mask.codeName')
+input.form-control(ng-model='query' placeholder='Filter masks')
+
+div.mask-toggle(ng-repeat='mask in $ctrl.masks | filter:{displayName: query} track by mask.codeName')
     p(ng-bind='mask.displayName').pull-left
     toggle(ng-model='mask.enabled', ng-change='$ctrl.toggled(mask)').pull-right
     div.clearfix
