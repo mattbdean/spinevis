@@ -1,11 +1,9 @@
 let _ = require('lodash');
 let events = require('../session-vis/events.js');
-let sessionApi = require('../core/session.js');
 let tinycolor = require('tinycolor2');
 
-let ctrlDef = ['$scope', '$http', function($scope, $http) {
+let ctrlDef = ['$scope', '$http', 'session', function($scope, $http, session) {
     let $ctrl = this;
-    let session = sessionApi($http);
 
     $scope.$on(events.META_LOADED, (event, data) => {
         $ctrl.colors = data.colors;

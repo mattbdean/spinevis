@@ -1,14 +1,12 @@
 let util = require('../core/util.js');
-let sessionApi = require('../core/session.js');
 let moment = require('moment');
 let numeral = require('numeral');
 let _ = require('lodash');
 
-let ctrlDef = ['$http', 'Title', function($http, Title) {
+let ctrlDef = ['$http', 'Title', 'session', function($http, Title, session) {
     // Use base title
     Title.useBase();
 
-    let session = sessionApi($http);
     let $ctrl = this;
 
     session.list().then(function(response) {

@@ -10,7 +10,6 @@ let TraceManager = require('./trace-manager.js');
 let relTime = require('./relative-time.js');
 let range = require('../core/range.js');
 let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
-let sessionApi = require('../core/session.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
 let events = require('../session-vis/events.js');
 
@@ -21,9 +20,8 @@ const BEHAVIOR_Y = 0;
 // A vertical line will be drawn at 50% of the plot
 const DATA_FOCUS_POSITION = 0.5;
 
-let ctrlDef = ['$http', '$window', '$scope', function TimelineController($http, $window, $scope) {
+let ctrlDef = ['$http', '$window', '$scope', 'session', function TimelineController($http, $window, $scope, session) {
     let $ctrl = this;
-    let session = sessionApi($http);
 
     // Wait for a parent component (i.e. session-vis) to send the session
     // metadata through an event. Immediately unsubscribe.

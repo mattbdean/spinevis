@@ -7,7 +7,6 @@ let tinycolor = require('tinycolor2');
 
 let events = require('./events.js');
 let util = require('../core/util.js');
-let sessionApi = require('../core/session.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
 
 const METADATA_DEFAULTS = {
@@ -22,11 +21,10 @@ const METADATA_DEFAULTS = {
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
-let ctrlDef = ['$http', '$window', '$scope', 'Title', function SessionVisController($http, $window, $scope, Title) {
+let ctrlDef = ['$http', '$window', '$scope', 'Title', 'session', function SessionVisController($http, $window, $scope, Title, session) {
     // Use base title until we get some information
     Title.useBase();
 
-    let session = sessionApi($http);
     let $ctrl = this;
 
     // Fail fast if injection does as well

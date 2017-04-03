@@ -10,7 +10,6 @@ var ops = require('ndarray-ops');
 let renderUtil = require('./render-util.js');
 let range = require('../core/range.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
-let sessionApi = require('../core/session.js');
 let events = require('../session-vis/events.js');
 let defaultSettings = require('../visual-settings/defaults.js');
 
@@ -24,7 +23,7 @@ const BUFFER_PADDING = 50;
 // The amount unique colors in a colorscale
 const N_COLORS = 256;
 
-let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
+let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, $scope, session) {
     let $ctrl = this;
 
     let settings = defaultSettings;
@@ -47,8 +46,6 @@ let ctrlDef = ['$http', '$scope', function TimelineController($http, $scope) {
             updateOpacity(opacity);
         });
     })();
-
-    let session = sessionApi($http);
 
     // Wait for a parent component (i.e. session-vis) to send the session
     // metadata through an event. Immediately unsubscribe.
