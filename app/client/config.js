@@ -52,6 +52,7 @@ System.config({
       "jquery",
       "hughsk/tab64",
       "lodash",
+      "colormap",
       "./events.js",
       "../core/util.js",
       "../core/session.js",
