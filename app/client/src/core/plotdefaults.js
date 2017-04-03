@@ -1,0 +1,4 @@
+/** Default options passed as the 4th parameter to Plotly.newPlot() */
+module.exports = {
+    displaylogo: false
+};

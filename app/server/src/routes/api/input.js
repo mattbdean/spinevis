@@ -1,10 +1,5 @@
-let validation = require('./validation.js');
-let Parameter = require('./parameter.js');
-let Contract = require('./contract.js');
-
-module.exports.Parameter = Parameter;
-module.exports.Contract = Contract;
-module.exports.validation = validation;
+let Parameter = require('pinput');
+let validation = require('../validation.js')
 
 let parseBase10Int = (input) => parseInt(input, 10);
 

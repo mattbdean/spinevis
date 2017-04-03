@@ -9,7 +9,12 @@ main {
 }
 
 body {
-  /* Margin bottom by footer height */
+    /* Set margins to 0 to avoid drastic changes when Bootstrap loads */
+    margin-top: 0;
+    margin-right: 0;
+    margin-left: 0;
+
+    /* Margin bottom by footer height */
     margin-bottom: 60px;
 }
 

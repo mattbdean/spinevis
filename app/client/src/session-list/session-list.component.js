@@ -3,8 +3,10 @@ let moment = require('moment');
 let numeral = require('numeral');
 let _ = require('lodash');
 
-let ctrlDef = ['$http', function($http) {
-    let session = require('../core/session.js')($http);
+let ctrlDef = ['$http', 'title', 'session', function($http, title, session) {
+    // Use base title
+    title.useBase();
+
     let $ctrl = this;
 
     session.list().then(function(response) {

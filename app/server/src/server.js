@@ -55,7 +55,12 @@ module.exports = function(logToStdout = true, errorLogger = console.error) {
     ///////////////////////// START /////////////////////////
     // Connect to MongoDB and return app object which can be
     // listen()'d to
-    return db.connect(db.MODE_PRODUCTION).then(function() {
+    return db.connect(db.MODE_PRODUCTION)
+    .catch(function(err) {
+        if (err instanceof mongodb.MongoError)
+            throw new Error('Failed to connect to MongoDB. Is it running? (' + err.message + ')');
+    })
+    .then(function() {
         return app;
     });
 };

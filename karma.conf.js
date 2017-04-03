@@ -31,8 +31,19 @@ module.exports = function(config) {
 
 
     jspm: {
-        loadFiles: ['test/**/*.js'],
-        serveFiles: ['src/**/*.js']
+        config: 'config.js',
+        loadFiles: [
+            'jspm_packages/npm/angular@1.6.2.js',
+            'src/**/*.js',
+            'test/**/*.js'
+        ],
+        serveFiles: ['jspm_packages/**/*']
+    },
+
+    proxies: {
+        '/scripts/jspm_packages/': '/base/jspm_packages/',
+        '/scripts/src/': '/base/src/',
+        '/scripts/test/': '/base/test/'
     },
 
     // test results reporter to use
@@ -79,5 +90,5 @@ module.exports = function(config) {
     // Concurrency level
     // how many browser should be started simultaneous
     concurrency: Infinity,
-  })
-}
+  });
+};

@@ -1,6 +1,6 @@
 let _ = require('lodash');
 let uuid = require('uuid');
-let range = require('./range.js');
+let range = require('../core/range.js');
 let Downsampler = require('./downsampler.js');
 let sessionGenerator = require('../core/session.js');
 let relTime = require('./relative-time.js');
@@ -13,7 +13,7 @@ const PADDING_THRESH_MULT = 1;
 /** Add 300% the visible domain once that threshold is crossed */
 const PADDING_ADD_MULT = 3;
 
-module.exports.TraceManager = class TraceManager {
+module.exports = class TraceManager {
     /**
      * Instantiates a new TraceManager.
      *
@@ -33,12 +33,13 @@ module.exports.TraceManager = class TraceManager {
      *                        Leave Infinity for entire domain. `nick` is a
      *                        nickname for the threshold.
      */
-    constructor($http, plotNode, sessionId, sessionStart, sessionFrequency, relTimes, thresholds) {
+    constructor($http, plotNode, sessionId, sessionStart, sessionFrequency, relTimes, colors, thresholds) {
         this.session = sessionGenerator($http);
         this.plotNode = plotNode;
         this.sessionId = sessionId;
         this.sessionStart = sessionStart;
         this.relTimes = relTimes;
+        this.colors = colors;
         this.thresholds = _.orderBy(thresholds, ['visibleDomain'], ['desc']);
 
         // Assign each threshold a fixed padding width
@@ -65,7 +66,14 @@ module.exports.TraceManager = class TraceManager {
         this.onDomainChange(0, Infinity);
     }
 
-    putTrace(codeName, displayName, index = Object.keys(this.traces).length) {
+    putTrace(codeName, displayName) {
+        if (this.traces[codeName] !== undefined) {
+            console.error(`Attempted to add trace with code name ` +
+                `"${codeName}" more than once`);
+            // Caller is expecting a promise value
+            return Promise.resolve();
+        }
+
         // Allocate a variable location for each resolution
         let emptyData = {};
         for (let thresh of this.thresholds) {
@@ -74,10 +82,10 @@ module.exports.TraceManager = class TraceManager {
 
         // Register the trace
         this.traces[codeName] = {
-            index: index,
             displayName: displayName,
             downsampled: emptyData,
             uuid: uuid.v4(),
+            color: this.colors[codeName],
             fullRes: null // placeholder
         };
 
@@ -89,6 +97,30 @@ module.exports.TraceManager = class TraceManager {
         }).catch(function(err) {
             throw err;
         });
+    }
+
+    removeTrace(codeName) {
+        if (this.traces[codeName] === undefined) {
+            console.error('Attempted to remove non-existant trace with code ' +
+                'name ' + codeName);
+
+            // Caller expects a promise to be returned
+            return Promise.resolve();
+        }
+
+        let self = this;
+
+        let trace = this.traces[codeName];
+        let traceIndex = _.findIndex(this.plotNode.data, t => t.uid === trace.uuid);
+        if (traceIndex < 0) {
+            console.error(`Already removed trace with code name '${codeName}'`);
+            return Promise.resolve();
+        }
+
+        console.log(traceIndex);
+        return Plotly.deleteTraces(this.plotNode, traceIndex).then(function() {
+            delete self.traces[codeName];
+        });;
     }
 
     /**
@@ -178,13 +210,15 @@ let applyResolution = function(plotNode, traces, displayRange, currentThresh, re
             x: computedData.x,
             y: computedData.y,
             type: 'scatter',
+            line: { color: t.color },
             uid: t.uuid,
             name: t.displayName
         };
     });
 
     if (newTraces.length > 0) {
-        let indexes = _.map(newTraceData, t => t.index);
+        let traceCount = countPlottedTraces(plotNode);
+        let indexes = _.range(traceCount, traceCount + newTraces.length);
         console.log(`Adding traces [${_.map(newTraceData, t => t.displayName)}] at indexes [${indexes}]`);
         Plotly.addTraces(plotNode, newTraces, indexes);
     }
@@ -210,6 +244,15 @@ let applyResolution = function(plotNode, traces, displayRange, currentThresh, re
         Plotly.restyle(plotNode, update, updateIndexes);
     }
 };
+
+/**
+ * Gets the amount of non-behavior traces currently being displayed on the plot.
+ * Since all behavior traces have their 'mode' properties set to 'markers' and
+ * user-added traces have an undefined 'mode', we can simply count the number of
+ * traces whose 'mode' is undefined.
+ */
+let countPlottedTraces = (plotNode) =>
+    _.countBy(plotNode.data, t => t.mode).undefined || 0;
 
 let addDataToTrace = function(plotNode, traceData, range, currentThresh, relTimes) {
     let computedData = createCoordinateData(traceData, range, currentThresh, relTimes);

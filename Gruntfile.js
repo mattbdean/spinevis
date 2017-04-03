@@ -1,5 +1,6 @@
 let fs = require('fs');
 let path = require('path');
+let bundle = require('jspm/lib/bundle');
 
 module.exports = function(grunt) {
     let pkg = grunt.file.readJSON('package.json');
@@ -22,6 +23,7 @@ module.exports = function(grunt) {
         jshint: {
             all: [
                 'Gruntfile.js',
+                'karma.conf.js',
                 'app/client/!(build|jspm_packages)/**/*.js',
                 'app/server/src/**/*.js'
             ],
@@ -48,8 +50,7 @@ module.exports = function(grunt) {
             },
             noDbMode: {
                 src: [
-                    'app/server/test/input.js',
-                    'app/server/test/validation.js',
+                    'app/server/test/validation.js'
                 ],
                 options: {
                     coverageFolder: 'build/reports/coverage/server'
@@ -84,13 +85,10 @@ module.exports = function(grunt) {
                 }
             }
         },
+        depcache: {
+            dist: ['src/app.module.js']
+        },
         copy: {
-            fonts: {
-                cwd: 'node_modules/bootstrap/dist/fonts/',
-                src: '*',
-                dest: build + 'fonts',
-                expand: true
-            },
             rawAssets: {
                 cwd: 'app/client/_assets/raw',
                 src: '**',
@@ -164,23 +162,18 @@ module.exports = function(grunt) {
         }
     });
 
-    let conf = require('./build.conf.json');
+    // Created a .min.css file for every CSS file in the style directory
+    let cssFiles = grunt.file.expand('app/client/_assets/style/*.css');
+    let minifyTargets = [];
 
-    // Created a .min.css file for every CSS file in the style directory that
-    // isn't base.css
-    let cssminProp = 'cssmin.build.files';
-    let files = [];
-    conf.cssBuilds.forEach(css => {
-        files.push({
-            src: [
-                'app/client/_assets/style/base.css',
-                `app/client/_assets/style/${css}.css`,
-                'node_modules/bootstrap/dist/css/bootstrap.css'
-            ],
-            dest: build + `style/${css}.min.css`
+    // Create cssmin.build.files dynamically
+    for (let cssFile of cssFiles) {
+        minifyTargets.push({
+            src: cssFile,
+            dest: build + `style/${path.basename(cssFile, '.css')}.min.css`
         });
-    });
-    grunt.config(cssminProp, files);
+    }
+    grunt.config('cssmin.build.files', minifyTargets);
 
     let walkTree = function(dir) {
         if (dir.endsWith('/'))
@@ -209,9 +202,10 @@ module.exports = function(grunt) {
 
     // Data to be passed to every template
     let data = {
-        year: new Date().getFullYear(),
-        appName: pkg.name
+        year: "2016 - " + new Date().getFullYear()
     };
+
+    let excludedTemplates = ["error.pug", "layout.pug", "session.pug"];
 
     // All views that can't be rendered statically or shouldn't be rendered
     // directly
@@ -220,7 +214,7 @@ module.exports = function(grunt) {
         let relativeName = view.slice(srcDir.length);
 
         // Ignore dynamic views
-        if (conf.excludedTemplates.includes(relativeName)) {
+        if (excludedTemplates.includes(relativeName)) {
             return;
         }
 
@@ -239,6 +233,7 @@ module.exports = function(grunt) {
         'contrib-pug',
         'contrib-watch',
         'coveralls',
+        'jspm-depcache',
         'karma',
         'lcov-merge',
         'mocha-test',
@@ -257,5 +252,5 @@ module.exports = function(grunt) {
     });
     grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
-    grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'copy']);
+    grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'depcache', 'copy']);
 };

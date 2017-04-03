@@ -216,7 +216,6 @@ describe('API v1', function() {
                             });
                     });
                 });
-
             }
         });
     });

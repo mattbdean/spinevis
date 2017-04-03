@@ -1,14 +1,14 @@
+let _ = require('lodash');
 let express = require('express');
+let Parameter = require('pinput/parameter');
+let Contract = require('pinput/contract');
+
 let router = express.Router();
 let queries = require('../../queries.js');
 let responses = require('./responses.js');
+let validation = require('../validation.js');
+let input = require('./input.js');
 
-let input = require('../input');
-let Parameter = input.Parameter;
-let Contract = input.Contract;
-
-let validation = input.validation;
-let _ = require('lodash');
 
 /** Maximum sessions returned at one time */
 const MAX_SESSION_DATA = 100;
@@ -31,7 +31,7 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
     }
 
     for (let contract of contracts) {
-        contract.apply(parameters);
+        contract.check(parameters);
         if (contract.valid === false) {
             return next(responses.errorObj(contract.error));
         }
@@ -140,31 +140,25 @@ router.get('/:id/timeline', function(req, res, next) {
 });
 
 router.get('/:id/volume', function(req, res, next) {
-    let start = input.integer('start', req.query.start, 0);
+    // end is an optional integer parameter that must be greater than 1
+    let end = input.integer('end', req.query.end, 1);
+    end.optional = true;
+
     let parameters = [
         input.sessionId(req.params.id),
         // start is a required integer parameter with no default value that must
         // be greater than 0
         new Parameter(input.integer('start', req.query.start, 0)),
-        // end is an optional integer parameter that must be greater than 0
-        new Parameter({
-            name: 'end',
-            rawInput: req.query.end,
-            validate: (input) => validation.integer(input, 0),
-            optional: true,
-            errorMessage: 'end must be an integer in the range [0, Infinity]',
-            postprocess: (input) => parseInt(input, 10)
-        })
+        new Parameter(end)
     ];
 
     let contracts = [];
 
     if (_.find(parameters, p => p.name === 'end').value !== undefined) {
         contracts.push( new Contract({
-            p1Name: 'start',
-            p2Name: 'end',
+            names: ['start', 'end'],
             verify: (start, end) => start <= end,
-            messageOnBroken: 'start must be less than or greater than end'
+            messageOnBroken: 'start must be less than or equal to end'
         }) );
     }
 

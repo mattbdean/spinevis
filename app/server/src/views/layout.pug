@@ -7,7 +7,7 @@ html
         meta(name='viewport', content='width=device-width, initial-scale=1')
 
         block title
-            title= appName
+            title(ng-bind='Page.title() ? Page.title() : "no title"')
 
         block stylesheets
             link(href="https://fonts.googleapis.com/css?family=Roboto|Ubuntu+Mono" rel="stylesheet")
@@ -16,6 +16,7 @@ html
             script(src='/scripts/jspm_packages/system.js')
             script(src='/scripts/config.js')
             script.
+                System.import('bootstrap/css/bootstrap.min.css!');
                 System.import('/scripts/app.module.js').then(function() {
                     angular.bootstrap(document, ['spinevis'])
                 });
