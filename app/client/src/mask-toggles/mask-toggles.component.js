@@ -1,12 +1,17 @@
 let _ = require('lodash');
 let events = require('../session-vis/events.js');
 let sessionApi = require('../core/session.js');
+let tinycolor = require('tinycolor2');
 
 let ctrlDef = ['$scope', '$http', function($scope, $http) {
     let $ctrl = this;
     let session = sessionApi($http);
 
     $scope.$on(events.META_LOADED, (event, data) => {
+        $ctrl.colors = _.map(data.colors, toRgbaString);
+        // Specifically make the global trace blue
+        $ctrl.colors.global = '#1F77B4';
+
         session.timeline(data.metadata._id).then(function(response) {
             // Array of all mask code names, range of [0-n) where n is the
             // number of masks and 'global'
@@ -43,6 +48,22 @@ let ctrlDef = ['$scope', '$http', function($scope, $http) {
             data: mask
         });
     };
+
+    /**
+     * Transforms an color represented as an array into a color represented as
+     * a string
+     *
+     * @param  {number[]} rgbaArray An array of either 3 or 4 numbers,
+     *                              specifying red, blue, green, and optionally
+     *                              alpha in that particular order
+     * @return {string}             An RGBA string, e.g. 'rgba(0, 0, 0, 1)'
+     */
+    let toRgbaString = rgbaArray => tinycolor({
+        r: rgbaArray[0],
+        g: rgbaArray[1],
+        b: rgbaArray[2],
+        a: rgbaArray[3] || 1,
+    }).toRgbString();
 }];
 
 module.exports = {
