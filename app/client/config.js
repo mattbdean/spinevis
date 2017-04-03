@@ -55,6 +55,7 @@ System.config({
       "hughsk/tab64",
       "lodash",
       "colormap",
+      "tinycolor2",
       "./events.js",
       "../core/util.js",
       "../core/session.js",
@@ -456,7 +457,8 @@ System.config({
     "src/mask-toggles/mask-toggles.component.js": [
       "lodash",
       "../session-vis/events.js",
-      "../core/session.js"
+      "../core/session.js",
+      "tinycolor2"
     ],
     "github:ziscloud/angular-bootstrap-toggle@0.1.2.js": [
       "github:ziscloud/angular-bootstrap-toggle@0.1.2/dist/angular-bootstrap-toggle.min.js"

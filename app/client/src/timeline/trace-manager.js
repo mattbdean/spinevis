@@ -66,7 +66,7 @@ module.exports = class TraceManager {
         this.onDomainChange(0, Infinity);
     }
 
-    putTrace(codeName, displayName, index = Object.keys(this.traces).length) {
+    putTrace(codeName, displayName) {
         if (this.traces[codeName] !== undefined) {
             console.error(`Attempted to add trace with code name ` +
                 `"${codeName}" more than once`);
@@ -82,7 +82,6 @@ module.exports = class TraceManager {
 
         // Register the trace
         this.traces[codeName] = {
-            index: index,
             displayName: displayName,
             downsampled: emptyData,
             uuid: uuid.v4(),
@@ -112,7 +111,14 @@ module.exports = class TraceManager {
         let self = this;
 
         let trace = this.traces[codeName];
-        return Plotly.deleteTraces(this.plotNode, trace.index).then(function() {
+        let traceIndex = _.findIndex(this.plotNode.data, t => t.uid === trace.uuid);
+        if (traceIndex < 0) {
+            console.error(`Already removed trace with code name '${codeName}'`);
+            return Promise.resolve();
+        }
+
+        console.log(traceIndex);
+        return Plotly.deleteTraces(this.plotNode, traceIndex).then(function() {
             delete self.traces[codeName];
         });;
     }
@@ -200,7 +206,6 @@ let applyResolution = function(plotNode, traces, displayRange, currentThresh, re
     let newTraceData = _.filter(traces, t => indexByUuid(t.uuid) < 0);
     let newTraces = _.map(newTraceData, t => {
         let computedData = createCoordinateData(t, displayRange, currentThresh, relTimes);
-        console.log(t.color);
         return {
             x: computedData.x,
             y: computedData.y,
@@ -212,7 +217,8 @@ let applyResolution = function(plotNode, traces, displayRange, currentThresh, re
     });
 
     if (newTraces.length > 0) {
-        let indexes = _.map(newTraceData, t => t.index);
+        let traceCount = countPlottedTraces(plotNode);
+        let indexes = _.range(traceCount, traceCount + newTraces.length);
         console.log(`Adding traces [${_.map(newTraceData, t => t.displayName)}] at indexes [${indexes}]`);
         Plotly.addTraces(plotNode, newTraces, indexes);
     }
@@ -238,6 +244,15 @@ let applyResolution = function(plotNode, traces, displayRange, currentThresh, re
         Plotly.restyle(plotNode, update, updateIndexes);
     }
 };
+
+/**
+ * Gets the amount of non-behavior traces currently being displayed on the plot.
+ * Since all behavior traces have their 'mode' properties set to 'markers' and
+ * user-added traces have an undefined 'mode', we can simply count the number of
+ * traces whose 'mode' is undefined.
+ */
+let countPlottedTraces = (plotNode) =>
+    _.countBy(plotNode.data, t => t.mode).undefined || 0;
 
 let addDataToTrace = function(plotNode, traceData, range, currentThresh, relTimes) {
     let computedData = createCoordinateData(traceData, range, currentThresh, relTimes);
