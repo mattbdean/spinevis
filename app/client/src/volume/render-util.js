@@ -144,7 +144,7 @@ module.exports.getParams = function(trace) {
 
     //Refine if necessary
     if(data.surfacecolor) {
-        var intensity = ndarray(new Float32Array(xlen * ylen), [xlen, ylen]);
+        let intensity = ndarray(new Float32Array(xlen * ylen), [xlen, ylen]);
 
         fill(intensity, function(row, col) {
             return data.surfacecolor[col][row];
@@ -334,9 +334,9 @@ module.exports.getTverts = function(surface, params) {
 
 // Pad coords by +1
 let padField = function(field) {
-    var shape = field.shape;
-    var nshape = [shape[0] + 2, shape[1] + 2];
-    var nfield = ndarray(new Float32Array(nshape[0] * nshape[1]), nshape);
+    let shape = field.shape;
+    let nshape = [shape[0] + 2, shape[1] + 2];
+    let nfield = ndarray(new Float32Array(nshape[0] * nshape[1]), nshape);
 
     // Center
     ops.assign(nfield.lo(1, 1).hi(shape[0], shape[1]), field);
@@ -364,9 +364,9 @@ let parseColorScale = function(colorscale, alpha) {
     if (alpha === undefined) alpha = 1;
 
     return colorscale.map(function(elem) {
-        var index = elem[0];
-        var color = tinycolor(elem[1]);
-        var rgb = color.toRgb();
+        let index = elem[0];
+        let color = tinycolor(elem[1]);
+        let rgb = color.toRgb();
         return {
             index: index,
             rgb: [rgb.r, rgb.g, rgb.b, alpha]

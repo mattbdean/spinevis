@@ -6,7 +6,7 @@ block append stylesheets
 block prepend scripts
     script(src='https://cdn.plot.ly/plotly-latest.js')
     script.
-        var sessionId = "#{id}";
+        let sessionId = "#{id}";
 
 block content
     session-vis

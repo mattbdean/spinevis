@@ -31,7 +31,9 @@ module.exports = function(grunt) {
                 // ECMAScript version 6
                 esversion: 6,
                 // Ignore "don't make functions in a loop"
-                '-W083': true
+                '-W083': true,
+                // Use only 'let' or 'const', not 'var'
+                varstmt: true
             }
         },
         karma: {
@@ -225,7 +227,7 @@ module.exports = function(grunt) {
     grunt.config('pug.compile.files', filesMap);
     grunt.config('pug.compile.options.data', data);
 
-    var tasks = [
+    let tasks = [
         'contrib-clean',
         'contrib-copy',
         'contrib-cssmin',
@@ -241,7 +243,7 @@ module.exports = function(grunt) {
         'run'
     ];
 
-    for (var i = 0; i < tasks.length; i++) {
+    for (let i = 0; i < tasks.length; i++) {
         grunt.loadNpmTasks(`grunt-${tasks[i]}`);
     }
 
