@@ -40,14 +40,14 @@ System.config({
     ],
     "src/session-list/session-list.component.js": [
       "../core/util.js",
-      "../core/session.js",
       "moment",
       "numeral",
       "lodash"
     ],
     "src/core/core.module.js": [
       "angular",
-      "./title.factory.js"
+      "./title.factory.js",
+      "./session.service.js"
     ],
     "src/session-vis/session-vis.component.js": [
       "moment",
@@ -58,7 +58,6 @@ System.config({
       "tinycolor2",
       "./events.js",
       "../core/util.js",
-      "../core/session.js",
       "../core/plotdefaults.js"
     ],
     "npm:moment@2.17.1.js": [
@@ -137,10 +136,14 @@ System.config({
     ],
     "src/timeline/timeline.module.js": [
       "angular",
+      "../core/core.module.js",
+      "./downsampler.service.js",
+      "./trace-manager.service.js",
       "./timeline.component.js"
     ],
     "src/volume/volume.module.js": [
       "angular",
+      "../core/core.module.js",
       "./volume.component.js"
     ],
     "src/timeline/timeline.component.js": [
@@ -148,10 +151,8 @@ System.config({
       "jquery",
       "watchjs",
       "./markers.js",
-      "./trace-manager.js",
       "./relative-time.js",
       "../core/range.js",
-      "../core/session.js",
       "../core/plotdefaults.js",
       "../session-vis/events.js"
     ],
@@ -167,7 +168,6 @@ System.config({
       "./render-util.js",
       "../core/range.js",
       "../core/plotdefaults.js",
-      "../core/session.js",
       "../session-vis/events.js",
       "../visual-settings/defaults.js"
     ],
@@ -449,6 +449,7 @@ System.config({
     ],
     "src/mask-toggles/mask-toggles.module.js": [
       "angular",
+      "../core/core.module.js",
       "./mask-toggles.component.js",
       "angular-bootstrap-toggle",
       "angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.css!",
@@ -457,11 +458,23 @@ System.config({
     "src/mask-toggles/mask-toggles.component.js": [
       "lodash",
       "../session-vis/events.js",
-      "../core/session.js",
       "tinycolor2"
     ],
     "github:ziscloud/angular-bootstrap-toggle@0.1.2.js": [
       "github:ziscloud/angular-bootstrap-toggle@0.1.2/dist/angular-bootstrap-toggle.min.js"
+    ],
+    "src/core/session.service.js": [
+      "lodash"
+    ],
+    "src/timeline/downsampler.service.js": [
+      "lodash",
+      "./relative-time.js"
+    ],
+    "src/timeline/trace-manager.service.js": [
+      "lodash",
+      "uuid",
+      "../core/range.js",
+      "./relative-time.js"
     ]
   },
 

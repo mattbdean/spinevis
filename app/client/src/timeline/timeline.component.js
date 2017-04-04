@@ -6,7 +6,6 @@ let watch = WatchJS.watch;
 let unwatch = WatchJS.unwatch;
 
 const behaviorMarkers = require('./markers.js');
-let TraceManager = require('./trace-manager.js');
 let relTime = require('./relative-time.js');
 let range = require('../core/range.js');
 let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
@@ -20,7 +19,7 @@ const BEHAVIOR_Y = 0;
 // A vertical line will be drawn at 50% of the plot
 const DATA_FOCUS_POSITION = 0.5;
 
-let ctrlDef = ['$http', '$window', '$scope', 'session', function TimelineController($http, $window, $scope, session) {
+let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function TimelineController($http, $window, $scope, session, traceManager) {
     let $ctrl = this;
 
     // Wait for a parent component (i.e. session-vis) to send the session
@@ -32,7 +31,6 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', function TimelineControl
 
     let plotNode = $('#plot-timeline')[0];
 
-    let traceManager = null;
     let sessionId = null;
     let lastFocusChangeEvent = null;
 
@@ -40,16 +38,13 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', function TimelineControl
         $ctrl.sessionMeta = data.metadata;
         sessionId = $ctrl.sessionMeta._id;
 
-        // Instantiating is different than init()-ing
-        traceManager = new TraceManager(
-            /*$http = */$http,
-            /*plotNode = */plotNode,
-            /*sessionId = */sessionId,
-            /*sessionStart = */$ctrl.sessionMeta.start_time,
-            /*sessionFrequency = */$ctrl.sessionMeta.volRate,
-            /*relTimes = */$ctrl.sessionMeta.relTimes,
-            /*colors = */data.colors,
-            /*thresholds = */[
+        traceManager.init({
+            plotNode: plotNode,
+            sessionId: sessionId,
+            sessionFrequency: $ctrl.sessionMeta.volRate,
+            relTimes: $ctrl.sessionMeta.relTimes,
+            colors: data.colors,
+            thresholds: [
                 {
                     visibleDomain: Infinity,
                     resolution: 1,
@@ -61,11 +56,9 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', function TimelineControl
                     nick: '5min'
                 }
             ]
-        );
-
+        });
 
         return initBehavior()
-        .then(() => traceManager.init())
         .then(registerCallbacks)
         .then(function() {
             // Emit a DATA_FOCUS_CHANGE event with high priority so that volume
@@ -242,11 +235,9 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', function TimelineControl
      * @return {Promise}    The result of traceManager.putTrace()
      */
     let updateTrace = function(mask) {
-        if (mask.enabled) {
-            return traceManager.putTrace(mask.codeName, mask.displayName);
-        } else {
-            return traceManager.removeTrace(mask.codeName)
-        }
+        return mask.enabled ?
+            traceManager.putTrace(mask.codeName, mask.displayName) :
+            traceManager.removeTrace(mask.codeName);
     };
 
     /**

@@ -1,5 +1,5 @@
 let Parameter = require('pinput');
-let validation = require('../validation.js')
+let validation = require('../validation.js');
 
 let parseBase10Int = (input) => parseInt(input, 10);
 

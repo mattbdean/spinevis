@@ -4,8 +4,8 @@ let _ = require('lodash');
 let tinycolor = require('tinycolor2');
 let colormap = require('colormap');
 let LRU = require('lru-cache');
-var pack = require('ndarray-pack');
-var ops = require('ndarray-ops');
+let pack = require('ndarray-pack');
+let ops = require('ndarray-ops');
 
 let renderUtil = require('./render-util.js');
 let range = require('../core/range.js');

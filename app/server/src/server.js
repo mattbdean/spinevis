@@ -1,10 +1,10 @@
-var bodyParser = require('body-parser');
-var express = require('express');
-var helmet = require('helmet');
-var logger = require('morgan');
-var mongodb = require('mongodb');
-var path = require('path');
-var db = require('./database.js');
+let bodyParser = require('body-parser');
+let express = require('express');
+let helmet = require('helmet');
+let logger = require('morgan');
+let mongodb = require('mongodb');
+let path = require('path');
+let db = require('./database.js');
 
 const app = express();
 

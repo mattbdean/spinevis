@@ -1,7 +1,7 @@
-var MongoClient = require('mongodb').MongoClient;
+let MongoClient = require('mongodb').MongoClient;
 let appName = require('../../../package.json').name;
 
-var state = {
+let state = {
     db: null,
     mode: null
 };
