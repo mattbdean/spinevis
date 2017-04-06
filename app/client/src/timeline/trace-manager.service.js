@@ -179,11 +179,10 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
      *                         with new data appropriate for the given threshold.
      */
     let applyResolution = function(traces) {
-        let indexByUuid = uuid => _.findIndex(self.plotNode.data, d => d.uid === uuid);
 
         // Find all new traces by filtering all traces whose UUID does not exist in
         // plot node's data object
-        let newTraceData = _.filter(traces, t => indexByUuid(t.uuid) < 0);
+        let newTraceData = _.filter(traces, t => traceIndexByUuid(t.uuid) < 0);
         let newTraces = _.map(newTraceData, t => {
             let computedData = createCoordinateData(t, self.displayRange, self.currentThresh);
             return {
@@ -212,7 +211,7 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
             let {x, y} = createCoordinateData(trace, self.displayRange, self.currentThresh, self.relTimes);
             updateX.push(x);
             updateY.push(y);
-            updateIndexes.push(indexByUuid(trace.uuid));
+            updateIndexes.push(traceIndexByUuid(trace.uuid));
         }
 
         if (oldTraceData.length > 0) {
@@ -236,9 +235,11 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
     let countPlottedTraces = () =>
         _.countBy(this.plotNode.data, t => t.mode).undefined || 0;
 
+    let traceIndexByUuid = uuid => _.findIndex(self.plotNode.data, d => d.uid === uuid);
+
     let addDataToTrace = function(traceData, range) {
-        let computedData = createCoordinateData(traceData, range, this.currentThresh);
-        Plotly.extendTraces(plotNode, {x: [computedData.x], y: [computedData.y]}, [traceData.index]);
+        let computedData = createCoordinateData(traceData, range, self.currentThresh);
+        Plotly.extendTraces(self.plotNode, {x: [computedData.x], y: [computedData.y]}, [traceIndexByUuid(traceData.uuid)]);
     };
 
     let createCoordinateData = function(traceData, displayRange, threshold) {
