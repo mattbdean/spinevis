@@ -15,6 +15,13 @@ describe('range', function() {
             r.start = 100;
             expect(r.start).to.be.equal(5);
         });
+
+        it('should throw an error on non-number inputs', function() {
+            let generateCreateFn = (start, end) => () => range.create(start, end);
+
+            expect(generateCreateFn("non-number value", 42)).to.throw(Error);
+            expect(generateCreateFn(42, "non-number value")).to.throw(Error);
+        });
     });
 
     describe('contained', function() {

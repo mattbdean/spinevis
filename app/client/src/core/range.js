@@ -34,6 +34,11 @@ module.exports.fromPadding = function(center, padding) {
 };
 
 module.exports.create = function(start, end) {
+    if (typeof start !== 'number')
+        throw new Error('start must be a number');
+    if (typeof end !== 'number')
+        throw new Error('end must be a number');
+
     if (end < start) throw new Error(`backwards range (expecting ${start} to be less than ${end})`);
     return Object.freeze({
         start: start,
