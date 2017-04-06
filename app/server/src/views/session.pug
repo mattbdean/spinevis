@@ -5,8 +5,8 @@ block append stylesheets
 
 block prepend scripts
     script(src='https://cdn.plot.ly/plotly-latest.js')
-    script.
-        var sessionId = "#{id}";
 
 block content
-    session-vis
+    //- Pass our pug variable from the server into the session-vis attribute
+    //- which gets bound to its controller
+    session-vis(session-id=id)

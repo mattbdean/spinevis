@@ -27,15 +27,6 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
 
     let $ctrl = this;
 
-    // Fail fast if injection does as well
-    if ($window.sessionId === undefined)
-        throw new ReferenceError('Expecting sessionId to be injected via $window');
-    $ctrl.sessionId = $window.sessionId;
-
-    // Set this as the title in case an unhandled error occurs when loading
-    // the rest of this component
-    title.set($ctrl.sessionId);
-
     // Use a Set to prevent potential excessive calls to Plotly.Plots.resize()
     let plotNodes = new Set();
 
@@ -137,14 +128,28 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         }));
     };
 
-    // leggo
-    init().catch(function(err) {
-        $ctrl.criticalError = err.message;
-        console.error(err);
-    });
+    this.$onInit = function() {
+        if ($ctrl.sessionId === undefined) {
+            throw new Error('Expecting sessionId to be passed as a component attribute');
+        }
+
+        // Set this as the title in case an unhandled error occurs when loading
+        // the rest of this component
+        title.set($ctrl.sessionId);
+        
+        // leggo
+        init().catch(function(err) {
+            $ctrl.criticalError = err.message;
+            throw err;
+            console.error(err);
+        });
+    };
 }];
 
 module.exports = {
     templateUrl: '/partial/session-vis',
-    controller: ctrlDef
+    controller: ctrlDef,
+    bindings: {
+        sessionId: '@'
+    }
 };
