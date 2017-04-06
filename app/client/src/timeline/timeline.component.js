@@ -177,8 +177,10 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             let domainMillis;
 
             if (evt['xaxis.autorange'] && evt['xaxis.autorange'] === true) {
-                // User has reset axes (at least the x-axis)
-                domainMillis = range.create(0, Infinity);
+                // User has reset axes (at least the x-axis). The domain is the
+                // entire experiment, from 0 ms to the very last relative time
+                // (converted to milliseconds)
+                domainMillis = range.create(0, $ctrl.sessionMeta.relTimes[$ctrl.sessionMeta.nSamples - 1] * 1000);
             } else if (evt['xaxis.range[0]']) {
                 // Zooming/panning around gives definitive ranges
                 startMillis = new Date(evt['xaxis.range[0]']).getTime() - timezoneOffsetMillis;
