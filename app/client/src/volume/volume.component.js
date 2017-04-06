@@ -37,12 +37,12 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
             $scope.$on(eventType, (event, data) => { handlerFn(data); });
         };
 
-        handle(events.SET_THRESHOLD, (threshold) => {
+        handle(events.SET_THRESHOLD_RAW_DATA, (threshold) => {
             settings.threshold = threshold;
             applyIntensityUpdate();
         });
 
-        handle(events.SET_OPACITY, (opacity) => {
+        handle(events.SET_OPACITY_RAW_DATA, (opacity) => {
             updateOpacity(opacity);
         });
     })();

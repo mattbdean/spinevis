@@ -441,9 +441,11 @@ System.config({
       "./visual-settings.component.js",
       "../core/util.js",
       "angularjs-slider",
-      "angularjs-slider/dist/rzslider.min.css!"
+      "angularjs-slider/dist/rzslider.min.css!",
+      "angular-ui-bootstrap"
     ],
     "src/visual-settings/visual-settings.component.js": [
+      "lodash",
       "../session-vis/events.js",
       "./defaults.js"
     ],
@@ -475,6 +477,12 @@ System.config({
       "uuid",
       "../core/range.js",
       "./relative-time.js"
+    ],
+    "npm:angular-ui-bootstrap@2.5.0.js": [
+      "npm:angular-ui-bootstrap@2.5.0/index.js"
+    ],
+    "npm:angular-ui-bootstrap@2.5.0/index.js": [
+      "./dist/ui-bootstrap-tpls"
     ]
   },
 
@@ -482,6 +490,7 @@ System.config({
     "angular": "npm:angular@1.6.3",
     "angular-bootstrap-toggle": "github:ziscloud/angular-bootstrap-toggle@0.1.2",
     "angular-resource": "npm:angular-resource@1.6.2",
+    "angular-ui-bootstrap": "npm:angular-ui-bootstrap@2.5.0",
     "angularjs-slider": "npm:angularjs-slider@6.1.1",
     "async": "npm:async@2.2.0",
     "babel": "npm:babel-core@5.8.38",

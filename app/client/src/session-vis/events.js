@@ -1,4 +1,4 @@
-let events = [
+const events = [
     // Metadata has beeen loaded
     'META_LOADED',
     // A component has been initialized
@@ -10,14 +10,19 @@ let events = [
     // Sent when the the user has settled on a point in the timeline
     'DATA_FOCUS_CHANGE',
     // The user has enabled or disabled a trace from the mask-toggles component
-    'MASK_TOGGLED',
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Settings
-    ////////////////////////////////////////////////////////////////////////////
-    'SET_THRESHOLD',
-    'SET_OPACITY'
+    'MASK_TOGGLED'
 ];
+
+// Dynamically create events for visual settings. Each control group (tab) has
+// controls that require an event when changed.
+const controlGroups = ['MASKS', 'RAW_DATA'];
+const controlNames = ['THRESHOLD', 'OPACITY'];
+
+for (let controlGroup of controlGroups) {
+    for (let controlName of controlNames) {
+        events.push(`SET_${controlName}_${controlGroup}`);
+    }
+}
 
 let eventMap = {};
 

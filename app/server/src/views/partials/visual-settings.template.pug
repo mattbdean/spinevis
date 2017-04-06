@@ -1,14 +1,22 @@
-div.control
-    p: strong(ng-bind='$ctrl.controls.threshold.label')
-    rzslider(
-        rz-slider-model='$ctrl.controls.threshold.model.lo'
-        rz-slider-high='$ctrl.controls.threshold.model.hi'
-        rz-slider-options='$ctrl.controls.threshold.options'
+uib-tabset.control
+    uib-tab(
+        ng-repeat='ctrlSet in $ctrl.controlSets'
+        index='$index'
+        heading='{{ctrlSet.name}}'
+        select='$ctrl.ensureSliderPositionAccurate()'
     )
 
-div.control
-    p: strong(ng-bind='$ctrl.controls.opacity.label')
-    rzslider(
-        rz-slider-model='$ctrl.controls.opacity.model'
-        rz-slider-options='$ctrl.controls.opacity.options'
-    )
+        div.control
+            p: strong(ng-bind='ctrlSet.controls.threshold.label')
+            rzslider(
+                rz-slider-model='ctrlSet.controls.threshold.model.lo'
+                rz-slider-high='ctrlSet.controls.threshold.model.hi'
+                rz-slider-options='ctrlSet.controls.threshold.options'
+            )
+
+        div.control
+            p: strong(ng-bind='ctrlSet.controls.opacity.label')
+            rzslider(
+                rz-slider-model='ctrlSet.controls.opacity.model'
+                rz-slider-options='ctrlSet.controls.opacity.options'
+            )
