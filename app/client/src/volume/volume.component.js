@@ -79,7 +79,7 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
     let init = function(data) {
         $ctrl.sessionMeta = data.metadata;
         sessionId = data.metadata._id;
-        indexRange = range.create(0, data.nSamples);
+        indexRange = range.create(0, data.metadata.nSamples);
 
         return initTraces()
         .then(processInitialData)
