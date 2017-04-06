@@ -5,7 +5,7 @@ const RESOLUTION_FULL = 100; // 100% = all data
 
 let serviceDef = ['session', function DownsamplerService(session) {
     let self = this;
-    
+
     this.init = function(sessionId, relTimes) {
         this.sessionId = sessionId;
         this.relTimes = relTimes;
@@ -18,7 +18,7 @@ let serviceDef = ['session', function DownsamplerService(session) {
         if (traceName === undefined) throw new Error('traceName was undefined');
 
         let self = this;
-        return session.timeline(sessionId, traceName).then((fullRes) =>
+        return session.timeline(this.sessionId, traceName).then((fullRes) =>
             downsample(fullRes.data.data[traceName], traceName, resolutions));
     };
 
