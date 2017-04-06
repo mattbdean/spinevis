@@ -209,7 +209,7 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
 
         let updateX = [], updateY = [], updateIndexes = [];
         for (let trace of oldTraceData) {
-            let {x, y} = createCoordinateData(trace, displayRange, currentThresh, self.relTimes);
+            let {x, y} = createCoordinateData(trace, self.displayRange, self.currentThresh, self.relTimes);
             updateX.push(x);
             updateY.push(y);
             updateIndexes.push(indexByUuid(trace.uuid));
