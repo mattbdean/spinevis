@@ -17,9 +17,14 @@ html
             script(src='/scripts/config.js')
             script.
                 System.import('bootstrap/css/bootstrap.min.css!');
-                System.import('/scripts/app.module.js').then(function() {
-                    angular.bootstrap(document, ['spinevis'])
-                });
+
+                // Make sure we import angular directly first because sometimes
+                // importing app.module.js throws an 'angular is not defiend' error
+                System.import('angular').then(function() {
+                    return System.import('/scripts/app.module.js');
+                }).then(function() {
+                    angular.bootstrap(document, ['spinevis']);
+                })
 
 
     body
