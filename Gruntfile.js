@@ -13,7 +13,8 @@ module.exports = function(grunt) {
         pkg: pkg,
         clean: {
             buildPrep: [build, finalDist],
-            testPrep: ['build']
+            testPrep: ['build'],
+            jspm: [clientBase + 'jspm_packages']
         },
         mochaTest: {
             test: {
@@ -153,7 +154,7 @@ module.exports = function(grunt) {
             },
             jspmConfig: {
                 files: ['app/client/config.js'],
-                tasks: ['copy:config', 'copy:jspm']
+                tasks: ['clean:jspm', 'copy:config', 'copy:jspm']
             }
         },
         run: {
