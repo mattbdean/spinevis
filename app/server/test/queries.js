@@ -21,7 +21,7 @@ describe('queries', function() {
         return db.connect(db.MODE_PRODUCTION);
     });
 
-    describe('findAllSessions()', function() {
+    describe.only('findAllSessions()', function() {
         it('should find only appropriate session metadata', function() {
             return queries.findAllSessions(0, 20).then(function(sessions) {
                 // For each document ensure that only specific data is returned
@@ -49,6 +49,52 @@ describe('queries', function() {
                     expect(thisStart).to.be.below(lastStart);
                     lastStart = thisStart;
                 }
+            });
+        });
+
+        let getMiddleSession = (start = 0, limit = 20) =>
+            queries.findAllSessions(start, limit).then(function(sessions) {
+                return sessions[sessions.length / 2];
+            });
+
+        it('should allow passing only startDate', function() {
+            let startDate;
+            return getMiddleSession().then(function(session) {
+                startDate = session.start_time;
+
+                return queries.findAllSessions(0, 20, startDate);
+            }).then(function(sessions) {
+                for (let session of sessions) {
+                    expect(session.start_time.getTime()).to.be.at.least(startDate.getTime());
+                }
+            });
+        });
+
+        it('should allow passing only endDate', function() {
+            let endDate;
+            return getMiddleSession().then(function(session) {
+                endDate = session.start_time;
+
+                return queries.findAllSessions(0, 20, undefined, endDate);
+            }).then(function(sessions) {
+                for (let session of sessions) {
+                    expect(session.start_time.getTime()).to.be.below(endDate.getTime());
+                }
+            });
+        });
+
+        it('should return entires in only the requested range', function() {
+            let unfilteredLength, expectedLength, startDate, endDate;
+            return queries.findAllSessions(0, 20).then(function(sessions) {
+                startDate = sessions[sessions.length / 2].start_time;
+                endDate = sessions[0].start_time;
+
+                unfilteredLength = sessions.length;
+                expectedLength = sessions.length / 2;
+
+                return queries.findAllSessions(0, 20, startDate, endDate);
+            }).then(function(sessions) {
+                expect(sessions.length).to.equal(expectedLength);
             });
         });
     });

@@ -6,6 +6,7 @@
 
 let db = require('./database.js');
 let _ = require('lodash');
+let moment = require('moment');
 
 const COLL_META = 'meta';
 const COLL_BEHAVIOR = 'behavior';
@@ -46,25 +47,57 @@ let verifyPaginationData = function(start, limit) {
 };
 
 /**
- * Get simple, descriptive, metadata from all sessions. No 'heavy' data is
- * included (e.g. Polys/Pts). Returns an array.
+ * Returns a Moment instance that references the very first millisecond of the
+ * given Date
+ *
+ * @param  {Date} date
  */
-module.exports.findAllSessions = function(start, limit) {
+let normalizedMoment = (date) =>
+    moment.utc(date).hours(0).minutes(0).seconds(0).milliseconds(0);
 
+/**
+ * Get simple, descriptive, metadata from all sessions. No 'heavy' data is
+ * included (e.g. Polys/Pts). Returns an array. All parameters are optional.
+ *
+ * @param {number} start Start index. Will skip() this many sessions.
+ * @param {number} limit How many records to return
+ * @param {Date} startDate Starting date. All sessions starting on or after this
+ *                         date will be retrieved.
+ * @param {Date} endDate Ending date. If specified, will return all sessions
+ *                       starting before the beginning of this day. For example,
+ *                       if endDate is 15 January 2017, a session that has a
+ *                       start time of 15 January 2017 @ 12:01 AM will not be
+ *                       included.
+ */
+module.exports.findAllSessions = function(start, limit, startDate, endDate) {
     let paginationError = verifyPaginationData(start, limit);
     if (paginationError !== null) {
         return Promise.reject(errorPagination(paginationError, start, limit));
     }
 
-    let identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'nSamples', 'volRate'];
+    const identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'nSamples', 'volRate'];
 
     let projection = {};
     for (let prop of identifyingProperties) {
         projection[prop] = 1;
     }
 
+    let query = {};
+    if (startDate !== undefined || endDate !== undefined) {
+        query.start_time = {};
+
+        if (startDate !== undefined) {
+            query.start_time.$gte = new Date(normalizedMoment(startDate).valueOf());
+        }
+        if (endDate !== undefined) {
+            query.start_time.$lt = new Date(
+                normalizedMoment(endDate).subtract(1, 'millisecond')
+            );
+        }
+    }
+
     return db.mongo().collection(COLL_META)
-        .find({})
+        .find(query)
         .project(projection)
         .skip(start)
         .limit(limit)
