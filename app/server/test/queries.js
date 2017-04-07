@@ -21,7 +21,7 @@ describe('queries', function() {
         return db.connect(db.MODE_PRODUCTION);
     });
 
-    describe.only('findAllSessions()', function() {
+    describe('findAllSessions()', function() {
         it('should find only appropriate session metadata', function() {
             return queries.findAllSessions(0, 20).then(function(sessions) {
                 // For each document ensure that only specific data is returned

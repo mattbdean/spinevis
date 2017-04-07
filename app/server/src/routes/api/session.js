@@ -1,5 +1,6 @@
 let _ = require('lodash');
 let express = require('express');
+let moment = require('moment');
 let Parameter = require('pinput/parameter');
 let Contract = require('pinput/contract');
 
@@ -75,6 +76,18 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
     });
 };
 
+const inputDateFormat = 'YYYY-MM-DD';
+// Validate a date using moment.js strict mode (3rd parameter = true for strict)
+let validateDate = (dateStr) => moment(dateStr, inputDateFormat, true).isValid();
+
+let makeDateParam = (name, source, optional = true) => new Parameter({
+    name: name,
+    rawInput: source[name],
+    validate: validateDate,
+    errorMessage: `${name} must be in the format ${inputDateFormat}`,
+    optional: optional
+});
+
 // Get 'light' session metadata for all sessions
 router.get('/', function(req, res, next) {
     let start = input.integer('start', req.query.start, 0, Infinity);
@@ -87,7 +100,9 @@ router.get('/', function(req, res, next) {
 
     let parameters = [
         new Parameter(start),
-        new Parameter(limit)
+        new Parameter(limit),
+        makeDateParam('startDate', req.query),
+        makeDateParam('endDate', req.query)
     ];
 
     runQuery(parameters, queries.findAllSessions, res, next, true);

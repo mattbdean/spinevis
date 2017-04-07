@@ -2,6 +2,8 @@ let assert = require('assert');
 let expect = require('chai').expect;
 let request = require('supertest');
 let _ = require('lodash');
+let moment = require('moment');
+
 let db = require('../src/database.js');
 let queries = require('../src/queries.js');
 let util = require('./_util.js');
@@ -55,6 +57,28 @@ describe('API v1', function() {
                         assert.strictEqual(res.body.start, 0);
                         assert.ok(res.body.size > 0);
                     });
+            });
+
+            it('should accept start and end date ranges', function() {
+                let expectedSize, startDate, endDate;
+                const start = 0, limit = 20;
+
+                let formatDate = (date) => moment(date).format('YYYY-MM-DD');
+
+                return queries.findAllSessions(start, limit).then(function(sessions) {
+                    startDate = sessions[sessions.length / 2].start_time;
+                    endDate = sessions[0].start_time;
+
+                    return queries.findAllSessions(start, limit, startDate, endDate);
+                }).then(function(sessions) {
+                    return request(app)
+                        .get(routePrefix + '/session?startDate=' + formatDate(startDate) + '&endDate=' + formatDate(endDate))
+                        .expect('Content-Type', /json/)
+                        .expect(200)
+                        .expect(function(res) {
+                            expect(res.body.size).to.equal(sessions.length);
+                        });
+                });
             });
         });
 

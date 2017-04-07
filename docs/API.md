@@ -41,7 +41,14 @@ A session has an ID that combines the animal ID, the day the session took place,
 
 ### `GET /api/v1/session`
 
-Paginated endpoint that returns basic session information. There are no parameters besides the standard `start` and `limit` query parameters for paginated data.
+Paginated endpoint that returns basic session information.
+
+**Query parameters**
+
+In addition to the standard pagination query parameters, these are also available:
+
+ - `startDate` - (optional) Starting date. Only sessions that start after the first millisecond of this date will appear in the results.
+ - `endDate` - (optional) Ending date. Only sessions that start before the very first millisecond of this date will appear in the results.
 
 Sample `data` element:
 
