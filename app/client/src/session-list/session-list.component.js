@@ -27,6 +27,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
     let start = 0;
     const limit = 20;
     let hasMore = true;
+    let loading = false;
 
     $ctrl.today = () => moment().format();
 
@@ -48,18 +49,10 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         // Format the moments into date strings the API will understand
         [startDate, endDate] = _.map([startDate, endDate], formatMoment);
 
-        // Request the data and add it to the controller sessions
-        session.list(start, limit, startDate, endDate)
-        .then(function(response) {
-            for (let session of response.data.data) {
-                $ctrl.sessions.push(formatMetadata(session));
-            }
-        })
-        .catch(function(response) {
-            // Just log the error for now
-            console.error('Unable to execute request: ' + response.data.error.msg);
-            console.error(response.data.error.data);
-        });
+        // We've changed our dates so we have to restart
+        start = 0;
+        hasMore = true;
+        $ctrl.nextPage(startDate, endDate);
     });
 
     let parseDateRange = (dateRange) => _.map(
@@ -78,6 +71,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
     let formatMoment = (m) => m.isValid() ? m.format(momentOutputFormat) : undefined;
 
     let formatMetadata = (meta) => ({
+        id: meta._id,
         animal: meta.Animal,
         run: meta.Run,
         // Add new property 'duration', difference between start and end time
@@ -91,6 +85,34 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         // Reduce to one decimal place and add units
         imagingRate: numeral(meta.volRate).format('0.0') + ' Hz'
     });
+
+    $ctrl.nextPage = function(startDate, endDate) {
+        // Don't beat a dead horse
+        if (!hasMore || loading) return;
+
+        loading = true;
+        // Request the data and add it to the controller sessions
+        session.list(start, limit, startDate, endDate)
+        .then(function(response) {
+            let sessions = response.data.data;
+            for (let session of response.data.data) {
+                $ctrl.sessions.push(formatMetadata(session));
+            }
+
+            // If there aren't any more sessions, the response's size property
+            // will be less than the requested limit
+            hasMore = sessions.length === limit;
+            start += sessions.length;
+        })
+        .catch(function(response) {
+            // Just log the error for now
+            console.error('Unable to execute request: ' + response.data.error.msg);
+            console.error(response.data.error.data);
+        })
+        .finally(function(response) {
+            loading = false;
+        });
+    }
 }];
 
 module.exports = {

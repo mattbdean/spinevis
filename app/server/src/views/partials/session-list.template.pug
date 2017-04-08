@@ -10,7 +10,7 @@ div.row
             placeholder='Date range end'
         )
 
-table.table.table-hover.table-striped
+table.table.table-hover.table-striped(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
     tr
         th Animal
         th Start Date
@@ -23,4 +23,4 @@ table.table.table-hover.table-striped
         //- Nest an <a> in each <td> so that the row will be clickable when
         //- combined with some CSS magic
         td(ng-repeat="key in ['animal', 'startTime', 'duration', 'run', 'sampleCount', 'imagingRate']")
-            a(href='/session/{{session._id}}') {{session[key]}}
+            a(href='/session/{{session.id}}') {{session[key]}}

@@ -26,6 +26,7 @@ System.config({
       "angular",
       "../core/core.module.js",
       "./session-list.component.js",
+      "ng-infinite-scroll",
       "../core/util.js",
       "angularjs-datepicker",
       "angularjs-datepicker/dist/angular-datepicker.min.css!"
@@ -488,6 +489,9 @@ System.config({
     ],
     "npm:angularjs-datepicker@2.1.17.js": [
       "npm:angularjs-datepicker@2.1.17/dist/angular-datepicker.min.js"
+    ],
+    "npm:ng-infinite-scroll@1.3.0.js": [
+      "npm:ng-infinite-scroll@1.3.0/build/ng-infinite-scroll.js"
     ]
   },
 
@@ -520,6 +524,7 @@ System.config({
     "ndarray-homography": "npm:ndarray-homography@1.0.0",
     "ndarray-ops": "npm:ndarray-ops@1.2.2",
     "ndarray-pack": "npm:ndarray-pack@1.2.1",
+    "ng-infinite-scroll": "npm:ng-infinite-scroll@1.3.0",
     "numeral": "npm:numeral@2.0.4",
     "param-case": "npm:param-case@2.1.1",
     "tinycolor2": "npm:tinycolor2@1.4.1",
