@@ -78,12 +78,13 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
 
     let init = function(data) {
         $ctrl.sessionMeta = data.metadata;
+        $ctrl.maskMeta = data.masks;
         sessionId = data.metadata._id;
         indexRange = range.create(0, data.metadata.nSamples);
 
         return initTraces()
         .then(processInitialData)
-        .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors))
+        .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors, data.masks))
         .then(registerCallbacks)
         .then(function() {
             // Set initial opacity
@@ -140,13 +141,13 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
         return Plotly.addTraces(plotNode, traces);
     };
 
-    let initMasks = function(points, polys, colors) {
+    let initMasks = function(points, polys, colors, maskMetadata) {
         // points, polys, and colors are arrays of the same length
 
         let traces = [];
         for (let i = 0; i < points.length; i++) {
             traces.push({
-                name: 'Mask ' + i,
+                name: maskMetadata[i].displayName,
                 x: points[i][0],
                 y: points[i][1],
                 z: points[i][2],
@@ -222,6 +223,16 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
                 .then(putIntensityUpdate)
                 .then(applyIntensityUpdate);
             }
+        });
+
+        plotNode.on('plotly_click', function(data) {
+            let clickedTrace = data.points[0].fullData;
+            let mask = _.find($ctrl.maskMeta, m => m.displayName === clickedTrace.name);
+
+            $scope.$emit(events.SIBLING_NOTIF, {
+                type: events.MASK_CLICKED,
+                data: mask
+            });
         });
     };
 

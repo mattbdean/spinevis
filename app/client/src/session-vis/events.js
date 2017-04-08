@@ -13,6 +13,8 @@ const events = [
     'MASK_TOGGLED',
     // Toggle all masks
     'TOGGLE_ALL',
+    // A mask was clicked in the volume component
+    'MASK_CLICKED',
 
     ///////////////////////////////////////////////////////////////////////////
     // Visual settings
