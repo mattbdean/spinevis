@@ -10,7 +10,9 @@ const events = [
     // Sent when the the user has settled on a point in the timeline
     'DATA_FOCUS_CHANGE',
     // The user has enabled or disabled a trace from the mask-toggles component
-    'MASK_TOGGLED'
+    'MASK_TOGGLED',
+    // Toggle all masks
+    'TOGGLE_ALL'
 ];
 
 // Dynamically create events for visual settings. Each control group (tab) has

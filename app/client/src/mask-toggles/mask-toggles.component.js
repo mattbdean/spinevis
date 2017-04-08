@@ -44,6 +44,37 @@ let ctrlDef = ['$scope', '$http', 'session', function($scope, $http, session) {
             data: mask
         });
     };
+
+    let setAllEnabled = function(enabled) {
+        for (let mask of $ctrl.masks) {
+            mask.enabled = enabled;
+        }
+    };
+
+    $ctrl.toggleAll = function() {
+        let disabled = _.filter($ctrl.masks, m => !m.enabled);
+        let enabled = _.filter($ctrl.masks, m => m.enabled);
+        let mode = 'enable';
+        let selectedMasks;
+
+        // Enable any disabled masks
+        if (disabled.length > 0) {
+            selectedMasks = disabled;
+        } else if (enabled.length === $ctrl.masks.length) {
+            // Only disable if all masks are enabled
+            mode = 'disable';
+            selectedMasks = enabled;
+        }
+
+        setAllEnabled(mode === 'enable');
+        $scope.$emit(events.SIBLING_NOTIF, {
+            type: events.TOGGLE_ALL,
+            data: {
+                mode: mode,
+                masks: selectedMasks
+            }
+        });
+    };
 }];
 
 module.exports = {

@@ -199,9 +199,17 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             }
         });
 
-        $scope.$on(events.MASK_TOGGLED, (event, data) => {
-            updateTrace(data);
+        // Single mask being toggled
+        $scope.$on(events.MASK_TOGGLED, (event, mask) => {
+            if (mask.enabled) enableTraces(mask);
+            else disableTraces(mask);
         });
+
+        // Multiple masks being toggled
+        $scope.$on(events.TOGGLE_ALL, (event, data) => {
+            if (data.mode === 'enable') enableTraces(data.masks);
+            else disableTraces(data.masks);
+        })
 
         let onXaxisRangeChange = (prop, action, newValue, oldValue) => {
             let millisecondValue = _.map(newValue, x => new Date(x).getTime() - timezoneOffsetMillis);
@@ -228,19 +236,15 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
         });
     };
 
-    /**
-     * Updates a trace through the TraceManager, which subsequently adds or
-     * removes it from/to the timeline.
-     *
-     * @param {object} mask An object with a 'codeName' and 'displayName'
-     *                      property
-     * @return {Promise}    The result of traceManager.putTrace()
-     */
-    let updateTrace = function(mask) {
-        return mask.enabled ?
-            traceManager.putTrace(mask.codeName, mask.displayName) :
-            traceManager.removeTrace(mask.codeName);
+    let enableTraces = function(masks) {
+        if (!Array.isArray(masks)) masks = [masks];
+        return traceManager.putTraces(masks);
     };
+
+    let disableTraces = function(masks) {
+        if (!Array.isArray(masks)) masks = [masks];
+        return traceManager.removeTraces(masks);
+    }
 
     /**
      * Converts newMillis into an index and calls `emitDataFocusChange` with

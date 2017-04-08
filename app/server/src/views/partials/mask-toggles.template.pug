@@ -1,4 +1,8 @@
-input.form-control(ng-model='query' placeholder='Filter masks')
+div.filter-container
+    //- Wrap this in a div because the form-control class makes width=100%
+    div.input-container
+        input.form-control(ng-model='query' placeholder='Filter masks')
+    button.btn.btn-default(ng-click='$ctrl.toggleAll()') Toggle all
 
 div.mask-toggle.row(ng-repeat='mask in $ctrl.masks | filter:{displayName: query} track by mask.codeName')
     p.col-xs-8(ng-bind='mask.displayName')
