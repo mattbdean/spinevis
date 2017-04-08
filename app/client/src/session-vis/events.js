@@ -12,19 +12,14 @@ const events = [
     // The user has enabled or disabled a trace from the mask-toggles component
     'MASK_TOGGLED',
     // Toggle all masks
-    'TOGGLE_ALL'
+    'TOGGLE_ALL',
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Visual settings
+    ///////////////////////////////////////////////////////////////////////////
+    'SET_OPACITY_RAW_DATA',
+    'SET_THRESHOLD_RAW_DATA'
 ];
-
-// Dynamically create events for visual settings. Each control group (tab) has
-// controls that require an event when changed.
-const controlGroups = ['MASKS', 'RAW_DATA'];
-const controlNames = ['THRESHOLD', 'OPACITY'];
-
-for (let controlGroup of controlGroups) {
-    for (let controlName of controlNames) {
-        events.push(`SET_${controlName}_${controlGroup}`);
-    }
-}
 
 let eventMap = {};
 

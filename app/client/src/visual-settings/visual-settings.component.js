@@ -5,8 +5,7 @@ let defaults = require('./defaults.js');
 let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
     let $ctrl = this;
 
-    let tabNames = ['Masks', 'Raw data'];
-    let controls = {
+    $ctrl.controls = {
         threshold: {
             label: 'Threshold',
             // Current values live here, defaults to [30, 400]
@@ -31,44 +30,24 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
             }
         }
     };
+    $scope.$watchCollection('$ctrl.controls.threshold.model', (newVal, oldVal) => {
+        sendSiblingEvent(events.SET_THRESHOLD_RAW_DATA, newVal);
+    });
 
-    this.controlSets = _.map(tabNames, (name) => ({
-        name: name,
-        codeName: name.toUpperCase().replace(' ', '_'),
-        controls: _.cloneDeep(controls)
-    }));
-
-    for (let i = 0; i < this.controlSets.length; i++) {
-        $scope.$watchCollection('$ctrl.controlSets[' + i + '].controls.threshold.model', (newVal, oldVal) => {
-            let eventType = 'SET_THRESHOLD_' + $ctrl.controlSets[i].codeName;
-            sendSiblingEvent(events[eventType], newVal);
-        });
-
-        $scope.$watch('$ctrl.controlSets[' + i + '].controls.opacity.model', (newVal) => {
-            let eventType = 'SET_OPACITY_' + $ctrl.controlSets[i].codeName;
-            sendSiblingEvent(events[eventType], newVal / 100);
-        });
-    }
+    $scope.$watch('$ctrl.controls.opacity.model', (newVal) => {
+        sendSiblingEvent(events.SET_OPACITY_RAW_DATA, newVal / 100);
+    });
 
     let sendSiblingEvent = function(type, data) {
         if (type === undefined || type === null)
             throw new Error('Expected type to exist');
 
-        console.log(type, data);
         $scope.$emit(events.SIBLING_NOTIF, {
             // We want the parent to send this type of event
             type: type,
             // The parent will $broadcast an event with this data
             data: data
         });
-    };
-
-    // There is a known issue using Angular UI Bootstrap's tabs in conjunction
-    // with rz-slider in which slider positions aren't set on load. Broadcast
-    // a special event to force all sliders to recalculate view dimensions fixes
-    // this.
-    this.ensureSliderPositionAccurate = () => {
-        $timeout(() => { $scope.$broadcast('reCalcViewDimensions'); });
     };
 }];
 

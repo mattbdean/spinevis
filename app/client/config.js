@@ -499,7 +499,6 @@ System.config({
     "angular": "npm:angular@1.6.3",
     "angular-bootstrap-toggle": "github:ziscloud/angular-bootstrap-toggle@0.1.2",
     "angular-resource": "npm:angular-resource@1.6.2",
-    "angular-ui-bootstrap": "npm:angular-ui-bootstrap@2.5.0",
     "angularjs-datepicker": "npm:angularjs-datepicker@2.1.17",
     "angularjs-slider": "npm:angularjs-slider@6.1.1",
     "async": "npm:async@2.2.0",

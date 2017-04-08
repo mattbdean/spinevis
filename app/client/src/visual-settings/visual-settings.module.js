@@ -7,9 +7,7 @@ let rzSlider = require('angularjs-slider');
 // Also include the necessary CSS
 require('angularjs-slider/dist/rzslider.min.css!');
 
-let uiBootstrap = require('angular-ui-bootstrap');
-
-module.exports = angular.module('visualSettings', [rzSlider, uiBootstrap])
+module.exports = angular.module('visualSettings', [rzSlider])
     .component('visualSettings', component);
 
 importCss(module.exports);
