@@ -26,7 +26,9 @@ System.config({
       "angular",
       "../core/core.module.js",
       "./session-list.component.js",
-      "../core/util.js"
+      "../core/util.js",
+      "angularjs-datepicker",
+      "angularjs-datepicker/dist/angular-datepicker.min.css!"
     ],
     "src/session-vis/session-vis.module.js": [
       "angular",
@@ -483,6 +485,9 @@ System.config({
     ],
     "npm:angular-ui-bootstrap@2.5.0/index.js": [
       "./dist/ui-bootstrap-tpls"
+    ],
+    "npm:angularjs-datepicker@2.1.17.js": [
+      "npm:angularjs-datepicker@2.1.17/dist/angular-datepicker.min.js"
     ]
   },
 
@@ -491,6 +496,7 @@ System.config({
     "angular-bootstrap-toggle": "github:ziscloud/angular-bootstrap-toggle@0.1.2",
     "angular-resource": "npm:angular-resource@1.6.2",
     "angular-ui-bootstrap": "npm:angular-ui-bootstrap@2.5.0",
+    "angularjs-datepicker": "npm:angularjs-datepicker@2.1.17",
     "angularjs-slider": "npm:angularjs-slider@6.1.1",
     "async": "npm:async@2.2.0",
     "babel": "npm:babel-core@5.8.38",

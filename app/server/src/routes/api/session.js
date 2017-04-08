@@ -66,7 +66,7 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
 
             // Make sure the type was one of the errors already checked for
             if (status !== undefined) {
-                return next(responses.error(err.msg, err.data, status));
+                return next(responses.error(err.message, err.data, status));
             }
         }
 
@@ -105,7 +105,22 @@ router.get('/', function(req, res, next) {
         makeDateParam('endDate', req.query)
     ];
 
-    runQuery(parameters, queries.findAllSessions, res, next, true);
+    // Make sure that if both startDate and endDate are defined that startDate
+    // comes before endDate
+    let contracts = [new Contract({
+        names: ['startDate', 'endDate'],
+        verify: (startDate, endDate) => {
+            // We only care if both startDate and endDate are defined
+            if (startDate === undefined || endDate === undefined) return true;
+            // Parse each date using moment
+            let [start, end] = _.map([startDate, endDate],
+                d => moment(d, inputDateFormat));
+            return start.isBefore(end);
+        },
+        messageOnBroken: 'startDate must be before endDate'
+    })];
+
+    runQuery(parameters, queries.findAllSessions, res, next, true, contracts);
 });
 
 // Get 'heavy' session metadata for a specific session

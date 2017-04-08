@@ -80,6 +80,13 @@ describe('API v1', function() {
                         });
                 });
             });
+
+            it('should reject an end date that is before the start date', function() {
+                return request(app)
+                    .get(routePrefix + '/session?startDate=2017-01-02&endDate=2017-01-01')
+                    .expect('Content-Type', /json/)
+                    .expect(400)
+            });
         });
 
         describe(`GET ${routePrefix}/session/:id`, function() {

@@ -9,3 +9,7 @@ table tr td a:hover {
     color: #000;
     text-decoration: none;
 }
+
+datepicker {
+    padding: 10px;
+}
