@@ -1,10 +1,14 @@
 let _ = require('lodash');
 let relTime = require('./relative-time.js');
+let LRU = require('lru-cache');
 
 const RESOLUTION_FULL = 100; // 100% = all data
 
 let serviceDef = ['session', function DownsamplerService(session) {
     let self = this;
+
+    // LRU cache with maximum size of 500
+    let cache = new LRU(500);
 
     this.init = function(sessionId, relTimes) {
         this.sessionId = sessionId;
@@ -18,6 +22,11 @@ let serviceDef = ['session', function DownsamplerService(session) {
         if (traceName === undefined) throw new Error('traceName was undefined');
 
         let self = this;
+        if (cache.has(traceName)) {
+            console.log('cache: ' + traceName);
+            return Promise.resolve(cache.get(traceName));
+        }
+
         return session.timeline(this.sessionId, traceName).then((fullRes) =>
             downsample(fullRes.data.data[traceName], traceName, resolutions));
     };
@@ -69,10 +78,13 @@ let serviceDef = ['session', function DownsamplerService(session) {
 
         console.timeEnd(id);
 
-        return {
+        let data = {
             fullRes: fullRes,
             downsampled: downsampled
         };
+        cache.set(traceName, data);
+
+        return data;
     };
 }];
 
