@@ -154,7 +154,7 @@ module.exports = function(grunt) {
             },
             jspmConfig: {
                 files: ['app/client/config.js'],
-                tasks: ['clean:jspm', 'copy:config', 'copy:jspm']
+                tasks: ['copy:config', 'copy:jspm']
             }
         },
         run: {
