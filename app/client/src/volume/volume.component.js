@@ -1,9 +1,6 @@
-let $ = require('jquery');
-let tab64 = require('hughsk/tab64');
 let _ = require('lodash');
 let tinycolor = require('tinycolor2');
 let colormap = require('colormap');
-let LRU = require('lru-cache');
 let pack = require('ndarray-pack');
 let ops = require('ndarray-ops');
 
@@ -13,17 +10,13 @@ let defaultPlotOptions = require('../core/plotdefaults.js');
 let events = require('../session-vis/events.js');
 let defaultSettings = require('../visual-settings/defaults.js');
 
-// Amount of data in the LRU cache. Pretty arbitrary.
-const CACHE_SIZE = 5000;
-
-// Amount of items to request on either side of the focused endpoint. In other
-// words, the total buffer size will be `BUFFER_PADDING * 2`
-const BUFFER_PADDING = 50;
-
 // The amount unique colors in a colorscale
 const N_COLORS = 256;
 
-let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, $scope, session) {
+// This looks pretty ugly but I'd rather keep lines generally less than 80
+// characters
+let ctrlDef = ['$http', '$scope', 'session', 'intensityManager',
+function TimelineController($http, $scope, session, intensityManager) {
     let $ctrl = this;
 
     let settings = defaultSettings;
@@ -59,9 +52,6 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
     let traceManager = null;
     let sessionId = null;
 
-    // Range of possible indexes to request: [0, nSamples]
-    let indexRange = null;
-
     let state = {
         // shape and tptr are from legacy code and are lazy-initialized when
         // processInitialData is called
@@ -74,13 +64,12 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
         webGlData: []
     };
 
-    let cache = new LRU(CACHE_SIZE);
-
     let init = function(data) {
         $ctrl.sessionMeta = data.metadata;
         $ctrl.maskMeta = data.masks;
         sessionId = data.metadata._id;
-        indexRange = range.create(0, data.metadata.nSamples);
+
+        intensityManager.init(sessionId, data.metadata.nSamples);
 
         return initTraces()
         .then(processInitialData)
@@ -219,7 +208,8 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
         $scope.$on(events.DATA_FOCUS_CHANGE, (event, focusEvent) => {
             if (focusEvent.highPriority) {
                 console.log('Attending to high priority update for index ' + focusEvent.index);
-                findUpdateData(focusEvent.index)
+                
+                intensityManager.fetch(focusEvent.index)
                 .then(putIntensityUpdate)
                 .then(applyIntensityUpdate);
             }
@@ -233,42 +223,6 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
                 type: events.MASK_CLICKED,
                 data: mask
             });
-        });
-    };
-
-    let findUpdateData = function(index) {
-        return new Promise(function(resolve, reject) {
-            if (cache.has(index)) {
-                return resolve(cache.get(index));
-            } else {
-                return resolve(downloadIntensity(index));
-            }
-        });
-    };
-
-    let downloadIntensity = function(index) {
-        // requestRange: [index - BUFFER_PADDING, index + BUFFER_PADDING]
-        let requestRange = range.fromPadding(index, BUFFER_PADDING);
-        // Make sure we don't request an invalid point
-        requestRange = range.boundBy(requestRange, indexRange);
-
-        return session.volume(sessionId, requestRange.start, requestRange.end)
-        .then(function(res) {
-            // The data at the index `index - BUFFER_PADDING` is data[0]
-            let rawData = res.data.data;
-            // Decode the pixleF property of each element, which is a 32-bit
-            // array encoded in base-64
-            let decodedData = _.map(rawData, d => tab64.decode(d.pixelF, 'float32'));
-
-            // Insert the decoded data into the cache
-            for (let i = 0; i < decodedData.length; i++) {
-                cache.set(requestRange.start + i, decodedData[i]);
-            }
-
-            // Prefer fetching the data from the LRU cache instead of from
-            // the decodedData array so that its "recently used"-ness gets
-            // updated
-            return cache.get(index);
         });
     };
 
@@ -294,8 +248,7 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
         // This function is adapted from here:
         // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L706
 
-        let loThresh = settings.threshold.lo;
-        let hiThresh = settings.threshold.hi;
+        let thresh = settings.threshold;
 
         // Process new intensity data and update GL objects directly for
         // efficiency
@@ -316,8 +269,8 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
                             state.webGlData[m] = [];
 
 
-                        state.webGlData[m][count] = (intensity.get(r, c) - loThresh) /
-                                (hiThresh - loThresh);
+                        state.webGlData[m][count] = (intensity.get(r, c) - thresh.lo) /
+                                (thresh.hi - thresh.lo);
 
                         count += 10;
                     }
