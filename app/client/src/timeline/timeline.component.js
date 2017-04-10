@@ -1,6 +1,7 @@
 let _ = require('lodash');
 let $ = require('jquery');
 
+let moment = require('moment');
 let WatchJS = require('watchjs');
 let watch = WatchJS.watch;
 let unwatch = WatchJS.unwatch;
@@ -19,6 +20,11 @@ const BEHAVIOR_Y = 0;
 // A vertical line will be drawn at 50% of the plot
 const DATA_FOCUS_POSITION = 0.5;
 
+// The amount of milliseconds to add to imagingDelay such that when a
+// MOVE_FORWARD or MOVE_BACKWARD event is handled, there is no chance of
+// accidentally focusing on the same point twice.
+const PERIOD_SAFETY_NET = 5;
+
 let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function TimelineController($http, $window, $scope, session, traceManager) {
     let $ctrl = this;
 
@@ -33,10 +39,20 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
 
     let sessionId = null;
     let lastFocusChangeEvent = null;
+    // The amount of milliseconds between each imaging event rounded up, plus
+    // PERIOD_SAFETY_NET
+    let imagingDelay = null;
 
     let init = function(data) {
         $ctrl.sessionMeta = data.metadata;
         sessionId = $ctrl.sessionMeta._id;
+
+        // volRate is in Hertz. Convert this frequency to time period by taking
+        // Math.pow(volRate, -1) and convert to milliseconds by multiplying by
+        // 1000
+        imagingDelay = Math.round(
+            ((1 / $ctrl.sessionMeta.volRate) * 1000) + PERIOD_SAFETY_NET
+        );
 
         traceManager.init({
             plotNode: plotNode,
@@ -171,10 +187,11 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
      */
     let registerCallbacks = function() {
         plotNode.on('plotly_relayout', function(evt) {
+            console.log(evt);
             // plotly_relayout events also fired when the pan, zoom, lasso, etc.
             // buttons are clicked as well as when the graph viewport changes
 
-            let domainMillis, sendUpdate = true;
+            let domainMillis;
 
             if (evt['xaxis.autorange'] && evt['xaxis.autorange'] === true) {
                 // User has reset axes (at least the x-axis). The domain is the
@@ -183,13 +200,23 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                 domainMillis = range.create(0,
                     $ctrl.sessionMeta.relTimes[$ctrl.sessionMeta.nSamples - 1] * 1000);
             } else if (evt['xaxis.range[0]']) {
-                // Zooming/panning around gives definitive ranges
-                startMillis = new Date(evt['xaxis.range[0]']).getTime() - timezoneOffsetMillis;
-                endMillis = new Date(evt['xaxis.range[1]']).getTime() - timezoneOffsetMillis;
-                domainMillis = range.create(startMillis, endMillis);
+                // Zooming/panning around gives definitive ranges.
 
-                // Don't send an event, onXaxisRangeChange handles dragging
-                sendUpdate = false;
+                const startMillis = new Date(evt['xaxis.range[0]']).getTime() - timezoneOffsetMillis;
+                const endMillis = new Date(evt['xaxis.range[1]']).getTime() - timezoneOffsetMillis;
+                domainMillis = range.create(startMillis, endMillis);
+            } else if (evt['xaxis.range']) {
+                // Plotly usually sends the range update in two properties,
+                // `xaxis.range[0]` and `xaxis.range[1]`. However, it may be
+                // specified as an array with `xaxis.range`. In this case,
+                // the 0th and 1st element are a number representing the time
+                // in milliseconds of the start and end of the domain
+                // respectively. These types of events only originate from our
+                // code, specifically from shiftViewportX()
+                domainMillis = range.create(
+                    evt['xaxis.range'][0],
+                    evt['xaxis.range'][1]
+                );
             }
 
             if (domainMillis !== undefined) {
@@ -199,7 +226,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                     (domainMillis.end - domainMillis.start) * DATA_FOCUS_POSITION;
 
                 // User settled on this timepoint, it is high priority
-                if (sendUpdate) onTimepointSelected(selectedIndex, true);
+                onTimepointSelected(selectedIndex, true);
             }
         });
 
@@ -242,6 +269,24 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                 // (last parameter)
                 onXaxisRangeChange(null, null, plotNode._fullLayout.xaxis.range, null, true);
             }
+        });
+
+        // Move the x-axis viewport by ~1 index when the user presses the left
+        // or right arrow key
+        $scope.$on(events.MOVE_FORWARD, () =>  { shiftViewportX(1);  });
+        $scope.$on(events.MOVE_BACKWARD, () => { shiftViewportX(-1); });
+    };
+
+    let shiftViewportX = function(indexCount) {
+        const shiftMillis = indexCount * imagingDelay;
+
+        // plotNode.(...).range is a date string parsable by the Date function.
+        // Parse these strings with moment and add the shift amount
+        let newDomain = _.map(plotNode._fullLayout.xaxis.range,
+            r => moment(r).add(shiftMillis, 'milliseconds').valueOf());
+
+        return Plotly.relayout(plotNode, {
+            'xaxis.range': newDomain
         });
     };
 

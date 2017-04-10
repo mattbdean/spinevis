@@ -15,6 +15,10 @@ const events = [
     'TOGGLE_ALL',
     // A mask was clicked in the volume component
     'MASK_CLICKED',
+    // The user has pressed the right arrow key to move forward by one timepoint
+    'MOVE_FORWARD',
+    // The user has pressed the left arrow key to move backward by one timepoint
+    'MOVE_BACKWARD',
 
     ///////////////////////////////////////////////////////////////////////////
     // Visual settings
