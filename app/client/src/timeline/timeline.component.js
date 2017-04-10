@@ -174,18 +174,22 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             // plotly_relayout events also fired when the pan, zoom, lasso, etc.
             // buttons are clicked as well as when the graph viewport changes
 
-            let domainMillis;
+            let domainMillis, sendUpdate = true;
 
             if (evt['xaxis.autorange'] && evt['xaxis.autorange'] === true) {
                 // User has reset axes (at least the x-axis). The domain is the
                 // entire experiment, from 0 ms to the very last relative time
                 // (converted to milliseconds)
-                domainMillis = range.create(0, $ctrl.sessionMeta.relTimes[$ctrl.sessionMeta.nSamples - 1] * 1000);
+                domainMillis = range.create(0,
+                    $ctrl.sessionMeta.relTimes[$ctrl.sessionMeta.nSamples - 1] * 1000);
             } else if (evt['xaxis.range[0]']) {
                 // Zooming/panning around gives definitive ranges
                 startMillis = new Date(evt['xaxis.range[0]']).getTime() - timezoneOffsetMillis;
                 endMillis = new Date(evt['xaxis.range[1]']).getTime() - timezoneOffsetMillis;
                 domainMillis = range.create(startMillis, endMillis);
+
+                // Don't send an event, onXaxisRangeChange handles dragging
+                sendUpdate = false;
             }
 
             if (domainMillis !== undefined) {
@@ -195,7 +199,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                     (domainMillis.end - domainMillis.start) * DATA_FOCUS_POSITION;
 
                 // User settled on this timepoint, it is high priority
-                onTimepointSelected(selectedIndex, true);
+                if (sendUpdate) onTimepointSelected(selectedIndex, true);
             }
         });
 
@@ -211,13 +215,15 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             else disableTraces(data.masks);
         });
 
-        let onXaxisRangeChange = (prop, action, newValue, oldValue) => {
+        let onXaxisRangeChange = (prop, action, newValue, oldValue, highPriority = false) => {
             let millisecondValue = _.map(newValue, x => new Date(x).getTime() - timezoneOffsetMillis);
             let middleMillis = millisecondValue[0] +
                 ((millisecondValue[1] - millisecondValue[0]) * DATA_FOCUS_POSITION);
 
-            // A dragging event is low priority
-            onTimepointSelected(middleMillis, false);
+            // When this function is called as a result of plotNode._dragging
+            // being true (the user is dragging around the timeline),
+            // highPriority will always be false.
+            onTimepointSelected(middleMillis, highPriority);
         };
 
         // Watch the '_dragging' property of the plot node. When true, the user
@@ -232,6 +238,9 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                 // The user is no longer dragging so we don't care about the
                 // x-axis range anymore
                 unwatch(plotNode._fullLayout.xaxis, 'range', onXaxisRangeChange);
+                // Call the same handler function but set highPriority = true
+                // (last parameter)
+                onXaxisRangeChange(null, null, plotNode._fullLayout.xaxis.range, null, true);
             }
         });
     };
