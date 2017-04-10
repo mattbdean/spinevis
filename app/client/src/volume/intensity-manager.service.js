@@ -29,7 +29,7 @@ const def = ['session', function(session) {
         self.indexRange = range.create(0, maxIndex);
 
         _init = true;
-    }
+    };
 
     /**
      * Inserts an array of data into the cache.
@@ -116,4 +116,4 @@ const def = ['session', function(session) {
 module.exports = {
     def: def,
     name: 'intensityManager'
-}
+};
