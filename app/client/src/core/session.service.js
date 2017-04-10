@@ -46,7 +46,7 @@ let serviceDef = ['$http', function($http) {
     let sendRequest = (relativeUrl, queryParams) => {
         let relUrl = relativeUrl.trim();
         if (relUrl[0] !== '/') relUrl = '/' + relUrl;
-        return $http.get(`${this.baseUrl}${relUrl}${createQuery(queryParams)}`)
+        return $http.get(`${this.baseUrl}${relUrl}${createQuery(queryParams)}`);
     };
 
     let createQuery = (paramObj) => {

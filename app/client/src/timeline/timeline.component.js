@@ -209,7 +209,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
         $scope.$on(events.TOGGLE_ALL, (event, data) => {
             if (data.mode === 'enable') enableTraces(data.masks);
             else disableTraces(data.masks);
-        })
+        });
 
         let onXaxisRangeChange = (prop, action, newValue, oldValue) => {
             let millisecondValue = _.map(newValue, x => new Date(x).getTime() - timezoneOffsetMillis);
@@ -244,7 +244,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
     let disableTraces = function(masks) {
         if (!Array.isArray(masks)) masks = [masks];
         return traceManager.removeTraces(masks);
-    }
+    };
 
     /**
      * Converts newMillis into an index and calls `emitDataFocusChange` with

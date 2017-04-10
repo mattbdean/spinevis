@@ -144,7 +144,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
                 codeName: codeName
             };
         });
-    }
+    };
 
     this.$onInit = function() {
         if ($ctrl.sessionId === undefined) {
@@ -159,7 +159,6 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         init().catch(function(err) {
             $ctrl.criticalError = err.message;
             throw err;
-            console.error(err);
         });
     };
 }];

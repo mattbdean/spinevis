@@ -444,8 +444,7 @@ System.config({
       "./visual-settings.component.js",
       "../core/util.js",
       "angularjs-slider",
-      "angularjs-slider/dist/rzslider.min.css!",
-      "angular-ui-bootstrap"
+      "angularjs-slider/dist/rzslider.min.css!"
     ],
     "src/visual-settings/visual-settings.component.js": [
       "lodash",
@@ -473,7 +472,8 @@ System.config({
     ],
     "src/timeline/downsampler.service.js": [
       "lodash",
-      "./relative-time.js"
+      "./relative-time.js",
+      "lru-cache"
     ],
     "src/timeline/trace-manager.service.js": [
       "lodash",

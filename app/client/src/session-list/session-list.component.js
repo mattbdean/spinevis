@@ -112,7 +112,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         .finally(function(response) {
             loading = false;
         });
-    }
+    };
 }];
 
 module.exports = {
