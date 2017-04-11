@@ -187,7 +187,6 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
      */
     let registerCallbacks = function() {
         plotNode.on('plotly_relayout', function(evt) {
-            console.log(evt);
             // plotly_relayout events also fired when the pan, zoom, lasso, etc.
             // buttons are clicked as well as when the graph viewport changes
 
