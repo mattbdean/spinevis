@@ -59,8 +59,6 @@ function TimelineController($http, $scope, session, intensityManager) {
         tptr: null,
         // Gets populated in processInitialData()
         traces: [],
-        coords: [],
-        upsampledCoords: [],
         webGlData: []
     };
 
@@ -163,12 +161,6 @@ function TimelineController($http, $scope, session, intensityManager) {
     };
 
     let processInitialData = function() {
-        // These arrays will eventually all be equal to the amount of traces
-        // in the initial data (plotNode.(...).traces.length)
-        let coords = [],
-            upsampledCoords = [],
-            webGlData = [];
-
         // plotNode.(...).traces is an object mapping plot IDs to plot data
         for (let traceId of Object.keys(plotNode._fullLayout.scene._scene.traces)) {
             // Assume all traces are instances of SurfaceTrace, meaning that
@@ -180,13 +172,6 @@ function TimelineController($http, $scope, session, intensityManager) {
             // Get configuration to pass to getTverts to make the data webGL
             // compatible
             let paramCoords = renderUtil.getParams(trace).coords;
-            state.coords[index] = paramCoords;
-
-            // Upsample the trace's x, y, and z data
-            let rawDataProperties = ['x', 'y', 'z'];
-            state.upsampledCoords[index] = _.map(rawDataProperties, (prop) => {
-                return renderUtil.getUpsampled(trace, trace.data[prop]);
-            });
 
             // Upsample trace's intensity data
             let upsampledIntensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
@@ -260,10 +245,6 @@ function TimelineController($http, $scope, session, intensityManager) {
                     for (let k = 0; k < 6; ++k) {
                         r = i + renderUtil.QUAD[k][0];
                         c = j + renderUtil.QUAD[k][1];
-
-                        if (state.webGlData[m] === undefined)
-                            state.webGlData[m] = [];
-
 
                         state.webGlData[m][count] = (intensity.get(r, c) - thresh.lo) /
                                 (thresh.hi - thresh.lo);
