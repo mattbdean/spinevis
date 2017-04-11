@@ -69,8 +69,6 @@ function TimelineController($http, $scope, session, intensityManager) {
         $ctrl.maskMeta = data.masks;
         sessionId = data.metadata._id;
 
-        intensityManager.init(sessionId, data.metadata.nSamples);
-
         return initTraces()
         .then(processInitialData)
         .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors, data.masks))
@@ -126,6 +124,16 @@ function TimelineController($http, $scope, session, intensityManager) {
                 hoverinfo: 'none'
             });
         }
+
+        intensityManager.init({
+            sessionId: sessionId,
+            maxIndex: $ctrl.sessionMeta.nSamples,
+            shape: [
+                traces.length,
+                traces[0].surfacecolor.length,
+                traces[0].surfacecolor[0].length
+            ]
+        });
 
         return Plotly.addTraces(plotNode, traces);
     };
@@ -208,7 +216,7 @@ function TimelineController($http, $scope, session, intensityManager) {
         $scope.$on(events.DATA_FOCUS_CHANGE, (event, focusEvent) => {
             if (focusEvent.highPriority) {
                 console.log('Attending to high priority update for index ' + focusEvent.index);
-                
+
                 intensityManager.fetch(focusEvent.index)
                 .then(putIntensityUpdate)
                 .then(applyIntensityUpdate);
@@ -226,21 +234,9 @@ function TimelineController($http, $scope, session, intensityManager) {
         });
     };
 
-    let putIntensityUpdate = function(updateData) {
-        // Doesn't matter what trace well pull as long as its type is 'surface'.
-        // We just want to find out the shape of the data
-        let someTrace = state.traces[0];
-
-        let count = 0;
-        for (let i = 0; i < someTrace.data.surfacecolor.length; i++) {
-            // length is constant for all someTrace.surfacecolor[i]
-            for (let j = 0; j < someTrace.data.surfacecolor[0].length; j++) {
-                for (let k = 0; k < state.traces.length; k++) {
-                    // updateData is a 1-dimensional array, but we have to use
-                    // it like a 3-dimensional array
-                    state.traces[k].data.surfacecolor[i][j] = updateData[count++];
-                }
-            }
+    let putIntensityUpdate = function(surfacecolorData) {
+        for (let i = 0; i < state.traces.length; i++) {
+            state.traces[i].data.surfacecolor = surfacecolorData[i];
         }
     };
 

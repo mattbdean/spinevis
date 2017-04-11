@@ -19,14 +19,25 @@ const def = ['session', function(session) {
     /**
      * Initializes the service. Must call before using many of the functions
      * this service provides.
-     * @param  {string} sessionId
-     * @param  {number} maxIndex  The amount of imaging events in the session
+     * @param  {object} c  Configuration object. Must have the properties listed
+     *             below:
+     * @param  {string} c.sessionId
+     * @param  {number} c.maxIndex  The amount of imaging events in the session
+     * @param  {number[]} c.shape  An array specifying the shape of the data that
+     *             will be unpacked. The first element should be the amount of
+     *             traces. The second element should be the length of an element
+     *             at surfacecolor[i] since surfacecolor[i].length is constant
+     *             for all elements in surfacecolor. The second element should
+     *             be the length of the element at surfacecolor[i][j], since
+     *             surfacecolor[i][j].length is constant for all elements in
+     *             surfacecolor[i][j].
      */
-    this.init = (sessionId, maxIndex) => {
-        self.sessionId = sessionId;
+    this.init = (c) => {
+        self.sessionId = c.sessionId;
 
         // Range of possible indexes to request: [0, nSamples]
-        self.indexRange = range.create(0, maxIndex);
+        self.indexRange = range.create(0, c.maxIndex);
+        self.shape = c.shape;
 
         _init = true;
     };
@@ -58,12 +69,12 @@ const def = ['session', function(session) {
 
     /**
      * Retrieves some data at the specified index. If there exists no such key
-     * in the cache, it will be fetched from the network instead using
-     * fetchNetwork()
+     * in the cache, the intensity data for that index will be fetched from the
+     * network instead using fetchNetwork()
      *
      * @param  {number} index
-     * @return {Promise}       A Promise that will resolve to the data at the
-     *                         specified index
+     * @return {Promise}       A Promise that will resolve to the unpacked data
+     *                         at the specified index
      */
     this.fetch = (index) => {
         return new Promise(function(resolve, reject) {
@@ -97,12 +108,8 @@ const def = ['session', function(session) {
             // The data at the index `index - BUFFER_PADDING` is data[0]
             let rawData = res.data.data;
 
-            // Decode the pixleF property of each element, which is a 32-bit
-            // array encoded in base-64
-            let decodedData = _.map(rawData, d => tab64.decode(d.pixelF, 'float32'));
-
-            // Insert the decoded data into the cache
-            put(decodedData, requestRange.start);
+            // Unpack each element of the raw data and insert it into the cache
+            put(_.map(rawData, unpack), requestRange.start);
 
             // Prefer fetching the data from the LRU cache instead of from
             // the decodedData array so that its "recently used"-ness gets
@@ -111,6 +118,52 @@ const def = ['session', function(session) {
         });
     };
 
+    /**
+     * Dynamically creates an n-dimensional array. The parameters to this
+     * function specify its shape such that createNdArray(5, 6, 7) returns
+     * an n-dimensional array with arr.length === 5, arr[i].length === 6, and
+     * arr[i][j].length === 7.
+     *
+     * Stolen from StackOverflow:
+     * http://stackoverflow.com/a/966938/1275092
+     */
+    const createNdArray = function(length) {
+        let arr = new Array(length || 0),
+        i = length;
+
+        if (arguments.length > 1) {
+            let args = Array.prototype.slice.call(arguments, 1);
+            while(i--) arr[length-1 - i] = createNdArray.apply(this, args);
+        }
+
+        return arr;
+    }
+
+    /**
+     * Decodes a 1-dimensional-base 64-encoded array into a 3-dimensional array
+     * such that the surfacecolor for some trace at index `i` is available at
+     * unpack(...)[i]
+     *
+     * @param  {string} encoded  An float 32 array encoded as a base 64 string
+     */
+    const unpack = (encoded) => {
+        // Decode the pixleF property of the element into a float32 array
+        let decoded = tab64.decode(encoded.pixelF, 'float32');
+
+        // Create an empty array with the same shape as self.shape
+        let unpacked = createNdArray.apply(null, self.shape);
+
+        let count = 0;
+        for (let j = 0; j < self.shape[1]; j++) {
+            for (let k = 0; k < self.shape[2]; k++) {
+                for (let i = 0; i < self.shape[0]; i++) {
+                    unpacked[i][j][k] = decoded[count++];
+                }
+            }
+        }
+
+        return unpacked;
+    };
 }];
 
 module.exports = {
