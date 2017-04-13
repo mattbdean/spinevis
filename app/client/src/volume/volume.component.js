@@ -202,8 +202,15 @@ function TimelineController($http, $scope, session, intensityManager) {
             if (focusEvent.highPriority) {
                 console.log('Attending to high priority update for index ' + focusEvent.index);
 
+                // This is a high priority update so we're going to fetch the
+                // data in any way we can: from either the network or the cache
                 intensityManager.fetch(focusEvent.index)
                 .then(applyIntensityUpdate);
+            } else {
+                // Only handle low priority updates if we have that data cached
+                if (intensityManager.has(focusEvent.index)) {
+                    applyIntensityUpdate(intensityManager.cached(focusEvent.index));
+                }
             }
         });
 
@@ -255,7 +262,9 @@ function TimelineController($http, $scope, session, intensityManager) {
                         state.webGlData[m][count] = (intensity.get(r, c) - thresh.lo) /
                                 (thresh.hi - thresh.lo);
 
-                        count += 10;
+                        // Avoid using += because it can't be optimized with V8
+                        // https://github.com/GoogleChrome/devtools-docs/issues/53
+                        count = count + 10;
                     }
                 }
             }
