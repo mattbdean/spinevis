@@ -3,12 +3,13 @@ let _ = require('lodash');
 let serviceDef = ['$http', function($http) {
     this.baseUrl = '/api/v1/session';
 
-    this.list = function(start = 0, limit = 20, startDate = undefined, endDate = undefined) {
+    this.list = function(start = 0, limit = 20, startDate = undefined, endDate = undefined, animal = undefined) {
         return sendRequest('', {
             start: start,
             limit: limit,
             startDate: startDate,
-            endDate: endDate
+            endDate: endDate,
+            animal: animal
         });
     };
 

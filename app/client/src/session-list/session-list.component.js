@@ -22,6 +22,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
     $ctrl.dateRange = {};
     $ctrl.loading = false;
     $ctrl.sessions = [];
+    $ctrl.animal = '';
 
     // Pagination variables
     let start = 0;
@@ -46,13 +47,11 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
             return;
         }
 
-        // Format the moments into date strings the API will understand
-        [startDate, endDate] = _.map([startDate, endDate], formatMoment);
+        resetPagination();
+    });
 
-        // We've changed our dates so we have to restart
-        start = 0;
-        hasMore = true;
-        $ctrl.nextPage(startDate, endDate);
+    $scope.$watch('$ctrl.animal', () => {
+        resetPagination();
     });
 
     let parseDateRange = (dateRange) => _.map(
@@ -86,13 +85,28 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         imagingRate: numeral(meta.volRate).format('0.0') + ' Hz'
     });
 
-    $ctrl.nextPage = function(startDate, endDate) {
+    let resetPagination = function() {
+        // Reset our pagination variables
+        $ctrl.sessions = [];
+        start = 0;
+        hasMore = true;
+        $ctrl.nextPage();
+    }
+
+    $ctrl.nextPage = function() {
         // Don't beat a dead horse
         if (!hasMore || loading) return;
 
+        // Format the moments into date strings the API will understand
+        let dateRange = _.map(parseDateRange($ctrl.dateRange));
+        [startDate, endDate] = _.map(dateRange, formatMoment);
+
+        let animal = $ctrl.animal;
+        if (animal === '') animal = undefined;
+
         loading = true;
         // Request the data and add it to the controller sessions
-        session.list(start, limit, startDate, endDate)
+        session.list(start, limit, startDate, endDate, animal)
         .then(function(response) {
             let sessions = response.data.data;
             for (let session of response.data.data) {

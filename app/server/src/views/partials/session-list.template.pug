@@ -10,6 +10,8 @@ div.row
             placeholder='Date range end'
         )
 
+input.form-control(ng-model='$ctrl.animal' placeholder='Animal name')
+
 table.table.table-hover.table-striped(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
     tr
         th Animal
