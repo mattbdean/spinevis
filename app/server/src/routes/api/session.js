@@ -102,7 +102,15 @@ router.get('/', function(req, res, next) {
         new Parameter(start),
         new Parameter(limit),
         makeDateParam('startDate', req.query),
-        makeDateParam('endDate', req.query)
+        makeDateParam('endDate', req.query),
+        new Parameter({
+            name: 'animal',
+            rawInput: req.query.animal,
+            // Accept all input
+            validate: () => true,
+            errorMessage: 'animal was invalid',
+            optional: true
+        })
     ];
 
     // Make sure that if both startDate and endDate are defined that startDate
