@@ -7,8 +7,15 @@ div.control
     )
 
 div.control
-    p: strong(ng-bind='$ctrl.controls.opacity.label')
+    p: strong(ng-bind='$ctrl.controls.maskOpacity.label')
     rzslider(
-        rz-slider-model='$ctrl.controls.opacity.model'
-        rz-slider-options='$ctrl.controls.opacity.options'
+        rz-slider-model='$ctrl.controls.maskOpacity.model'
+        rz-slider-options='$ctrl.controls.maskOpacity.options'
+    )
+
+div.control
+    p: strong(ng-bind='$ctrl.controls.rawDataOpacity.label')
+    rzslider(
+        rz-slider-model='$ctrl.controls.rawDataOpacity.model'
+        rz-slider-options='$ctrl.controls.rawDataOpacity.options'
     )

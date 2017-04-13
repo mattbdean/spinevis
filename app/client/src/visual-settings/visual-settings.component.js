@@ -5,6 +5,18 @@ let defaults = require('./defaults.js');
 let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
     let $ctrl = this;
 
+    const makeOpacityControl = (label, defaultValue) => ({
+        label: label,
+        // Current value lives here, defaults to `defaultValue`
+        model: defaultValue,
+        options: {
+            floor: 0,
+            ceil: 100,
+            step: 1,
+            translate: (value) => value + '%'
+        }
+    });
+
     $ctrl.controls = {
         threshold: {
             label: 'Threshold',
@@ -18,24 +30,20 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
                 step: 10
             }
         },
-        opacity: {
-            label: 'Opacity',
-            // Current value lives here, defaults to 80%
-            model: defaults.opacity,
-            options: {
-                floor: 0,
-                ceil: 100,
-                step: 1,
-                translate: (value) => value + '%'
-            }
-        }
+        maskOpacity: makeOpacityControl('Mask Opacity', defaults.maskOpacity),
+        rawDataOpacity: makeOpacityControl('Raw Data Opacity', defaults.rawDataOpacity)
     };
+
     $scope.$watchCollection('$ctrl.controls.threshold.model', (newVal, oldVal) => {
         sendSiblingEvent(events.SET_THRESHOLD_RAW_DATA, newVal);
     });
 
-    $scope.$watch('$ctrl.controls.opacity.model', (newVal) => {
+    $scope.$watch('$ctrl.controls.rawDataOpacity.model', (newVal) => {
         sendSiblingEvent(events.SET_OPACITY_RAW_DATA, newVal / 100);
+    });
+
+    $scope.$watch('$ctrl.controls.maskOpacity.model', (newVal) => {
+        sendSiblingEvent(events.SET_OPACITY_MASKS, newVal / 100);
     });
 
     let sendSiblingEvent = function(type, data) {

@@ -19,26 +19,10 @@ let ctrlDef = ['$http', '$scope', 'session', 'intensityManager',
 function TimelineController($http, $scope, session, intensityManager) {
     let $ctrl = this;
 
-    let settings = defaultSettings;
+    const settings = defaultSettings;
     // Opacity is displayed as a number 0-100 but we need a number from 0-1
-    settings.opacity /= 100;
-
-    // Don't pollute function scope with call-once handler functions
-    (function() {
-        // Convenience function
-        let handle = (eventType, handlerFn) => {
-            $scope.$on(eventType, (event, data) => { handlerFn(data); });
-        };
-
-        handle(events.SET_THRESHOLD_RAW_DATA, (threshold) => {
-            settings.threshold = threshold;
-            applyIntensityUpdate();
-        });
-
-        handle(events.SET_OPACITY_RAW_DATA, (opacity) => {
-            updateOpacity(opacity);
-        });
-    })();
+    settings.rawDataOpacity /= 100;
+    settings.maskOpacity /= 100;
 
     // Wait for a parent component (i.e. session-vis) to send the session
     // metadata through an event. Immediately unsubscribe.
@@ -59,6 +43,7 @@ function TimelineController($http, $scope, session, intensityManager) {
         tptr: null,
         // Gets populated in processInitialData()
         traces: [],
+        masks: [],
         webGlData: []
     };
 
@@ -68,12 +53,12 @@ function TimelineController($http, $scope, session, intensityManager) {
         sessionId = data.metadata._id;
 
         return initTraces()
-        .then(processInitialData)
         .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors, data.masks))
+        .then(processInitialData)
         .then(registerCallbacks)
         .then(function() {
             // Set initial opacity
-            updateOpacity(settings.opacity);
+            updateRawDataOpacity(settings.rawDataOpacity);
 
             // Tell the parent scope (i.e. session-vis) that we've finished
             // initializing
@@ -151,7 +136,7 @@ function TimelineController($http, $scope, session, intensityManager) {
                 k: polys[i][2],
                 color: colors[i],
                 showscale: false,
-                opacity: 0.1,
+                opacity: settings.maskOpacity,
                 type: 'mesh3d',
                 hoverinfo: 'name'
             });
@@ -161,30 +146,37 @@ function TimelineController($http, $scope, session, intensityManager) {
     };
 
     let processInitialData = function() {
-        // plotNode.(...).traces is an object mapping plot IDs to plot data
+        // plotNode.(...).traces is an object mapping trace IDs to trace data
         for (let traceId of Object.keys(plotNode._fullLayout.scene._scene.traces)) {
-            // Assume all traces are instances of SurfaceTrace, meaning that
-            // trace.surface is defined
             let trace = plotNode._fullLayout.scene._scene.traces[traceId];
 
-            let index = trace.data.index;
+            // Determine the type of trace. If trace.surface is defined, it's
+            // a SurfaceTrace, which represents raw data. If trace.mesh is
+            // defined, it's a Mesh3DTrace, which represents a mask
 
-            // Get configuration to pass to getTverts to make the data webGL
-            // compatible
-            let paramCoords = renderUtil.getParams(trace).coords;
+            if (trace.surface) {
+                let index = trace.data.index;
 
-            // Upsample trace's intensity data
-            let upsampledIntensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
+                // Get configuration to pass to getTverts to make the data webGL
+                // compatible
+                let paramCoords = renderUtil.getParams(trace).coords;
 
-            state.webGlData[index] = renderUtil.getTverts(trace.surface, {
-                coords: paramCoords,
-                intensity: upsampledIntensity
-            });
+                // Upsample trace's intensity data
+                let upsampledIntensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
 
-            // opacity < 0.99
-            trace.surface.opacity = Math.min(trace.surface.opacity, 0.99);
+                state.webGlData[index] = renderUtil.getTverts(trace.surface, {
+                    coords: paramCoords,
+                    intensity: upsampledIntensity
+                });
 
-            state.traces[index] = trace;
+                // opacity < 0.99
+                trace.surface.opacity = Math.min(trace.surface.opacity, 0.99);
+
+                state.traces[index] = trace;
+            } else if (trace.mesh) {
+                // Keep track of our masks
+                state.masks.push(trace);
+            }
         }
 
         // Lazy-init shape and tptr
@@ -279,12 +271,22 @@ function TimelineController($http, $scope, session, intensityManager) {
      * Updates the opacity of each trace
      * @param  {number} newOpacity A value between 0 and 1
      */
-    let updateOpacity = function(newOpacity) {
+    let updateRawDataOpacity = function(newOpacity) {
         // Make a note of the new opacity
-        settings.opacity = newOpacity;
+        settings.rawDataOpacity = newOpacity;
 
         for (let i = 0; i < state.traces.length; i++) {
             state.traces[i].surface.opacity = newOpacity;
+        }
+
+        forceGlRedraw();
+    };
+
+    let updateMasksOpacity = function(newOpacity) {
+        settings.maskOpacity = newOpacity;
+
+        for (let i = 0; i < state.masks.length; i++) {
+            state.masks[i].mesh.opacity = newOpacity;
         }
 
         forceGlRedraw();
@@ -358,6 +360,22 @@ function TimelineController($http, $scope, session, intensityManager) {
 
     // Initialize only empty graph
     initPlot();
+
+    // Don't pollute function scope with call-once handler functions
+    (function() {
+        // Convenience function
+        let handle = (eventType, handlerFn) => {
+            $scope.$on(eventType, (event, data) => { handlerFn(data); });
+        };
+
+        handle(events.SET_THRESHOLD_RAW_DATA, (threshold) => {
+            settings.threshold = threshold;
+            applyIntensityUpdate();
+        });
+
+        handle(events.SET_OPACITY_RAW_DATA, updateRawDataOpacity)
+        handle(events.SET_OPACITY_MASKS, updateMasksOpacity);
+    })();
 }];
 
 module.exports = {

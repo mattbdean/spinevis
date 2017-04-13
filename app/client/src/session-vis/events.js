@@ -24,6 +24,7 @@ const events = [
     // Visual settings
     ///////////////////////////////////////////////////////////////////////////
     'SET_OPACITY_RAW_DATA',
+    'SET_OPACITY_MASKS',
     'SET_THRESHOLD_RAW_DATA'
 ];
 
