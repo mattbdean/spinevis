@@ -49,7 +49,7 @@ const def = ['session', function(session) {
      * @param  {number}   startIndex The index at which the value for data[0]
      *                               should be placed
      */
-    const put = (data, startIndex) => {
+    const decodeAndCache = (data, startIndex) => {
         // Ensure that we are dealing with an array. Any other input type is
         // probably a programming error
         if (!Array.isArray(data)) {
@@ -57,7 +57,7 @@ const def = ['session', function(session) {
         }
 
         for (let i = 0; i < data.length; i++) {
-            cache.set(startIndex + i, data[i]);
+            cache.set(startIndex + i, decode(data[i]));
         }
     };
 
@@ -65,7 +65,18 @@ const def = ['session', function(session) {
     this.has = index => cache.has(index);
 
     /** Retrieves the cached value for a given index */
-    this.cached = index => cache.get(index);
+    this.cached = index => {
+        let x = cache.get(index);
+
+        // Unpack on the fly. If we fetch 200 points and we unpack all of them
+        // prematurely and the user never views them, we will have wasted
+        // computing power.
+        if (!isUnpacked(x)) {
+            cache.set(index, unpack(x));
+        }
+
+        return cache.get(index);
+    }
 
     /**
      * Retrieves some data at the specified index. If there exists no such key
@@ -105,15 +116,15 @@ const def = ['session', function(session) {
 
         return session.volume(self.sessionId, requestRange.start, requestRange.end)
         .then(function(res) {
-            // The data at the index `index - BUFFER_PADDING` is data[0]
-            let rawData = res.data.data;
+            // The data at the index `index - BUFFER_PADDING` is data[0]. We
+            // only care about the intensity data, which is a base-64-encoded
+            // string of a 3-dimensional float-32 array.
+            let rawData = _.map(res.data.data, d => d.pixelF);
 
-            // Unpack each element of the raw data and insert it into the cache
-            put(_.map(rawData, unpack), requestRange.start);
+            // Decode each element of the raw data and insert it into the cache
+            decodeAndCache(rawData, requestRange.start);
 
-            // Prefer fetching the data from the LRU cache instead of from
-            // the decodedData array so that its "recently used"-ness gets
-            // updated
+            // Return the data for the index which the caller actually wanted
             return self.cached(index);
         });
     };
@@ -133,23 +144,30 @@ const def = ['session', function(session) {
 
         if (arguments.length > 1) {
             let args = Array.prototype.slice.call(arguments, 1);
-            while(i--) arr[length-1 - i] = createNdArray.apply(this, args);
+            while (i--) arr[length - 1 - i] = createNdArray.apply(this, args);
         }
 
         return arr;
-    }
+    };
 
     /**
-     * Decodes a 1-dimensional-base 64-encoded array into a 3-dimensional array
-     * such that the surfacecolor for some trace at index `i` is available at
+     * Parses a base-64 encoded string into a float-32 array
+     *
+     * @param  {object} encoded Base-64 encoded float-32 array
+     * @return {Float32Array}   A Float32Array representing the
+     */
+    const decode = (encoded) => tab64.decode(encoded, 'float32');
+
+    /**
+     * Interprets a 1-dimensional Float32Array as a 3-dimensional array such
+     * that the surfacecolor for some trace at index `i` is available at
      * unpack(...)[i]
      *
-     * @param  {string} encoded  An float 32 array encoded as a base 64 string
+     * @param  {Float32Array} flat A 1-dimensional array to be interpreted as a
+     *                             3-dimensional array
+     * @return {Float32Array} A 3-dimensional Float32Array
      */
-    const unpack = (encoded) => {
-        // Decode the pixleF property of the element into a float32 array
-        let decoded = tab64.decode(encoded.pixelF, 'float32');
-
+    const unpack = (flat) => {
         // Create an empty array with the same shape as self.shape
         let unpacked = createNdArray.apply(null, self.shape);
 
@@ -157,13 +175,21 @@ const def = ['session', function(session) {
         for (let j = 0; j < self.shape[1]; j++) {
             for (let k = 0; k < self.shape[2]; k++) {
                 for (let i = 0; i < self.shape[0]; i++) {
-                    unpacked[i][j][k] = decoded[count++];
+                    unpacked[i][j][k] = flat[count++];
                 }
             }
         }
 
         return unpacked;
     };
+
+    /**
+     * Attempts to determine if some cached data `x` has already been unpacked.
+     * If `x` has not yet been unpacked, each element in the array will be a
+     * number. If it has been unpacked, each element in the array will be
+     * another array.
+     */
+    const isUnpacked = (x) => Array.isArray(x[0]);
 }];
 
 module.exports = {
