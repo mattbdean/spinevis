@@ -68,8 +68,9 @@ let normalizedMoment = (date) =>
  *                       if endDate is 15 January 2017, a session that has a
  *                       start time of 15 January 2017 @ 12:01 AM will not be
  *                       included.
+ * @param {string} animal If provided, will only return sessions for this animal
  */
-module.exports.findAllSessions = function(start, limit, startDate, endDate) {
+module.exports.findAllSessions = function(start, limit, startDate, endDate, animal) {
     let paginationError = verifyPaginationData(start, limit);
     if (paginationError !== null) {
         return Promise.reject(errorPagination(paginationError, start, limit));
@@ -94,6 +95,10 @@ module.exports.findAllSessions = function(start, limit, startDate, endDate) {
                 normalizedMoment(endDate).subtract(1, 'millisecond')
             );
         }
+    }
+
+    if (animal !== undefined) {
+        query.Animal = animal;
     }
 
     return db.mongo().collection(COLL_META)

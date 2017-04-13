@@ -5,6 +5,7 @@ let db = require('../src/database.js');
 let queries = require('../src/queries.js');
 
 describe('queries', function() {
+    let firstSession = null;
     let firstSessionId = null;
 
     before(function mongoConnect() {
@@ -15,7 +16,8 @@ describe('queries', function() {
             if (data.length === 0)
                 throw new Error('There are no sessions in the database!');
 
-            firstSessionId = data[0]._id;
+            firstSession = data[0];
+            firstSessionId = firstSession._id;
         });
     });
 
@@ -93,6 +95,18 @@ describe('queries', function() {
                 return queries.findAllSessions(0, 20, startDate, endDate);
             }).then(function(sessions) {
                 expect(sessions.length).to.equal(expectedLength);
+            });
+        });
+
+        it('should allow filtering by animal name', function() {
+            const animal = firstSession.Animal;
+
+            return queries.findAllSessions(0, 20, undefined, undefined, animal)
+            .then(function(sessions) {
+                expect(sessions.length).to.be.above(0);
+                for (let s of sessions) {
+                    expect(s.Animal).to.equal(animal);
+                }
             });
         });
     });
