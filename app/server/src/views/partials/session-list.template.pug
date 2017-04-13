@@ -1,16 +1,18 @@
 div.row
-    datepicker.col-xs-6(date-format='{{$ctrl.dateFormat}}' date-max-limit='{{$ctrl.today()}}')
+    datepicker.col-sm-4.filter(date-format='{{$ctrl.dateFormat}}' date-max-limit='{{$ctrl.today()}}')
         input.form-control(
             ng-model='$ctrl.dateRange.start'
             placeholder='Date range start'
         )
-    datepicker.col-xs-6(date-format='{{$ctrl.dateFormat}}' date-max-limit='{{$ctrl.today()}}')
+    datepicker.col-sm-4.filter(date-format='{{$ctrl.dateFormat}}' date-max-limit='{{$ctrl.today()}}')
         input.form-control(
             ng-model='$ctrl.dateRange.end'
             placeholder='Date range end'
         )
 
-input.form-control(ng-model='$ctrl.animal' placeholder='Animal name')
+    div.col-sm-4.filter
+        //- Wrap .form-control inputs in a div because .form-control sets width: 100%
+        input.form-control(ng-model='$ctrl.animal' placeholder='Animal name')
 
 table.table.table-hover.table-striped(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
     tr

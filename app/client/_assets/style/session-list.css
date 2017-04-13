@@ -10,7 +10,7 @@ table tr td a:hover {
     text-decoration: none;
 }
 
-datepicker {
+.filter {
     padding: 10px;
 }
 
