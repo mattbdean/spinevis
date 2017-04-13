@@ -22,7 +22,14 @@ table.table.table-hover.table-striped(infinite-scroll='$ctrl.nextPage()' infinit
         th Samples
         th Imaging Rate
     tr(ng-repeat="session in $ctrl.sessions")
+        //- Allow the user to click on the session name to find all sessions for that animal
+        td.animal-name(
+            href='#'
+            ng-click='$ctrl.animal = session.animal'
+            ng-attr-title='Show sessions for {{session.animal}}'
+        ) {{session.animal}}
+
         //- Nest an <a> in each <td> so that the row will be clickable when
         //- combined with some CSS magic
-        td(ng-repeat="key in ['animal', 'startTime', 'duration', 'run', 'sampleCount', 'imagingRate']")
+        td(ng-repeat="key in ['startTime', 'duration', 'run', 'sampleCount', 'imagingRate']")
             a(href='/session/{{session.id}}') {{session[key]}}
