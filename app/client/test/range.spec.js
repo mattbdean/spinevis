@@ -55,4 +55,17 @@ describe('range', function() {
             expect(r).to.deep.equal(copy);
         });
     });
+
+    describe('boundBy', function() {
+        it('should return a new range', function() {
+            let r = range.create(0, 10);
+            let b = range.boundBy(r, range.create(2, 8));
+
+            expect(r.start).to.equal(0);
+            expect(r.end).to.equal(10);
+
+            expect(b.start).to.equal(2);
+            expect(b.end).to.equal(8);
+        });
+    });
 });

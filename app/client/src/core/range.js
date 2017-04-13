@@ -17,12 +17,13 @@ module.exports.contained = function(big, small) {
 };
 
 module.exports.boundBy = function(range, limit) {
+    let start = range.start, end = range.end;
     if (range.start < limit.start)
-        range.start = limit.start;
+        start = limit.start;
     if (range.end > limit.end)
-        range.end = limit.end;
+        end = limit.end;
 
-    return range;
+    return module.exports.create(start, end);
 };
 
 module.exports.copy = function(range) {
