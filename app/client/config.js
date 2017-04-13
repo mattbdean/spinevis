@@ -147,11 +147,13 @@ System.config({
     "src/volume/volume.module.js": [
       "angular",
       "../core/core.module.js",
+      "./intensity-manager.service.js",
       "./volume.component.js"
     ],
     "src/timeline/timeline.component.js": [
       "lodash",
       "jquery",
+      "moment",
       "watchjs",
       "./markers.js",
       "./relative-time.js",
@@ -160,12 +162,9 @@ System.config({
       "../session-vis/events.js"
     ],
     "src/volume/volume.component.js": [
-      "jquery",
-      "hughsk/tab64",
       "lodash",
       "tinycolor2",
       "colormap",
-      "lru-cache",
       "ndarray-pack",
       "ndarray-ops",
       "./render-util.js",
@@ -492,6 +491,12 @@ System.config({
     ],
     "npm:ng-infinite-scroll@1.3.0.js": [
       "npm:ng-infinite-scroll@1.3.0/build/ng-infinite-scroll.js"
+    ],
+    "src/volume/intensity-manager.service.js": [
+      "lodash",
+      "lru-cache",
+      "hughsk/tab64",
+      "../core/range.js"
     ]
   },
 

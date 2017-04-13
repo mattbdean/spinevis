@@ -203,7 +203,6 @@ function TimelineController($http, $scope, session, intensityManager) {
                 console.log('Attending to high priority update for index ' + focusEvent.index);
 
                 intensityManager.fetch(focusEvent.index)
-                .then(putIntensityUpdate)
                 .then(applyIntensityUpdate);
             }
         });
@@ -219,13 +218,15 @@ function TimelineController($http, $scope, session, intensityManager) {
         });
     };
 
-    let putIntensityUpdate = function(surfacecolorData) {
-        for (let i = 0; i < state.traces.length; i++) {
-            state.traces[i].data.surfacecolor = surfacecolorData[i];
-        }
-    };
-
-    let applyIntensityUpdate = function() {
+    /**
+     * Recomputes each raw data trace and forces a GL-level redraw
+     * @param  {array} surfacecolorData New surfacecolor data. The surfacecolor
+     *                                  data at index `i` should correspond to
+     *                                  the trace at index `i`. If this array
+     *                                  is undefined, will work with existing
+     *                                  data.
+     */
+    let applyIntensityUpdate = function(surfacecolorData) {
         // This function is adapted from here:
         // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L706
 
@@ -234,8 +235,13 @@ function TimelineController($http, $scope, session, intensityManager) {
         // Process new intensity data and update GL objects directly for
         // efficiency
         for (let m = 0; m < state.traces.length; m++) {
-            // Upsample the intensity to fit the upsampled x, y, and z coordinates
             let trace = state.traces[m];
+
+            // If we are given new data to work with, apply it to the trace
+            if (surfacecolorData !== undefined) {
+                trace.data.surfacecolor = surfacecolorData[m];
+            }
+            // Upsample the intensity to fit the upsampled x, y, and z coordinates
             let intensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
             // Change the intensity values in tverts (webGL-compatible
             // representation of the entire surface object)
