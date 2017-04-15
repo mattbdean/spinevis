@@ -30,6 +30,14 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
     // Use a Set to prevent potential excessive calls to Plotly.Plots.resize()
     let plotNodes = new Set();
 
+    let totalComponents = 0;
+    let initializedComponents = 0;
+    $ctrl.loading = true;
+
+    $scope.$on(events.META_RECEIVED, () => {
+        totalComponents++;
+    });
+
     // Watch for events from children scopes (e.g. the timeline component)
     // notifying us that they're finished initializing
     $scope.$on(events.INITIALIZED, (event, plotNode) => {
@@ -40,6 +48,9 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         }
 
         plotNodes.add(plotNode);
+
+        if (++initializedComponents === totalComponents)
+            $ctrl.loading = false;
     });
 
     // A child scope has requested us to send a notification to its sibling

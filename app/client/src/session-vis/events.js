@@ -1,6 +1,8 @@
 const events = [
     // Metadata has beeen loaded
     'META_LOADED',
+    // Metadata has been received by a child component
+    'META_RECEIVED',
     // A component has been initialized
     'INITIALIZED',
     // Sent to notify sibling scopes. Data must be an object with a 'type'

@@ -32,6 +32,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
     // metadata through an event. Immediately unsubscribe.
     let unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
         unsubscribe();
+        $scope.$emit(events.META_RECEIVED);
         init(data);
     });
 
