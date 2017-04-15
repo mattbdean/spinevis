@@ -49,8 +49,11 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
 
         plotNodes.add(plotNode);
 
-        if (++initializedComponents === totalComponents)
+        if (++initializedComponents === totalComponents) {
             $ctrl.loading = false;
+            // Force a digest cycle to ensure Angular knows about this update
+            setTimeout(() => { $scope.$apply(); }, 0);
+        }
     });
 
     // A child scope has requested us to send a notification to its sibling
