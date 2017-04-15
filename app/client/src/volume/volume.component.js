@@ -88,7 +88,10 @@ function TimelineController($http, $scope, session, intensityManager) {
             }
         };
 
-        return Plotly.newPlot(plotNode, [], layout, defaultPlotOptions);
+        const plotOptions = defaultPlotOptions;
+        plotOptions.displayModeBar = false;
+
+        return Plotly.newPlot(plotNode, [], layout, plotOptions);
     };
 
     let initTraces = function() {
