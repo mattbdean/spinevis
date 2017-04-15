@@ -100,7 +100,7 @@ module.exports = function(grunt) {
             },
             config: {
                 cwd: clientBase,
-                src: 'config.js',
+                src: 'jspm.config.js',
                 dest: finalDist + 'scripts/',
                 expand: true
             },
@@ -153,7 +153,7 @@ module.exports = function(grunt) {
                 tasks: ['copy:rawAssets']
             },
             jspmConfig: {
-                files: ['app/client/config.js'],
+                files: ['app/client/jspm.config.js'],
                 tasks: ['copy:config', 'copy:jspm']
             }
         },

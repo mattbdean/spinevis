@@ -14,9 +14,9 @@ html
 
         block scripts
             script(src='/scripts/jspm_packages/system.js')
-            script(src='/scripts/config.js')
+            script(src='/scripts/jspm.config.js')
             script.
-                System.import('bootstrap/css/bootstrap.min.css!');
+                System.import('bootstrap/dist/css/bootstrap.min.css!');
 
                 // Make sure we import angular directly first because sometimes
                 // importing app.module.js throws an 'angular is not defiend' error
