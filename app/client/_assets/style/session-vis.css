@@ -2,12 +2,12 @@ div.container-fluid.session-meta-container {
     padding: 0;
 }
 
-ul.session-meta {
+ul {
     background-color: #eeeeee;
     padding: 0;
 }
 
-ul.session-meta li {
+li.session-meta {
     display: inline-block;
     margin: 8px;
     padding: 10px 20px;
@@ -24,6 +24,11 @@ p.big-bad-error-msg {
 
 visual-settings {
     max-width: 500px;
+}
+
+help {
+    position: relative;
+    right: 60px;
 }
 
 /* Enough space for the volume component and controls */

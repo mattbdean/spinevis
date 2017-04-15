@@ -61,6 +61,7 @@
     },
     "dependencies": {
       "angular-bootstrap-toggle": "github:ziscloud/angular-bootstrap-toggle@^0.1.2",
+      "angular-fancy-modal": "github:vesparny/angular-fancy-modal@^0.1.4",
       "angularjs-datepicker": "npm:angularjs-datepicker@^2.1.17",
       "angularjs-slider": "npm:angularjs-slider@^6.1.1",
       "async": "npm:async@^2.2.0",

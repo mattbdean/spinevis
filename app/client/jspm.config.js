@@ -518,6 +518,7 @@ SystemJS.config({
     "github:*/*.json"
   ],
   map: {
+    "angular-fancy-modal": "github:vesparny/angular-fancy-modal@0.1.4",
     "angular": "npm:angular@1.6.3",
     "angular-bootstrap-toggle": "github:ziscloud/angular-bootstrap-toggle@0.1.2",
     "angularjs-datepicker": "npm:angularjs-datepicker@2.1.17",
