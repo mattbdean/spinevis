@@ -524,7 +524,7 @@ SystemJS.config({
     "angularjs-datepicker": "npm:angularjs-datepicker@2.1.17",
     "angularjs-slider": "npm:angularjs-slider@6.1.1",
     "assert": "npm:jspm-nodelibs-assert@0.2.1",
-    "async": "npm:async@2.2.0",
+    "async": "npm:async@2.3.0",
     "bit-twiddle": "npm:bit-twiddle@1.0.2",
     "bootstrap": "github:twbs/bootstrap@3.3.7",
     "buffer": "npm:jspm-nodelibs-buffer@0.2.3",
@@ -601,11 +601,6 @@ SystemJS.config({
         "bn.js": "npm:bn.js@4.11.6",
         "inherits": "npm:inherits@2.0.1",
         "minimalistic-assert": "npm:minimalistic-assert@1.0.0"
-      }
-    },
-    "npm:async@2.2.0": {
-      "map": {
-        "lodash": "npm:lodash@4.17.4"
       }
     },
     "npm:bn.js@4.11.6": {
@@ -1141,6 +1136,11 @@ SystemJS.config({
       "map": {
         "readable-stream": "npm:readable-stream@2.2.9",
         "pako": "npm:pako@0.2.9"
+      }
+    },
+    "npm:async@2.3.0": {
+      "map": {
+        "lodash": "npm:lodash@4.17.4"
       }
     }
   }

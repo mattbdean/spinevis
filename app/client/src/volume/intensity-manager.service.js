@@ -6,11 +6,7 @@ const range = require('../core/range.js');
 // Amount of data in the LRU cache. Pretty arbitrary.
 const CACHE_SIZE = 5000;
 
-// Amount of items to request on either side of the focused endpoint. In other
-// words, the total buffer size will be `BUFFER_PADDING * 2`
-const BUFFER_PADDING = 100;
-
-const def = ['session', function(session) {
+const def = ['session', 'intensityFetcher', function(session, intensityFetcher) {
     const self = this;
     const cache = new LRU(CACHE_SIZE);
 
@@ -38,6 +34,9 @@ const def = ['session', function(session) {
         // Range of possible indexes to request: [0, nSamples]
         self.indexRange = range.create(0, c.maxIndex);
         self.shape = c.shape;
+        intensityFetcher.init(self.sessionId);
+        // When we receive padding increments decode and cache them
+        intensityFetcher.listen(decodeAndCache);
 
         _init = true;
     };
@@ -76,7 +75,7 @@ const def = ['session', function(session) {
         }
 
         return cache.get(index);
-    }
+    };
 
     /**
      * Retrieves some data at the specified index. If there exists no such key
@@ -109,22 +108,11 @@ const def = ['session', function(session) {
             throw new Error('You need to init() the intensityManager service first');
         }
 
-        // requestRange: [index - BUFFER_PADDING, index + BUFFER_PADDING]
-        let requestRange = range.fromPadding(index, BUFFER_PADDING);
-        // Make sure we don't request an invalid point
-        requestRange = range.boundBy(requestRange, self.indexRange);
+        return intensityFetcher.start(index).then(function(initialData) {
+            // Decode the data the caller requested and cache it
+            decodeAndCache([initialData], index);
 
-        return session.volume(self.sessionId, requestRange.start, requestRange.end)
-        .then(function(res) {
-            // The data at the index `index - BUFFER_PADDING` is data[0]. We
-            // only care about the intensity data, which is a base-64-encoded
-            // string of a 3-dimensional float-32 array.
-            let rawData = _.map(res.data.data, d => d.pixelF);
-
-            // Decode each element of the raw data and insert it into the cache
-            decodeAndCache(rawData, requestRange.start);
-
-            // Return the data for the index which the caller actually wanted
+            // Fetch from cache so it updates its 'recently-used-ness'
             return self.cached(index);
         });
     };

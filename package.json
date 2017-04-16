@@ -64,7 +64,7 @@
       "angular-fancy-modal": "github:vesparny/angular-fancy-modal@^0.1.4",
       "angularjs-datepicker": "npm:angularjs-datepicker@^2.1.17",
       "angularjs-slider": "npm:angularjs-slider@^6.1.1",
-      "async": "npm:async@^2.2.0",
+      "async": "npm:async@^2.3.0",
       "bit-twiddle": "npm:bit-twiddle@^1.0.2",
       "bootstrap": "github:twbs/bootstrap@^3.3.7",
       "chai": "npm:chai@^3.5.0",

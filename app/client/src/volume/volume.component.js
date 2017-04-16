@@ -89,7 +89,9 @@ function TimelineController($http, $scope, session, intensityManager) {
             }
         };
 
-        const plotOptions = defaultPlotOptions;
+        // Clone the plot options so we don't mess with other plots that use
+        // this configuration
+        const plotOptions = _.clone(defaultPlotOptions);
         plotOptions.displayModeBar = false;
 
         return Plotly.newPlot(plotNode, [], layout, plotOptions);
@@ -191,7 +193,6 @@ function TimelineController($http, $scope, session, intensityManager) {
         }
 
         applyIntensityUpdate();
-        changeColormap();
     };
 
     let registerCallbacks = function() {
@@ -284,7 +285,7 @@ function TimelineController($http, $scope, session, intensityManager) {
             state.traces[i].surface.opacity = newOpacity;
         }
 
-        changeColormap();
+        forceGlRedraw();
     };
 
     let updateMasksOpacity = function(newOpacity) {
@@ -294,106 +295,70 @@ function TimelineController($http, $scope, session, intensityManager) {
             state.masks[i].mesh.opacity = newOpacity;
         }
 
-        changeColormap();
+        forceGlRedraw();
     };
-function changeColormap() {
-    for (i=0;i<state.traces.length;i++){
-        var cs = state.traces[i].data.colorscale
-        state.traces[i].surface._colorMap.setPixels(genColormap(parseColorScale(cs)));
-    }
-    state.traces[0].scene.glplot.redraw();
-}
 
-//return rgba colormap from tinycolor-compatible colorscale string
-function parseColorScale(colorscale, alpha) {
-    if(alpha === undefined) alpha = 1;
+    let changeColormap = function() {
+        // TODO For some reason calling this function makes all traces disappear
+        for (let i = 0; i < state.traces.length; i++) {
+            state.traces[i].surface._colorMap.setPixels(genColormap(
+                convertColorScale(state.traces[i].data.colorscale)
+            ));
+        }
 
-    return colorscale.map(function(elem) {
-        var index = elem[0];
-        var color = tinycolor(elem[1]);
-        var rgb = color.toRgb();
-        return {
-            index: index,
-            rgb: [rgb.r, rgb.g, rgb.b, alpha]
-        };
-    });
-}
+        forceGlRedraw();
+    };
 
-//return alpha-threhsolded webGL-compatible colormap from rgba colormap
-function genColormap (name) {
-  var x = pack([colormap({
-    colormap: name,
-    nshades: N_COLORS,
-    format: 'rgba',
-    alpha: [0,1]
-  }).map(function (c) {
-    return [c[0], c[1], c[2], 255 * c[3]]
-  })])
-  ops.divseq(x, 255.0)
-  return x
-}
+    /**
+     * Translates a Plotly colorscale into a colormap spec that can be handled
+     * by `colormap`. Maps every element of the colorscale to an object with
+     * properties `index` and `rgb`, where index is the index of scale where
+     * that color is used and rgb is an array of length 3 representing red,
+     * blue, and green values respectively.
+     *
+     * @param  {array} colorscale Plotly colorscale. Each element in the array
+     *                            is an array containing two elements, the
+     *                            second being a color formatted as an RGB
+     *                            string (e.g. "rgb(0,0,0)") and the first being
+     *                            the index where that color is used.
+     */
+    let convertColorScale = function(colorscale) {
+        return _.map(colorscale, elem => {
+            let color = tinycolor(elem[1]);
+            let rgb = color.toRgb();
+            return {
+                index: elem[0],
+                rgb: [rgb.r, rgb.g, rgb.b]
+            };
+        });
+    };
 
-    // let changeColormap = function() {
-    //     // TODO For some reason calling this function makes all traces disappear
-    //     for (let i = 0; i < state.traces.length; i++) {
-    //         state.traces[i].surface._colorMap.setPixels(genColormap(
-    //             convertColorScale(state.traces[i].data.colorscale)
-    //         ));
-    //     }
-    //
-    //     forceGlRedraw();
-    // };
-    //
-    // /**
-    //  * Translates a Plotly colorscale into a colormap spec that can be handled
-    //  * by `colormap`. Maps every element of the colorscale to an object with
-    //  * properties `index` and `rgb`, where index is the index of scale where
-    //  * that color is used and rgb is an array of length 3 representing red,
-    //  * blue, and green values respectively.
-    //  *
-    //  * @param  {array} colorscale Plotly colorscale. Each element in the array
-    //  *                            is an array containing two elements, the
-    //  *                            second being a color formatted as an RGB
-    //  *                            string (e.g. "rgb(0,0,0)") and the first being
-    //  *                            the index where that color is used.
-    //  */
-    // let convertColorScale = function(colorscale) {
-    //     return _.map(colorscale, elem => {
-    //         let color = tinycolor(elem[1]);
-    //         let rgb = color.toRgb();
-    //         return {
-    //             index: elem[0],
-    //             rgb: [rgb.r, rgb.g, rgb.b]
-    //         };
-    //     });
-    // };
-    //
-    // // Adapted from here:
-    // // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L608
-    // let genColormap = function(colormapSpec) {
-    //     let cm = _.map(colormap({
-    //         // Customize our color map here
-    //         colormap: colormapSpec,
-    //         // This isn't a supported format, but if we leave it blank it
-    //         // defaults to hex values and we want the unformatted values (an
-    //         // array of length-4 arrays, one for the R, G, B, and A).
-    //         format: '__array__',
-    //         // Create N_COLORS divisions in the colormap
-    //         nshades: N_COLORS,
-    //         // Add an alpha channel to the colormap starting from 0 and ending
-    //         // at 1
-    //         alpha: [0, 1]
-    //     }), c => [c[0], c[1], c[2], 255 * c[3]]);
-    //
-    //     let arr = pack([cm]);
-    //
-    //     // Divide everything by 255 so that every element represents its rgba
-    //     // value as a number between 0 and 1
-    //     ops.divseq(arr, 255.0);
-    //     // arr.set(0, 0, 3, 0);
-    //
-    //     return arr;
-    // };
+    // Adapted from here:
+    // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L608
+    let genColormap = function(colormapSpec) {
+        let cm = _.map(colormap({
+            // Customize our color map here
+            colormap: colormapSpec,
+            // This isn't a supported format, but if we leave it blank it
+            // defaults to hex values and we want the unformatted values (an
+            // array of length-4 arrays, one for the R, G, B, and A).
+            format: '__array__',
+            // Create N_COLORS divisions in the colormap
+            nshades: N_COLORS,
+            // Add an alpha channel to the colormap starting from 0 and ending
+            // at 1
+            alpha: [0, 1]
+        }), c => [c[0], c[1], c[2], 255 * c[3]]);
+
+        let arr = pack([cm]);
+
+        // Divide everything by 255 so that every element represents its rgba
+        // value as a number between 0 and 1
+        ops.divseq(arr, 255.0);
+        // arr.set(0, 0, 3, 0);
+
+        return arr;
+    };
 
     let forceGlRedraw = function() {
         state.traces[0].scene.glplot.redraw();
