@@ -861,12 +861,6 @@ SystemJS.config({
     "npm:lazy-cache@1.0.4": {
       "map": {}
     },
-    "npm:lru-cache@4.0.2": {
-      "map": {
-        "pseudomap": "npm:pseudomap@1.0.2",
-        "yallist": "npm:yallist@2.1.2"
-      }
-    },
     "npm:miller-rabin@4.0.0": {
       "map": {
         "bn.js": "npm:bn.js@4.11.6",
@@ -940,9 +934,6 @@ SystemJS.config({
       "map": {
         "create-hmac": "npm:create-hmac@1.1.4"
       }
-    },
-    "npm:pseudomap@1.0.2": {
-      "map": {}
     },
     "npm:public-encrypt@4.0.0": {
       "map": {
@@ -1141,6 +1132,12 @@ SystemJS.config({
     "npm:async@2.3.0": {
       "map": {
         "lodash": "npm:lodash@4.17.4"
+      }
+    },
+    "npm:lru-cache@4.0.2": {
+      "map": {
+        "pseudomap": "npm:pseudomap@1.0.2",
+        "yallist": "npm:yallist@2.1.2"
       }
     }
   }

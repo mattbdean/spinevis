@@ -39,7 +39,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
     let plotNode = $('#plot-timeline')[0];
 
     let sessionId = null;
-    let lastFocusChangeEvent = null;
+    let lastFocusIndex = null;
     // The amount of milliseconds between each imaging event rounded up, plus
     // PERIOD_SAFETY_NET
     let imagingDelay = null;
@@ -80,7 +80,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
         .then(function() {
             // Emit a DATA_FOCUS_CHANGE event with high priority so that volume
             // will get some initial data
-            emitDataFocusChange($ctrl.sessionMeta.relTimes.length * DATA_FOCUS_POSITION, true);
+            emitDataFocusChange($ctrl.sessionMeta.relTimes.length * DATA_FOCUS_POSITION);
             // Tell the parent scope (i.e. session-vis) that we've finished
             // initializing
             $scope.$emit(events.INITIALIZED, plotNode);
@@ -222,11 +222,11 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             if (domainMillis !== undefined) {
                 traceManager.onDomainChange(domainMillis.start, domainMillis.end);
 
-                let selectedIndex = domainMillis.start +
+                let selectedMillis = domainMillis.start +
                     (domainMillis.end - domainMillis.start) * DATA_FOCUS_POSITION;
 
-                // User settled on this timepoint, it is high priority
-                onTimepointSelected(selectedIndex, true);
+                // User settled on this timepoint
+                onTimepointSelected(selectedMillis);
             }
         });
 
@@ -242,7 +242,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             else disableTraces(data.masks);
         });
 
-        let onXaxisRangeChange = (prop, action, newValue, oldValue, highPriority = false) => {
+        let onXaxisRangeChange = (prop, action, newValue, oldValue) => {
             let millisecondValue = _.map(newValue, x => new Date(x).getTime() - timezoneOffsetMillis);
             let middleMillis = millisecondValue[0] +
                 ((millisecondValue[1] - millisecondValue[0]) * DATA_FOCUS_POSITION);
@@ -250,7 +250,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             // When this function is called as a result of plotNode._dragging
             // being true (the user is dragging around the timeline),
             // highPriority will always be false.
-            onTimepointSelected(middleMillis, highPriority);
+            onTimepointSelected(middleMillis);
         };
 
         // Watch the '_dragging' property of the plot node. When true, the user
@@ -265,9 +265,6 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                 // The user is no longer dragging so we don't care about the
                 // x-axis range anymore
                 unwatch(plotNode._fullLayout.xaxis, 'range', onXaxisRangeChange);
-                // Call the same handler function but set highPriority = true
-                // (last parameter)
-                onXaxisRangeChange(null, null, plotNode._fullLayout.xaxis.range, null, true);
             }
         });
 
@@ -311,7 +308,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
      *                                          whatever component receives this
      *                                          event (e.g. volume)
      */
-    let onTimepointSelected = function(newMillis, isHighPriority = false) {
+    let onTimepointSelected = function(newMillis) {
         let newIndex;
         // Manually set newIndex to 0 when newMillis < 0 because relTime.toIndex
         // returns a minimum of 1
@@ -327,7 +324,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
         if (newIndex > $ctrl.sessionMeta.relTimes.length - 1)
             newIndex = $ctrl.sessionMeta.relTimes.length - 1;
 
-        emitDataFocusChange(newIndex, isHighPriority);
+        emitDataFocusChange(newIndex);
     };
 
     /**
@@ -335,36 +332,25 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
      * the event data are the sanitized parameters to this function
      *
      * @param  {number}  newIndex
-     * @param  {Boolean} [isHighPriority=false] See onTimepointSelected
      */
-    let emitDataFocusChange = function(newIndex, isHighPriority = false) {
+    let emitDataFocusChange = function(newIndex) {
         // Tell the parent scope (i.e. session-vis) that the user has selected a
         // timepoint to analyze. In this case, that timepoint is at the location
         // at which the vertical line is drawn. Prefer Math.ceil over Math.floor
         // because floor()'ing the index tends to push the index naturally leans
         // to the left. Using ceil corrects this such that newIndex will only be
         // at maximum 1 or 2 indexes from the "true" value.
+        const actualIndex = Math.ceil(newIndex);
 
         // Prevent sending more than 1 of the same event in a row
-        let actualIndex = Math.ceil(newIndex);
-        // Ensure value is a boolean
-        let actualHighPriority = !!isHighPriority;
-        if (lastFocusChangeEvent !== null &&
-            lastFocusChangeEvent.index === actualIndex &&
-            lastFocusChangeEvent.highPriority === actualHighPriority)
-            return;
-
-        let eventData = {
-            index: actualIndex,
-            highPriority: actualHighPriority
-        };
+        if (lastFocusIndex === actualIndex) return;
 
         $scope.$emit(events.SIBLING_NOTIF, {
-            // We want the parent to send this type of event
+            // We want the parent to send this type of event to our siblings
             type: events.DATA_FOCUS_CHANGE,
-            data: eventData
+            data: actualIndex
         });
-        lastFocusChangeEvent = eventData;
+        lastFocusIndex = actualIndex
     };
 
     // Initialize only empty graph

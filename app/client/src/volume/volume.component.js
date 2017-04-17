@@ -60,6 +60,7 @@ function TimelineController($http, $scope, session, intensityManager) {
         .then(function() {
             // Set initial opacity
             updateRawDataOpacity(settings.rawDataOpacity);
+            updateMasksOpacity(settings.maskOpacity);
 
             // Tell the parent scope (i.e. session-vis) that we've finished
             // initializing
@@ -205,20 +206,8 @@ function TimelineController($http, $scope, session, intensityManager) {
             $scope.$on(events[eventType], (event, data) => { handlerFn(data); });
         };
 
-        handle('DATA_FOCUS_CHANGE', (focusEvent) => {
-            if (focusEvent.highPriority) {
-                console.log('Attending to high priority update for index ' + focusEvent.index);
-
-                // This is a high priority update so we're going to fetch the
-                // data in any way we can: from either the network or the cache
-                intensityManager.fetch(focusEvent.index)
-                .then(applyIntensityUpdate);
-            } else {
-                // Only handle low priority updates if we have that data cached
-                if (intensityManager.has(focusEvent.index)) {
-                    applyIntensityUpdate(intensityManager.cached(focusEvent.index));
-                }
-            }
+        handle('DATA_FOCUS_CHANGE', (newIndex) => {
+            intensityManager.fetch(newIndex).then(applyIntensityUpdate);
         });
 
         handle('SET_THRESHOLD_RAW_DATA', (threshold) => {
@@ -226,7 +215,7 @@ function TimelineController($http, $scope, session, intensityManager) {
             applyIntensityUpdate();
         });
 
-        handle('SET_OPACITY_RAW_DATA', updateRawDataOpacity)
+        handle('SET_OPACITY_RAW_DATA', updateRawDataOpacity);
         handle('SET_OPACITY_MASKS', updateMasksOpacity);
 
         plotNode.on('plotly_click', function(data) {
@@ -328,9 +317,9 @@ function TimelineController($http, $scope, session, intensityManager) {
     //return rgba colormap from tinycolor-compatible colorscale string
     function parseColorScale(colorscale) {
         return colorscale.map(function(elem) {
-            var index = elem[0];
-            var color = tinycolor(elem[1]);
-            var rgb = color.toRgb();
+            let index = elem[0];
+            let color = tinycolor(elem[1]);
+            let rgb = color.toRgb();
             return {
                 index: index,
                 rgb: [rgb.r, rgb.g, rgb.b]
@@ -346,11 +335,11 @@ function TimelineController($http, $scope, session, intensityManager) {
             format: 'rgba',
             alpha: [0,1]
         }).map(function (c) {
-            return [c[0], c[1], c[2], 255 * c[3]]
+            return [c[0], c[1], c[2], 255 * c[3]];
         })]);
 
         // Convert all values from a scale of [0-255] to [0-1] for webGL
-        ops.divseq(x, 255.0)
+        ops.divseq(x, 255.0);
         return x;
     }
 

@@ -1,14 +1,30 @@
 const _ = require('lodash');
-const LRU = require('lru-cache');
 const tab64 = require('hughsk/tab64');
+const async = require('async');
 const range = require('../core/range.js');
 
-// Amount of data in the LRU cache. Pretty arbitrary.
-const CACHE_SIZE = 5000;
+// The ideal amount of padding on either side of the requested index. This
+// service will continue to run until this is satisified.
+const IDEAL_PADDING = 50;
 
-const def = ['session', 'intensityFetcher', function(session, intensityFetcher) {
+// How many tasks will run at a time. See
+// https://caolan.github.io/async/docs.html#queue for more
+const QUEUE_CONCURRENCY = 3;
+
+// Each data point is ~318 kb, so each padding increment requests about 1 MB
+// of data per request, something that most internet speeds should be able to
+// handle pretty simply
+const PADDING_INCREMENT = 3;
+
+// The amount of additional padding to request when the user gets close to the
+// end of the cached range
+const BUFFER_EXTENSION = 30;
+
+const def = ['session', function(session) {
     const self = this;
-    const cache = new LRU(CACHE_SIZE);
+    const cache = {};
+    let queue = null;
+    let cacheRange = null;
 
     let _init = false;
 
@@ -34,9 +50,11 @@ const def = ['session', 'intensityFetcher', function(session, intensityFetcher) 
         // Range of possible indexes to request: [0, nSamples]
         self.indexRange = range.create(0, c.maxIndex);
         self.shape = c.shape;
-        intensityFetcher.init(self.sessionId);
-        // When we receive padding increments decode and cache them
-        intensityFetcher.listen(decodeAndCache);
+
+        queue = async.queue((task, callback) => {
+            // Use callback for both then() and catch()
+            return fetchNetwork(task.start, task.end).then(callback, callback);
+        }, QUEUE_CONCURRENCY);
 
         _init = true;
     };
@@ -55,41 +73,61 @@ const def = ['session', 'intensityFetcher', function(session, intensityFetcher) 
             throw new Error('expecting data to be an array');
         }
 
+        const decoded = [];
         for (let i = 0; i < data.length; i++) {
-            cache.set(startIndex + i, decode(data[i]));
+            const d = decode(data[i]);
+            decoded.push(d);
+            cache[startIndex + i] = d;
         }
+
+        return decoded;
     };
 
     /** Checks if an index exists in the cache */
-    this.has = index => cache.has(index);
+    this.has = index => cache[index] !== undefined;
 
     /** Retrieves the cached value for a given index */
     this.cached = index => {
-        let x = cache.get(index);
+        let x = cache[index];
 
         // Unpack on the fly. If we fetch 200 points and we unpack all of them
         // prematurely and the user never views them, we will have wasted
         // computing power.
         if (!isUnpacked(x)) {
-            cache.set(index, unpack(x));
+            cache[index] = unpack(x);
         }
 
-        return cache.get(index);
+        return cache[index];
     };
 
-    /**
-     * Retrieves some data at the specified index. If there exists no such key
-     * in the cache, the intensity data for that index will be fetched from the
-     * network instead using fetchNetwork()
-     *
-     * @param  {number} index
-     * @return {Promise}       A Promise that will resolve to the unpacked data
-     *                         at the specified index
-     */
     this.fetch = (index) => {
+        const tasks = determineRequestRanges(index);
+        console.log('\n');
+        for (let t of tasks) console.log(t.start, t.end);
+
+        // Give priority to new request ranges by removing all tasks queued up
+        // already
+        if (tasks.length !== 0) queue.kill();
+
+        // Push each task to the end of the queue. determineRequestRanges()
+        // returns an array in order of absolute distance from the given index.
+        // In other words, |tasks[i].start - index| < |tasks[i + 1].start - index|
+        // Push tasks in this order so that we process the data closest to the
+        // given index and then spread out from there.
+        for (let t of tasks) queue.push(t);
+
+        // Now we actually have to fetch the data
         return new Promise(function(resolve, reject) {
-            if (self.has(index)) resolve(self.cached(index));
-            else resolve(self.fetchNetwork(index));
+            if (self.has(index)) {
+                // We already have this data cached
+                return resolve(self.cached(index));
+            } else {
+                // We don't have this data cached, fetch it from the network
+                return resolve(fetchNetwork(index).then(() => {
+                    // Use self.cached() to unpack the flat array into a 3D array
+                    return self.cached(index);
+                }));
+            }
         });
     };
 
@@ -102,18 +140,70 @@ const def = ['session', 'intensityFetcher', function(session, intensityFetcher) 
      * @return {Promise}       A Promise that will resolve to the data at the
      *                         requested index
      */
-    this.fetchNetwork = (index) => {
+    const fetchNetwork = (start, end) => {
         // Make sure we have the required data
         if (!_init) {
             throw new Error('You need to init() the intensityManager service first');
         }
 
-        return intensityFetcher.start(index).then(function(initialData) {
-            // Decode the data the caller requested and cache it
-            decodeAndCache([initialData], index);
+        return request(start, end).then(data => {
+            return decodeAndCache(data, start);
+        });
+    };
 
-            // Fetch from cache so it updates its 'recently-used-ness'
-            return self.cached(index);
+    const determineRequestRanges = function(index) {
+        // Make sure we're not requesting anything out of bounds
+        const max = Math.min(self.indexRange.end + 1, index + IDEAL_PADDING + 1);
+        const min = Math.max(self.indexRange.start, index - IDEAL_PADDING);
+
+        const createRanges = (start, end) => {
+            const ranges = [];
+            let rangeStart = start;
+            let count = 0;
+
+            for (let i = start; i < end; i++) {
+                if (self.has(i)) {
+                    if (count === 0) {
+                        rangeStart++;
+                    } else {
+                        ranges.push(range.create(rangeStart, rangeStart + count));
+                        rangeStart += count + 1;
+                        count = 0;
+                    }
+                } else {
+                    if (++count === PADDING_INCREMENT) {
+                        ranges.push(range.create(rangeStart, rangeStart + count));
+                        rangeStart = i + 1;
+                        count = 0;
+                    }
+                }
+            }
+
+            if (count !== 0) {
+                // There are leftovers
+                ranges.push(range.create(rangeStart, rangeStart + count));
+            }
+
+            return ranges;
+        };
+
+        const combinedRanges = _.concat(
+            createRanges(min, index),
+            // Don't include the actual index because that will be handled
+            // elsewhere
+            createRanges(index + 1, max)
+        );
+
+        // Sort by absolute distance from the start of the range to the index so
+        // that points closer to the index get requested first
+        return _.sortBy(combinedRanges, (r) => Math.abs(r.start - index));
+    };
+
+    const request = (startIndex, endIndex) => {
+        return session.volume(self.sessionId, startIndex, endIndex).then(function(res) {
+            // We only care about the intensity data, which is located in
+            // the pixelF property of each element of the data array
+            return _.map(res.data.data, d => d.pixelF);
         });
     };
 
