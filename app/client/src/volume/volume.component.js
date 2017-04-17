@@ -36,6 +36,7 @@ function TimelineController($http, $scope, session, intensityManager) {
 
     let traceManager = null;
     let sessionId = null;
+    let currentIndex = null;
 
     let state = {
         // shape and tptr are from legacy code and are lazy-initialized when
@@ -207,6 +208,7 @@ function TimelineController($http, $scope, session, intensityManager) {
         };
 
         handle('DATA_FOCUS_CHANGE', (newIndex) => {
+            currentIndex = newIndex;
             intensityManager.fetch(newIndex).then(applyIntensityUpdate);
         });
 
@@ -226,6 +228,16 @@ function TimelineController($http, $scope, session, intensityManager) {
                 type: events.MASK_CLICKED,
                 data: mask
             });
+        });
+
+        plotNode.on('plotly_relayout', (evt) => {
+            // When Plotly has to relyout() (in practise, when the user resizes
+            // the window), it destroys the work we've done. This call restores
+            // the plot to how it was before the relayout()
+            intensityManager.fetch(currentIndex)
+                .then(applyIntensityUpdate)
+                .then(() => updateRawDataOpacity(settings.rawDataOpacity))
+                .then(() => updateMasksOpacity(settings.maskOpacity));
         });
     };
 
