@@ -29,12 +29,7 @@ module.exports = function(grunt) {
                 'app/server/src/**/*.js'
             ],
             options: {
-                // ECMAScript version 6
-                esversion: 6,
-                // Ignore "don't make functions in a loop"
-                '-W083': true,
-                // Use only 'let' or 'const', not 'var'
-                varstmt: true
+                jshintrc: true
             }
         },
         karma: {
