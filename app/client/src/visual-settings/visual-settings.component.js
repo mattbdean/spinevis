@@ -11,7 +11,7 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
         model: defaultValue,
         options: {
             floor: 0,
-            ceil: 100,
+            ceil: 99,
             step: 1,
             translate: (value) => value + '%'
         }
