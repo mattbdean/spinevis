@@ -197,7 +197,15 @@ function TimelineController($http, $scope, session, intensityManager) {
     };
 
     let registerCallbacks = function() {
-        $scope.$on(events.DATA_FOCUS_CHANGE, (event, focusEvent) => {
+        // Convenience function
+        let handle = (eventType, handlerFn) => {
+            if (events[eventType] === undefined)
+                throw new Error(`No such event: '${eventType}'`);
+
+            $scope.$on(events[eventType], (event, data) => { handlerFn(data); });
+        };
+
+        handle('DATA_FOCUS_CHANGE', (focusEvent) => {
             if (focusEvent.highPriority) {
                 console.log('Attending to high priority update for index ' + focusEvent.index);
 
@@ -212,6 +220,14 @@ function TimelineController($http, $scope, session, intensityManager) {
                 }
             }
         });
+
+        handle('SET_THRESHOLD_RAW_DATA', (threshold) => {
+            settings.threshold = threshold;
+            applyIntensityUpdate();
+        });
+
+        handle('SET_OPACITY_RAW_DATA', updateRawDataOpacity)
+        handle('SET_OPACITY_MASKS', updateMasksOpacity);
 
         plotNode.on('plotly_click', function(data) {
             let clickedTrace = data.points[0].fullData;
@@ -344,22 +360,6 @@ function TimelineController($http, $scope, session, intensityManager) {
 
     // Initialize only empty graph
     initPlot();
-
-    // Don't pollute function scope with call-once handler functions
-    (function() {
-        // Convenience function
-        let handle = (eventType, handlerFn) => {
-            $scope.$on(eventType, (event, data) => { handlerFn(data); });
-        };
-
-        handle(events.SET_THRESHOLD_RAW_DATA, (threshold) => {
-            settings.threshold = threshold;
-            applyIntensityUpdate();
-        });
-
-        handle(events.SET_OPACITY_RAW_DATA, updateRawDataOpacity)
-        handle(events.SET_OPACITY_MASKS, updateMasksOpacity);
-    })();
 }];
 
 module.exports = {
