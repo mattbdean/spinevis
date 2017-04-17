@@ -102,8 +102,6 @@ const def = ['session', function(session) {
 
     this.fetch = (index) => {
         const tasks = determineRequestRanges(index);
-        console.log('\n');
-        for (let t of tasks) console.log(t.start, t.end);
 
         // Give priority to new request ranges by removing all tasks queued up
         // already
