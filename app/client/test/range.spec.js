@@ -15,6 +15,13 @@ describe('range', function() {
             r.start = 100;
             expect(r.start).to.be.equal(5);
         });
+
+        it('should throw an error on non-number inputs', function() {
+            let generateCreateFn = (start, end) => () => range.create(start, end);
+
+            expect(generateCreateFn("non-number value", 42)).to.throw(Error);
+            expect(generateCreateFn(42, "non-number value")).to.throw(Error);
+        });
     });
 
     describe('contained', function() {
@@ -46,6 +53,19 @@ describe('range', function() {
             expect(r).to.not.equal(copy);
             // r must have the same contents as its copy
             expect(r).to.deep.equal(copy);
+        });
+    });
+
+    describe('boundBy', function() {
+        it('should return a new range', function() {
+            let r = range.create(0, 10);
+            let b = range.boundBy(r, range.create(2, 8));
+
+            expect(r.start).to.equal(0);
+            expect(r.end).to.equal(10);
+
+            expect(b.start).to.equal(2);
+            expect(b.end).to.equal(8);
         });
     });
 });

@@ -3,5 +3,6 @@ module.exports = {
         lo: 30,
         hi: 400
     },
-    opacity: 80
+    rawDataOpacity: 80,
+    maskOpacity: 10
 };

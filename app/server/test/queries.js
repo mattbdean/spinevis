@@ -4,21 +4,21 @@ let _ = require('lodash');
 let db = require('../src/database.js');
 let queries = require('../src/queries.js');
 
-/**
- * Helper method. Gets the first session via findAllSession() and returns its
- * _id.
- */
-let getFirstSessionId = function() {
-    return queries.findAllSessions(0, 1)
-    .then(function(sessions) {
-        return sessions[0]._id;
-    });
-}
-
 describe('queries', function() {
+    let firstSession = null;
+    let firstSessionId = null;
+
     before(function mongoConnect() {
         // Change to MODE_TEST when 'spinevis_test' database is ready
-        return db.connect(db.MODE_PRODUCTION);
+        return db.connect(db.MODE_PRODUCTION).then(function() {
+            return queries.findAllSessions(0, 20);
+        }).then(function(data) {
+            if (data.length === 0)
+                throw new Error('There are no sessions in the database!');
+
+            firstSession = data[0];
+            firstSessionId = firstSession._id;
+        });
     });
 
     describe('findAllSessions()', function() {
@@ -51,17 +51,71 @@ describe('queries', function() {
                 }
             });
         });
+
+        let getMiddleSession = (start = 0, limit = 20) =>
+            queries.findAllSessions(start, limit).then(function(sessions) {
+                return sessions[sessions.length / 2];
+            });
+
+        it('should allow passing only startDate', function() {
+            let startDate;
+            return getMiddleSession().then(function(session) {
+                startDate = session.start_time;
+
+                return queries.findAllSessions(0, 20, startDate);
+            }).then(function(sessions) {
+                for (let session of sessions) {
+                    expect(session.start_time.getTime()).to.be.at.least(startDate.getTime());
+                }
+            });
+        });
+
+        it('should allow passing only endDate', function() {
+            let endDate;
+            return getMiddleSession().then(function(session) {
+                endDate = session.start_time;
+
+                return queries.findAllSessions(0, 20, undefined, endDate);
+            }).then(function(sessions) {
+                for (let session of sessions) {
+                    expect(session.start_time.getTime()).to.be.below(endDate.getTime());
+                }
+            });
+        });
+
+        it('should return entires in only the requested range', function() {
+            let unfilteredLength, expectedLength, startDate, endDate;
+            return queries.findAllSessions(0, 20).then(function(sessions) {
+                startDate = sessions[sessions.length / 2].start_time;
+                endDate = sessions[0].start_time;
+
+                unfilteredLength = sessions.length;
+                expectedLength = sessions.length / 2;
+
+                return queries.findAllSessions(0, 20, startDate, endDate);
+            }).then(function(sessions) {
+                expect(sessions.length).to.equal(expectedLength);
+            });
+        });
+
+        it('should allow filtering by animal name', function() {
+            const animal = firstSession.Animal;
+
+            return queries.findAllSessions(0, 20, undefined, undefined, animal)
+            .then(function(sessions) {
+                expect(sessions.length).to.be.above(0);
+                for (let s of sessions) {
+                    expect(s.Animal).to.equal(animal);
+                }
+            });
+        });
     });
 
     describe('getSessionMeta()', function() {
         it('should return only one session', function() {
-            let _id = null;
+            let _id = firstSessionId;
 
-            return getFirstSessionId()
-            .then(function(id) {
-                _id = id;
-                return queries.getSessionMeta(id);
-            }).then(function(session) {
+            return queries.getSessionMeta(firstSessionId).then(function(session) {
                 // Make sure the query returns an object with a matching _id
                 assert.equal(typeof session, 'object')
                 assert.equal(session._id, _id);
@@ -75,10 +129,7 @@ describe('queries', function() {
 
     describe('sessionExists()', function() {
         it('should return true for existing IDs', function() {
-            return getFirstSessionId()
-            .then(function(id) {
-                return queries.sessionExists(id);
-            }).then(function(exists) {
+            return queries.sessionExists(firstSessionId).then(function(exists) {
                 assert.ok(exists, 'Did not find existing file');
             });
         });
@@ -92,9 +143,7 @@ describe('queries', function() {
 
     describe('getBehavior()', function() {
         it('should return an object mapping behavior events to timepoint indexes', function() {
-            return getFirstSessionId().then(function(id) {
-                return queries.getBehavior(id);
-            }).then(function(behaviorData) {
+            return queries.getBehavior(firstSessionId).then(function(behaviorData) {
                 for (let key of Object.keys(behaviorData)) {
                     // Make sure we are always returning an array
                     assert.ok(Array.isArray(behaviorData[key]));
@@ -105,9 +154,7 @@ describe('queries', function() {
         it('should only return events which are asked for', function() {
             let events = ['lick left', 'lick right'];
 
-            return getFirstSessionId().then(function(id) {
-                return queries.getBehavior(id, events);
-            }).then(function(behaviorData) {
+            return queries.getBehavior(firstSessionId, events).then(function(behaviorData) {
                 let dataKeys = Object.keys(behaviorData);
                 // Lengths should be the same
                 assert.ok(dataKeys.length === events.length);
@@ -122,9 +169,7 @@ describe('queries', function() {
         it('should report missing when one of the behaviors cannot be found', function() {
             let events = ['lick left', 'something else that doesn\'t exist', 'lick right'];
 
-            return getFirstSessionId().then(function(id) {
-                return queries.getBehavior(id, events);
-            }).then(function(behaviorData) {
+            return queries.getBehavior(firstSessionId, events).then(function(behaviorData) {
                 assert.fail(undefined, undefined, 'should not have reached here');
             }).catch(function(err) {
                 assert.equal(err.type, queries.ERROR_MISSING);
@@ -137,9 +182,7 @@ describe('queries', function() {
 
     describe('getTimeline()', function() {
         it('should return only mask names when only provided a session ID', function() {
-            return getFirstSessionId().then(function(id) {
-                return queries.getTimeline(id);
-            }).then(function(traceNames) {
+            return queries.getTimeline(firstSessionId).then(function(traceNames) {
                 assert.ok(Array.isArray(traceNames));
                 for (let name of traceNames) {
                     // Should not be an object, either a Number or a string (if
@@ -151,11 +194,9 @@ describe('queries', function() {
 
         it('should return an object mapping mask names to fluorescense values otherwise', function() {
             let requestedName;
-            let sessionId;
-            return getFirstSessionId().then(function(id) {
-                sessionId = id;
-                return queries.getTimeline(sessionId);
-            }).then(function(traceNames) {
+            let sessionId = firstSessionId;
+
+            return queries.getTimeline(sessionId).then(function(traceNames) {
                 requestedName = traceNames[0];
                 return queries.getTimeline(sessionId, requestedName);
             }).then(function(traceData) {
@@ -176,18 +217,14 @@ describe('queries', function() {
         for (let caseName of caseNames) {
             it(caseName, function() {
                 let range = cases[caseName];
-                return testVolumeResult(range[0], range[1]);
+                return testVolumeResult(firstSessionId, range[0], range[1]);
             });
         }
     });
 });
 
-let testVolumeResult = function(start, end) {
-    let sessionId;
-    return getFirstSessionId().then(function(id) {
-        sessionId = id;
-        return queries.getVolumes(sessionId, start, end);
-    }).then(function(volumes) {
+let testVolumeResult = function(sessionId, start, end) {
+    return queries.getVolumes(sessionId, start, end).then(function(volumes) {
         expect(volumes).to.be.defined;
         expect(Array.isArray(volumes)).to.be.true;
         let length = end - start;

@@ -2,12 +2,12 @@ div.container-fluid.session-meta-container {
     padding: 0;
 }
 
-ul.session-meta {
+ul {
     background-color: #eeeeee;
     padding: 0;
 }
 
-ul.session-meta li {
+li.session-meta {
     display: inline-block;
     margin: 8px;
     padding: 10px 20px;
@@ -24,6 +24,31 @@ p.big-bad-error-msg {
 
 visual-settings {
     max-width: 500px;
+}
+
+help {
+    position: relative;
+    right: 60px;
+}
+
+div.loading-overlay {
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+p.loading-text {
+    font-size: 18px;
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
 }
 
 /* Enough space for the volume component and controls */

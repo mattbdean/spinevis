@@ -1,9 +1,6 @@
-let $ = require('jquery');
-let tab64 = require('hughsk/tab64');
 let _ = require('lodash');
 let tinycolor = require('tinycolor2');
 let colormap = require('colormap');
-let LRU = require('lru-cache');
 let pack = require('ndarray-pack');
 let ops = require('ndarray-ops');
 
@@ -13,44 +10,25 @@ let defaultPlotOptions = require('../core/plotdefaults.js');
 let events = require('../session-vis/events.js');
 let defaultSettings = require('../visual-settings/defaults.js');
 
-// Amount of data in the LRU cache. Pretty arbitrary.
-const CACHE_SIZE = 5000;
-
-// Amount of items to request on either side of the focused endpoint. In other
-// words, the total buffer size will be `BUFFER_PADDING * 2`
-const BUFFER_PADDING = 50;
-
 // The amount unique colors in a colorscale
 const N_COLORS = 256;
 
-let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, $scope, session) {
+// This looks pretty ugly but I'd rather keep lines generally less than 80
+// characters
+let ctrlDef = ['$http', '$scope', 'session', 'intensityManager',
+function TimelineController($http, $scope, session, intensityManager) {
     let $ctrl = this;
 
-    let settings = defaultSettings;
+    const settings = defaultSettings;
     // Opacity is displayed as a number 0-100 but we need a number from 0-1
-    settings.opacity /= 100;
-
-    // Don't pollute function scope with call-once handler functions
-    (function() {
-        // Convenience function
-        let handle = (eventType, handlerFn) => {
-            $scope.$on(eventType, (event, data) => { handlerFn(data); });
-        };
-
-        handle(events.SET_THRESHOLD, (threshold) => {
-            settings.threshold = threshold;
-            applyIntensityUpdate();
-        });
-
-        handle(events.SET_OPACITY, (opacity) => {
-            updateOpacity(opacity);
-        });
-    })();
+    settings.rawDataOpacity /= 100;
+    settings.maskOpacity /= 100;
 
     // Wait for a parent component (i.e. session-vis) to send the session
     // metadata through an event. Immediately unsubscribe.
     let unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
         unsubscribe();
+        $scope.$emit(events.META_RECEIVED);
         init(data);
     });
 
@@ -58,9 +36,7 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
 
     let traceManager = null;
     let sessionId = null;
-
-    // Range of possible indexes to request: [0, nSamples]
-    let indexRange = null;
+    let currentIndex = null;
 
     let state = {
         // shape and tptr are from legacy code and are lazy-initialized when
@@ -69,25 +45,23 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
         tptr: null,
         // Gets populated in processInitialData()
         traces: [],
-        coords: [],
-        upsampledCoords: [],
+        masks: [],
         webGlData: []
     };
 
-    let cache = new LRU(CACHE_SIZE);
-
     let init = function(data) {
         $ctrl.sessionMeta = data.metadata;
+        $ctrl.maskMeta = data.masks;
         sessionId = data.metadata._id;
-        indexRange = range.create(0, data.nSamples);
 
         return initTraces()
+        .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors, data.masks))
         .then(processInitialData)
-        .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors))
         .then(registerCallbacks)
         .then(function() {
             // Set initial opacity
-            updateOpacity(settings.opacity);
+            updateRawDataOpacity(settings.rawDataOpacity);
+            updateMasksOpacity(settings.maskOpacity);
 
             // Tell the parent scope (i.e. session-vis) that we've finished
             // initializing
@@ -117,7 +91,12 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
             }
         };
 
-        return Plotly.newPlot(plotNode, [], layout, defaultPlotOptions);
+        // Clone the plot options so we don't mess with other plots that use
+        // this configuration
+        const plotOptions = _.clone(defaultPlotOptions);
+        plotOptions.displayModeBar = false;
+
+        return Plotly.newPlot(plotNode, [], layout, plotOptions);
     };
 
     let initTraces = function() {
@@ -137,16 +116,26 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
             });
         }
 
+        intensityManager.init({
+            sessionId: sessionId,
+            maxIndex: $ctrl.sessionMeta.nSamples,
+            shape: [
+                traces.length,
+                traces[0].surfacecolor.length,
+                traces[0].surfacecolor[0].length
+            ]
+        });
+
         return Plotly.addTraces(plotNode, traces);
     };
 
-    let initMasks = function(points, polys, colors) {
+    let initMasks = function(points, polys, colors, maskMetadata) {
         // points, polys, and colors are arrays of the same length
 
         let traces = [];
         for (let i = 0; i < points.length; i++) {
             traces.push({
-                name: 'Mask ' + i,
+                name: maskMetadata[i].displayName,
                 x: points[i][0],
                 y: points[i][1],
                 z: points[i][2],
@@ -155,7 +144,7 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
                 k: polys[i][2],
                 color: colors[i],
                 showscale: false,
-                opacity: 0.1,
+                opacity: settings.maskOpacity,
                 type: 'mesh3d',
                 hoverinfo: 'name'
             });
@@ -165,43 +154,37 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
     };
 
     let processInitialData = function() {
-        // These arrays will eventually all be equal to the amount of traces
-        // in the initial data (plotNode.(...).traces.length)
-        let coords = [],
-            upsampledCoords = [],
-            webGlData = [];
-
-        // plotNode.(...).traces is an object mapping plot IDs to plot data
+        // plotNode.(...).traces is an object mapping trace IDs to trace data
         for (let traceId of Object.keys(plotNode._fullLayout.scene._scene.traces)) {
-            // Assume all traces are instances of SurfaceTrace, meaning that
-            // trace.surface is defined
             let trace = plotNode._fullLayout.scene._scene.traces[traceId];
 
-            let index = trace.data.index;
+            // Determine the type of trace. If trace.surface is defined, it's
+            // a SurfaceTrace, which represents raw data. If trace.mesh is
+            // defined, it's a Mesh3DTrace, which represents a mask
 
-            // Get configuration to pass to getTverts to make the data webGL
-            // compatible
-            let paramCoords = renderUtil.getParams(trace).coords;
-            state.coords[index] = paramCoords;
+            if (trace.surface) {
+                let index = trace.data.index;
 
-            // Upsample the trace's x, y, and z data
-            let rawDataProperties = ['x', 'y', 'z'];
-            state.upsampledCoords[index] = _.map(rawDataProperties, (prop) => {
-                return renderUtil.getUpsampled(trace, trace.data[prop]);
-            });
+                // Get configuration to pass to getTverts to make the data webGL
+                // compatible
+                let paramCoords = renderUtil.getParams(trace).coords;
 
-            // Upsample trace's intensity data
-            let upsampledIntensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
+                // Upsample trace's intensity data
+                let upsampledIntensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
 
-            state.webGlData[index] = renderUtil.getTverts(trace.surface, {
-                coords: paramCoords,
-                intensity: upsampledIntensity
-            });
+                state.webGlData[index] = renderUtil.getTverts(trace.surface, {
+                    coords: paramCoords,
+                    intensity: upsampledIntensity
+                });
 
-            // opacity < 0.99
-            trace.surface.opacity = Math.min(trace.surface.opacity, 0.99);
+                // opacity < 0.99
+                trace.surface.opacity = Math.min(trace.surface.opacity, 0.99);
 
-            state.traces[index] = trace;
+                state.traces[index] = trace;
+            } else if (trace.mesh) {
+                // Keep track of our masks
+                state.masks.push(trace);
+            }
         }
 
         // Lazy-init shape and tptr
@@ -211,86 +194,77 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
             state.tptr = (state.shape[0] - 1) * (state.shape[1] - 1) * 6 * 10;
         }
 
+        changeColormap();//reset colormap with alpha control
         applyIntensityUpdate();
     };
 
     let registerCallbacks = function() {
-        $scope.$on(events.DATA_FOCUS_CHANGE, (event, focusEvent) => {
-            if (focusEvent.highPriority) {
-                console.log('Attending to high priority update for index ' + focusEvent.index);
-                findUpdateData(focusEvent.index)
-                .then(putIntensityUpdate)
-                .then(applyIntensityUpdate);
-            }
+        // Convenience function
+        let handle = (eventType, handlerFn) => {
+            if (events[eventType] === undefined)
+                throw new Error(`No such event: '${eventType}'`);
+
+            $scope.$on(events[eventType], (event, data) => { handlerFn(data); });
+        };
+
+        handle('DATA_FOCUS_CHANGE', (newIndex) => {
+            currentIndex = newIndex;
+            intensityManager.fetch(newIndex).then(applyIntensityUpdate);
+        });
+
+        handle('SET_THRESHOLD_RAW_DATA', (threshold) => {
+            settings.threshold = threshold;
+            applyIntensityUpdate();
+        });
+
+        handle('SET_OPACITY_RAW_DATA', updateRawDataOpacity);
+        handle('SET_OPACITY_MASKS', updateMasksOpacity);
+
+        plotNode.on('plotly_click', function(data) {
+            let clickedTrace = data.points[0].fullData;
+            let mask = _.find($ctrl.maskMeta, m => m.displayName === clickedTrace.name);
+
+            $scope.$emit(events.SIBLING_NOTIF, {
+                type: events.MASK_CLICKED,
+                data: mask
+            });
+        });
+
+        plotNode.on('plotly_relayout', (evt) => {
+            // When Plotly has to relyout() (in practise, when the user resizes
+            // the window), it destroys the work we've done. This call restores
+            // the plot to how it was before the relayout()
+            intensityManager.fetch(currentIndex)
+                .then(applyIntensityUpdate)
+                .then(() => updateRawDataOpacity(settings.rawDataOpacity))
+                .then(() => updateMasksOpacity(settings.maskOpacity));
         });
     };
 
-    let findUpdateData = function(index) {
-        return new Promise(function(resolve, reject) {
-            if (cache.has(index)) {
-                return resolve(cache.get(index));
-            } else {
-                return resolve(downloadIntensity(index));
-            }
-        });
-    };
-
-    let downloadIntensity = function(index) {
-        // requestRange: [index - BUFFER_PADDING, index + BUFFER_PADDING]
-        let requestRange = range.fromPadding(index, BUFFER_PADDING);
-        // Make sure we don't request an invalid point
-        requestRange = range.boundBy(requestRange, indexRange);
-
-        return session.volume(sessionId, requestRange.start, requestRange.end)
-        .then(function(res) {
-            // The data at the index `index - BUFFER_PADDING` is data[0]
-            let rawData = res.data.data;
-            // Decode the pixleF property of each element, which is a 32-bit
-            // array encoded in base-64
-            let decodedData = _.map(rawData, d => tab64.decode(d.pixelF, 'float32'));
-
-            // Insert the decoded data into the cache
-            for (let i = 0; i < decodedData.length; i++) {
-                cache.set(requestRange.start + i, decodedData[i]);
-            }
-
-            // Prefer fetching the data from the LRU cache instead of from
-            // the decodedData array so that its "recently used"-ness gets
-            // updated
-            return cache.get(index);
-        });
-    };
-
-    let putIntensityUpdate = function(updateData) {
-        // Doesn't matter what trace well pull as long as its type is 'surface'.
-        // We just want to find out the shape of the data
-        let someTrace = state.traces[0];
-
-        let count = 0;
-        for (let i = 0; i < someTrace.data.surfacecolor.length; i++) {
-            // length is constant for all someTrace.surfacecolor[i]
-            for (let j = 0; j < someTrace.data.surfacecolor[0].length; j++) {
-                for (let k = 0; k < state.traces.length; k++) {
-                    // updateData is a 1-dimensional array, but we have to use
-                    // it like a 3-dimensional array
-                    state.traces[k].data.surfacecolor[i][j] = updateData[count++];
-                }
-            }
-        }
-    };
-
-    let applyIntensityUpdate = function() {
+    /**
+     * Recomputes each raw data trace and forces a GL-level redraw
+     * @param  {array} surfacecolorData New surfacecolor data. The surfacecolor
+     *                                  data at index `i` should correspond to
+     *                                  the trace at index `i`. If this array
+     *                                  is undefined, will work with existing
+     *                                  data.
+     */
+    let applyIntensityUpdate = function(surfacecolorData) {
         // This function is adapted from here:
         // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L706
 
-        let loThresh = settings.threshold.lo;
-        let hiThresh = settings.threshold.hi;
+        let thresh = settings.threshold;
 
         // Process new intensity data and update GL objects directly for
         // efficiency
         for (let m = 0; m < state.traces.length; m++) {
-            // Upsample the intensity to fit the upsampled x, y, and z coordinates
             let trace = state.traces[m];
+
+            // If we are given new data to work with, apply it to the trace
+            if (surfacecolorData !== undefined) {
+                trace.data.surfacecolor = surfacecolorData[m];
+            }
+            // Upsample the intensity to fit the upsampled x, y, and z coordinates
             let intensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
             // Change the intensity values in tverts (webGL-compatible
             // representation of the entire surface object)
@@ -301,14 +275,12 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
                         r = i + renderUtil.QUAD[k][0];
                         c = j + renderUtil.QUAD[k][1];
 
-                        if (state.webGlData[m] === undefined)
-                            state.webGlData[m] = [];
+                        state.webGlData[m][count] = (intensity.get(r, c) - thresh.lo) /
+                                (thresh.hi - thresh.lo);
 
-
-                        state.webGlData[m][count] = (intensity.get(r, c) - loThresh) /
-                                (hiThresh - loThresh);
-
-                        count += 10;
+                        // Avoid using += because it can't be optimized with V8
+                        // https://github.com/GoogleChrome/devtools-docs/issues/53
+                        count = count + 10;
                     }
                 }
             }
@@ -323,78 +295,65 @@ let ctrlDef = ['$http', '$scope', 'session', function TimelineController($http, 
      * Updates the opacity of each trace
      * @param  {number} newOpacity A value between 0 and 1
      */
-    let updateOpacity = function(newOpacity) {
+    let updateRawDataOpacity = function(newOpacity) {
         // Make a note of the new opacity
-        settings.opacity = newOpacity;
+        settings.rawDataOpacity = newOpacity;
 
         for (let i = 0; i < state.traces.length; i++) {
             state.traces[i].surface.opacity = newOpacity;
         }
 
-        forceGlRedraw();
+        changeColormap();
     };
 
-    let changeColormap = function() {
-        // TODO For some reason calling this function makes all traces disappear
-        for (let i = 0; i < state.traces.length; i++) {
-            state.traces[i].surface._colorMap.setPixels(genColormap(
-                convertColorScale(state.traces[i].data.colorscale)
-            ));
+    let updateMasksOpacity = function(newOpacity) {
+        settings.maskOpacity = newOpacity;
+
+        for (let i = 0; i < state.masks.length; i++) {
+            state.masks[i].mesh.opacity = newOpacity;
         }
 
-        forceGlRedraw();
+        changeColormap();
     };
 
-    /**
-     * Translates a Plotly colorscale into a colormap spec that can be handled
-     * by `colormap`. Maps every element of the colorscale to an object with
-     * properties `index` and `rgb`, where index is the index of scale where
-     * that color is used and rgb is an array of length 3 representing red,
-     * blue, and green values respectively.
-     *
-     * @param  {array} colorscale Plotly colorscale. Each element in the array
-     *                            is an array containing two elements, the
-     *                            second being a color formatted as an RGB
-     *                            string (e.g. "rgb(0,0,0)") and the first being
-     *                            the index where that color is used.
-     */
-    let convertColorScale = function(colorscale) {
-        return _.map(colorscale, elem => {
+    // These next three functions are adapted from here:
+    // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L608
+    function changeColormap() {
+        for (i = 0; i < state.traces.length; i++) {
+            const cs = state.traces[i].data.colorscale;
+            state.traces[i].surface._colorMap.setPixels(genColormap(parseColorScale(cs)));
+        }
+        forceGlRedraw();
+    }
+
+    //return rgba colormap from tinycolor-compatible colorscale string
+    function parseColorScale(colorscale) {
+        return colorscale.map(function(elem) {
+            let index = elem[0];
             let color = tinycolor(elem[1]);
             let rgb = color.toRgb();
             return {
-                index: elem[0],
+                index: index,
                 rgb: [rgb.r, rgb.g, rgb.b]
             };
         });
-    };
+    }
 
-    // Adapted from here:
-    // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L608
-    let genColormap = function(colormapSpec) {
-        let cm = colormap({
-            // Customize our color map here
-            colormap: colormapSpec,
-            // This isn't a supported format, but if we leave it blank it
-            // defaults to hex values and we want the unformatted values (an
-            // array of length-4 arrays, one for the R, G, B, and A).
-            format: '__array__',
-            // Create N_COLORS divisions in the colormap
+    //return alpha-threhsolded webGL-compatible colormap from rgba colormap
+    function genColormap (name) {
+        const x = pack([colormap({
+            colormap: name,
             nshades: N_COLORS,
-            // Add an alpha channel to the colormap starting from 0 and ending
-            // at 1
-            alpha: [0, 1]
-        });
+            format: 'rgba',
+            alpha: [0,1]
+        }).map(function (c) {
+            return [c[0], c[1], c[2], 255 * c[3]];
+        })]);
 
-        let arr = pack([cm]);
-
-        // Divide everything by 255 so that every element represents its rgba
-        // value as a number between 0 and 1
-        ops.divseq(arr, 255.0);
-        // arr.set(0, 0, 3, 0);
-
-        return arr;
-    };
+        // Convert all values from a scale of [0-255] to [0-1] for webGL
+        ops.divseq(x, 255.0);
+        return x;
+    }
 
     let forceGlRedraw = function() {
         state.traces[0].scene.glplot.redraw();

@@ -8,40 +8,63 @@ let ctrlDef = ['$scope', '$http', 'session', function($scope, $http, session) {
     $scope.$on(events.META_LOADED, (event, data) => {
         $ctrl.colors = data.colors;
 
-        session.timeline(data.metadata._id).then(function(response) {
-            // Array of all mask code names, range of [0-n) where n is the
-            // number of masks and 'global'
-            let codeNames = response.data.data;
+        $ctrl.masks = [];
+        for (let mask of data.masks) {
+            let m = _.clone(mask);
+            m.enabled = false;
+            $ctrl.masks.push(m);
+        }
+    });
 
-            let masks = _.map(codeNames, codeName => {
-                let displayName = 'Mask ' + codeName;
-                if (codeName === 'global')
-                    displayName = 'Global Fluorescence';
+    $scope.$on(events.MASK_CLICKED, (event, mask) => {
+        // Update our mask data here
+        let maskIndex = _.findIndex($ctrl.masks, m => m.codeName === mask.codeName);
+        let localMask = $ctrl.masks[maskIndex];
+        localMask.enabled = !localMask.enabled;
 
-                return {
-                    displayName: displayName,
-                    codeName: codeName,
-                    // Disabled by default
-                    enabled: false
-                };
-            });
+        // Notify siblings that the mask has been toggled
+        $ctrl.toggled(localMask);
 
-            // Move the global trace to the top of the list
-            let globalIndex = _.findIndex(masks, m => m.codeName === 'global');
-            if (globalIndex >= 0) {
-                let globalTrace = masks[globalIndex];
-                masks.splice(globalIndex, 1);
-                masks.unshift(globalTrace);
-            }
-
-            $ctrl.masks = masks;
-        });
+        // This fixes an issue where toggles don't show that they are disabled
+        // when they actually are
+        $scope.$apply();
     });
 
     $ctrl.toggled = function(mask) {
         $scope.$emit(events.SIBLING_NOTIF, {
             type: events.MASK_TOGGLED,
             data: mask
+        });
+    };
+
+    let setAllEnabled = function(enabled) {
+        for (let mask of $ctrl.masks) {
+            mask.enabled = enabled;
+        }
+    };
+
+    $ctrl.toggleAll = function() {
+        let disabled = _.filter($ctrl.masks, m => !m.enabled);
+        let enabled = _.filter($ctrl.masks, m => m.enabled);
+        let mode = 'enable';
+        let selectedMasks;
+
+        // Enable any disabled masks
+        if (disabled.length > 0) {
+            selectedMasks = disabled;
+        } else if (enabled.length === $ctrl.masks.length) {
+            // Only disable if all masks are enabled
+            mode = 'disable';
+            selectedMasks = enabled;
+        }
+
+        setAllEnabled(mode === 'enable');
+        $scope.$emit(events.SIBLING_NOTIF, {
+            type: events.TOGGLE_ALL,
+            data: {
+                mode: mode,
+                masks: selectedMasks
+            }
         });
     };
 }];

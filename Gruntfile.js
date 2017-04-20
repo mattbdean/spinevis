@@ -13,7 +13,8 @@ module.exports = function(grunt) {
         pkg: pkg,
         clean: {
             buildPrep: [build, finalDist],
-            testPrep: ['build']
+            testPrep: ['build'],
+            jspm: [clientBase + 'jspm_packages']
         },
         mochaTest: {
             test: {
@@ -28,12 +29,7 @@ module.exports = function(grunt) {
                 'app/server/src/**/*.js'
             ],
             options: {
-                // ECMAScript version 6
-                esversion: 6,
-                // Ignore "don't make functions in a loop"
-                '-W083': true,
-                // Use only 'let' or 'const', not 'var'
-                varstmt: true
+                jshintrc: true
             }
         },
         karma: {
@@ -99,7 +95,7 @@ module.exports = function(grunt) {
             },
             config: {
                 cwd: clientBase,
-                src: 'config.js',
+                src: 'jspm.config.js',
                 dest: finalDist + 'scripts/',
                 expand: true
             },
@@ -152,7 +148,7 @@ module.exports = function(grunt) {
                 tasks: ['copy:rawAssets']
             },
             jspmConfig: {
-                files: ['app/client/config.js'],
+                files: ['app/client/jspm.config.js'],
                 tasks: ['copy:config', 'copy:jspm']
             }
         },

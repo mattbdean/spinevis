@@ -10,8 +10,9 @@ let jul = new Date(year, 6, 1);
 let timezoneOffsetStandard = Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
 
 let timezoneOffsetAdjusted = timezoneOffsetStandard;
-if (new Date().getTimezoneOffset() < timezoneOffsetStandard) {
-    timezoneOffsetAdjusted += 1;
+if (new Date().getTimezoneOffset() > timezoneOffsetStandard) {
+    // Add 1 hour for daylight savings time
+    timezoneOffsetAdjusted += 60;
 }
 
 let timezoneOffsetMillis = timezoneOffsetAdjusted * 60 * 1000;

@@ -1,6 +1,8 @@
-let events = [
+const events = [
     // Metadata has beeen loaded
     'META_LOADED',
+    // Metadata has been received by a child component
+    'META_RECEIVED',
     // A component has been initialized
     'INITIALIZED',
     // Sent to notify sibling scopes. Data must be an object with a 'type'
@@ -11,12 +13,21 @@ let events = [
     'DATA_FOCUS_CHANGE',
     // The user has enabled or disabled a trace from the mask-toggles component
     'MASK_TOGGLED',
+    // Toggle all masks
+    'TOGGLE_ALL',
+    // A mask was clicked in the volume component
+    'MASK_CLICKED',
+    // The user has pressed the right arrow key to move forward by one timepoint
+    'MOVE_FORWARD',
+    // The user has pressed the left arrow key to move backward by one timepoint
+    'MOVE_BACKWARD',
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Settings
-    ////////////////////////////////////////////////////////////////////////////
-    'SET_THRESHOLD',
-    'SET_OPACITY'
+    ///////////////////////////////////////////////////////////////////////////
+    // Visual settings
+    ///////////////////////////////////////////////////////////////////////////
+    'SET_OPACITY_RAW_DATA',
+    'SET_OPACITY_MASKS',
+    'SET_THRESHOLD_RAW_DATA'
 ];
 
 let eventMap = {};

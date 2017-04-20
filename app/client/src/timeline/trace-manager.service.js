@@ -49,59 +49,76 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
         this.onDomainChange(0, Infinity);
     };
 
-    this.putTrace = function(codeName, displayName) {
-        if (this.traces[codeName] !== undefined) {
-            console.error(`Attempted to add trace with code name ` +
-                `"${codeName}" more than once`);
-            // Caller is expecting a promise value
-            return Promise.resolve();
+    this.putTraces = function(masks) {
+        let newMaskCodeNames = [];
+        for (let mask of masks) {
+            if (this.traces[mask.codeName] !== undefined) {
+                console.error(`Attempted to add trace with code name ` +
+                    `"${codeName}" more than once`);
+                continue;
+            }
+
+            // Allocate a variable location for each resolution
+            let emptyData = {};
+            for (let thresh of this.thresholds) {
+                emptyData[thresh.resolution] = {};
+            }
+
+            // Register the trace
+            this.traces[mask.codeName] = {
+                displayName: mask.displayName,
+                downsampled: emptyData,
+                uuid: uuid.v4(),
+                color: this.colors[mask.codeName],
+                fullRes: null // placeholder
+            };
+
+            newMaskCodeNames.push(mask.codeName);
         }
 
-        // Allocate a variable location for each resolution
-        let emptyData = {};
-        for (let thresh of this.thresholds) {
-            emptyData[thresh.resolution] = {};
-        }
+        let downsamplingPromises = _.map(masks, m =>
+            downsampler.process(m.codeName, _.map(this.thresholds, t => t.resolution))
+        );
 
-        // Register the trace
-        this.traces[codeName] = {
-            displayName: displayName,
-            downsampled: emptyData,
-            uuid: uuid.v4(),
-            color: this.colors[codeName],
-            fullRes: null // placeholder
-        };
+        return Promise.all(downsamplingPromises).then(function(data) {
+            // data[i] is the downsampled data for mask[i]
+            for (let i = 0; i < masks.length; i++) {
+                self.traces[masks[i].codeName].downsampled = data[i].downsampled;
+                self.traces[masks[i].codeName].fullRes = data[i].fullRes;
+            }
 
-        return downsampler.process(codeName, _.map(this.thresholds, t => t.resolution)).then(function(data) {
-            self.traces[codeName].downsampled = data.downsampled;
-            self.traces[codeName].fullRes = data.fullRes;
-            return applyResolution([self.traces[codeName]]);
-        }).catch(function(err) {
-            throw err;
+            let newTraces = _.map(newMaskCodeNames, m => self.traces[m]);
+            return applyResolution(newTraces);
         });
     };
 
-    this.removeTrace = function(codeName) {
-        if (this.traces[codeName] === undefined) {
-            console.error('Attempted to remove non-existant trace with code ' +
-                'name ' + codeName);
+    this.removeTraces = function(masks) {
+        let doomedMasks = [];
+        let doomedIndexes = [];
 
-            // Caller expects a promise to be returned
-            return Promise.resolve();
+        for (let mask of masks) {
+            if (this.traces[mask.codeName] === undefined) {
+                console.error('Attempted to remove non-existant trace with code ' +
+                    'name ' + mask.codeName);
+                continue;
+            }
+
+            let self = this;
+
+            let trace = this.traces[mask.codeName];
+            let traceIndex = _.findIndex(this.plotNode.data, t => t.uid === trace.uuid);
+            if (traceIndex < 0) {
+                console.error(`Already removed trace with code name '${mask.codeName}'`);
+            } else {
+                doomedMasks.push(mask);
+                doomedIndexes.push(traceIndex);
+            }
         }
 
-        let self = this;
-
-        let trace = this.traces[codeName];
-        let traceIndex = _.findIndex(this.plotNode.data, t => t.uid === trace.uuid);
-        if (traceIndex < 0) {
-            console.error(`Already removed trace with code name '${codeName}'`);
-            return Promise.resolve();
-        }
-
-        console.log(traceIndex);
-        return Plotly.deleteTraces(this.plotNode, traceIndex).then(function() {
-            delete self.traces[codeName];
+        return Plotly.deleteTraces(this.plotNode, doomedIndexes).then(function() {
+            for (let mask of doomedMasks) {
+                delete self.traces[mask.codeName];
+            }
         });
     };
 
@@ -179,11 +196,10 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
      *                         with new data appropriate for the given threshold.
      */
     let applyResolution = function(traces) {
-        let indexByUuid = uuid => _.findIndex(self.plotNode.data, d => d.uid === uuid);
 
         // Find all new traces by filtering all traces whose UUID does not exist in
         // plot node's data object
-        let newTraceData = _.filter(traces, t => indexByUuid(t.uuid) < 0);
+        let newTraceData = _.filter(traces, t => traceIndexByUuid(t.uuid) < 0);
         let newTraces = _.map(newTraceData, t => {
             let computedData = createCoordinateData(t, self.displayRange, self.currentThresh);
             return {
@@ -209,10 +225,10 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
 
         let updateX = [], updateY = [], updateIndexes = [];
         for (let trace of oldTraceData) {
-            let {x, y} = createCoordinateData(trace, displayRange, currentThresh, self.relTimes);
+            let {x, y} = createCoordinateData(trace, self.displayRange, self.currentThresh, self.relTimes);
             updateX.push(x);
             updateY.push(y);
-            updateIndexes.push(indexByUuid(trace.uuid));
+            updateIndexes.push(traceIndexByUuid(trace.uuid));
         }
 
         if (oldTraceData.length > 0) {
@@ -236,9 +252,11 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
     let countPlottedTraces = () =>
         _.countBy(this.plotNode.data, t => t.mode).undefined || 0;
 
+    let traceIndexByUuid = uuid => _.findIndex(self.plotNode.data, d => d.uid === uuid);
+
     let addDataToTrace = function(traceData, range) {
-        let computedData = createCoordinateData(traceData, range, this.currentThresh);
-        Plotly.extendTraces(plotNode, {x: [computedData.x], y: [computedData.y]}, [traceData.index]);
+        let computedData = createCoordinateData(traceData, range, self.currentThresh);
+        Plotly.extendTraces(self.plotNode, {x: [computedData.x], y: [computedData.y]}, [traceIndexByUuid(traceData.uuid)]);
     };
 
     let createCoordinateData = function(traceData, displayRange, threshold) {

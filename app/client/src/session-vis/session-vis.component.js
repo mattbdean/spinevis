@@ -27,17 +27,16 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
 
     let $ctrl = this;
 
-    // Fail fast if injection does as well
-    if ($window.sessionId === undefined)
-        throw new ReferenceError('Expecting sessionId to be injected via $window');
-    $ctrl.sessionId = $window.sessionId;
-
-    // Set this as the title in case an unhandled error occurs when loading
-    // the rest of this component
-    title.set($ctrl.sessionId);
-
     // Use a Set to prevent potential excessive calls to Plotly.Plots.resize()
     let plotNodes = new Set();
+
+    let totalComponents = 0;
+    let initializedComponents = 0;
+    $ctrl.loading = true;
+
+    $scope.$on(events.META_RECEIVED, () => {
+        totalComponents++;
+    });
 
     // Watch for events from children scopes (e.g. the timeline component)
     // notifying us that they're finished initializing
@@ -49,6 +48,12 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         }
 
         plotNodes.add(plotNode);
+
+        if (++initializedComponents === totalComponents) {
+            $ctrl.loading = false;
+            // Force a digest cycle to ensure Angular knows about this update
+            setTimeout(() => { $scope.$apply(); }, 0);
+        }
     });
 
     // A child scope has requested us to send a notification to its sibling
@@ -67,24 +72,39 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         return Promise.all(promises);
     };
 
+    // Handle pressing left and right arrow keys to move backwards or forwards
+    // by one timepoint
+    $window.onkeyup = function(event) {
+        if (event.key === 'ArrowRight') {
+            $scope.$broadcast(events.MOVE_FORWARD);
+        } else if (event.key === 'ArrowLeft') {
+            $scope.$broadcast(events.MOVE_BACKWARD);
+        }
+    };
+
     /**
      * Bootstraps this component. Written as a function to minimize clutter in
      * controller function definition. Returns a Promise.
      */
     let init = function() {
         // Both plots require session metadata, grab that before creating them
+        let metadata;
         return initSessionMeta().then(function(meta) {
             title.set(`${meta.Animal} on ${util.format.dateShort(meta.start_time)}`);
+            metadata = meta;
 
-            let maskColors = createMaskColors(meta.masks.Pts.length);
+            return session.timeline(meta._id);
+        }).then(function(response) {
+            let maskColors = createMaskColors(metadata.masks.Pts.length);
             // Specifically make the global trace blue
             maskColors.global = '#1F77B4';
 
             // Notify all child scopes (e.g. the timeline component) that
             // the session metadata is ready
             $scope.$broadcast(events.META_LOADED, {
-                metadata: meta,
-                colors: maskColors
+                metadata: metadata,
+                colors: maskColors,
+                masks: createMasksObject(response.data.data)
             });
         });
     };
@@ -137,14 +157,40 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         }));
     };
 
-    // leggo
-    init().catch(function(err) {
-        $ctrl.criticalError = err.message;
-        console.error(err);
-    });
+    let createMasksObject = function(codeNames) {
+        return _.map(codeNames, codeName => {
+            let displayName = 'Mask ' + codeName;
+            if (codeName === 'global')
+                displayName = 'Global Fluorescence';
+
+            return {
+                displayName: displayName,
+                codeName: codeName
+            };
+        });
+    };
+
+    this.$onInit = function() {
+        if ($ctrl.sessionId === undefined) {
+            throw new Error('Expecting sessionId to be passed as a component attribute');
+        }
+
+        // Set this as the title in case an unhandled error occurs when loading
+        // the rest of this component
+        title.set($ctrl.sessionId);
+
+        // leggo
+        init().catch(function(err) {
+            $ctrl.criticalError = err.message;
+            throw err;
+        });
+    };
 }];
 
 module.exports = {
     templateUrl: '/partial/session-vis',
-    controller: ctrlDef
+    controller: ctrlDef,
+    bindings: {
+        sessionId: '@'
+    }
 };

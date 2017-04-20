@@ -2,6 +2,8 @@ let assert = require('assert');
 let expect = require('chai').expect;
 let request = require('supertest');
 let _ = require('lodash');
+let moment = require('moment');
+
 let db = require('../src/database.js');
 let queries = require('../src/queries.js');
 let util = require('./_util.js');
@@ -55,6 +57,60 @@ describe('API v1', function() {
                         assert.strictEqual(res.body.start, 0);
                         assert.ok(res.body.size > 0);
                     });
+            });
+
+            it('should accept start and end date ranges', function() {
+                let expectedSize, startDate, endDate;
+                const start = 0, limit = 20;
+
+                let formatDate = (date) => moment(date).format('YYYY-MM-DD');
+
+                return queries.findAllSessions(start, limit).then(function(sessions) {
+                    startDate = sessions[sessions.length / 2].start_time;
+                    endDate = sessions[0].start_time;
+
+                    return queries.findAllSessions(start, limit, startDate, endDate);
+                }).then(function(sessions) {
+                    return request(app)
+                        .get(routePrefix + '/session?startDate=' + formatDate(startDate) + '&endDate=' + formatDate(endDate))
+                        .expect('Content-Type', /json/)
+                        .expect(200)
+                        .expect(function(res) {
+                            expect(res.body.size).to.equal(sessions.length);
+                        });
+                });
+            });
+
+            it('should reject an end date that is before the start date', function() {
+                return request(app)
+                    .get(routePrefix + '/session?startDate=2017-01-02&endDate=2017-01-01')
+                    .expect('Content-Type', /json/)
+                    .expect(400)
+            });
+
+            it.only('should accept the animal query parameter', function() {
+                // Basically what we're trying to do here is assert that the
+                // amount of sessions returned from queries.findAllSessions with
+                // the animal parameter included has the same length as the
+                // API response data
+                
+                const start = 0, limit = 20;
+                let animal = null;
+                return queries.findAllSessions(0, 1).then(function(sessions) {
+                    animal = sessions[0].Animal;
+                    return queries.findAllSessions(start, limit, undefined, undefined, animal);
+                }).then(function(sessions) {
+                    const size = sessions.length;
+                    let animal = sessions[0].Animal;
+
+                    return request(app)
+                        .get(routePrefix + `/session?start=${start}&limit=${limit}&animal=${animal}`)
+                        .expect('Content-Type', /json/)
+                        .expect(200)
+                        .expect(function(res) {
+                            expect(res.body.data.length).to.equal(size);
+                        });
+                });
             });
         });
 

@@ -1,5 +1,6 @@
 let _ = require('lodash');
 let express = require('express');
+let moment = require('moment');
 let Parameter = require('pinput/parameter');
 let Contract = require('pinput/contract');
 
@@ -65,7 +66,7 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
 
             // Make sure the type was one of the errors already checked for
             if (status !== undefined) {
-                return next(responses.error(err.msg, err.data, status));
+                return next(responses.error(err.message, err.data, status));
             }
         }
 
@@ -74,6 +75,18 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
         return next(responses.error());
     });
 };
+
+const inputDateFormat = 'YYYY-MM-DD';
+// Validate a date using moment.js strict mode (3rd parameter = true for strict)
+let validateDate = (dateStr) => moment(dateStr, inputDateFormat, true).isValid();
+
+let makeDateParam = (name, source, optional = true) => new Parameter({
+    name: name,
+    rawInput: source[name],
+    validate: validateDate,
+    errorMessage: `${name} must be in the format ${inputDateFormat}`,
+    optional: optional
+});
 
 // Get 'light' session metadata for all sessions
 router.get('/', function(req, res, next) {
@@ -87,10 +100,35 @@ router.get('/', function(req, res, next) {
 
     let parameters = [
         new Parameter(start),
-        new Parameter(limit)
+        new Parameter(limit),
+        makeDateParam('startDate', req.query),
+        makeDateParam('endDate', req.query),
+        new Parameter({
+            name: 'animal',
+            rawInput: req.query.animal,
+            // Accept all input
+            validate: () => true,
+            errorMessage: 'animal was invalid',
+            optional: true
+        })
     ];
 
-    runQuery(parameters, queries.findAllSessions, res, next, true);
+    // Make sure that if both startDate and endDate are defined that startDate
+    // comes before endDate
+    let contracts = [new Contract({
+        names: ['startDate', 'endDate'],
+        verify: (startDate, endDate) => {
+            // We only care if both startDate and endDate are defined
+            if (startDate === undefined || endDate === undefined) return true;
+            // Parse each date using moment
+            let [start, end] = _.map([startDate, endDate],
+                d => moment(d, inputDateFormat));
+            return start.isBefore(end);
+        },
+        messageOnBroken: 'startDate must be before endDate'
+    })];
+
+    runQuery(parameters, queries.findAllSessions, res, next, true, contracts);
 });
 
 // Get 'heavy' session metadata for a specific session
@@ -139,30 +177,26 @@ router.get('/:id/timeline', function(req, res, next) {
     runQuery(parameters, queries.getTimeline, res, next);
 });
 
-router.get('/:id/volume', function(req, res, next) {
-    // end is an optional integer parameter that must be greater than 1
-    let end = input.integer('end', req.query.end, 1);
-    end.optional = true;
-
+router.get('/:id/volume/:index', function(req, res, next) {
     let parameters = [
         input.sessionId(req.params.id),
         // start is a required integer parameter with no default value that must
         // be greater than 0
-        new Parameter(input.integer('start', req.query.start, 0)),
-        new Parameter(end)
+        new Parameter(input.integer('index', req.params.index, 0)),
     ];
 
-    let contracts = [];
-
-    if (_.find(parameters, p => p.name === 'end').value !== undefined) {
-        contracts.push( new Contract({
-            names: ['start', 'end'],
-            verify: (start, end) => start <= end,
-            messageOnBroken: 'start must be less than or equal to end'
-        }) );
+    for (const p of parameters) {
+        if (p.valid === false) {
+            return next(responses.errorObj(p.error));
+        }
     }
 
-    runQuery(parameters, queries.getVolumes, res, next, false, contracts);
+    return queries.getVolumes(parameters[0].value, parameters[1].value).then(function(binaryData) {
+        res.write(binaryData, 'binary');
+        res.end(null, 'binary');
+    }).catch(function(err) {
+        console.log(err);
+    });
 });
 
 module.exports = router;
