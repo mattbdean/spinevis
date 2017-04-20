@@ -221,12 +221,6 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
 
             if (domainMillis !== undefined) {
                 traceManager.onDomainChange(domainMillis.start, domainMillis.end);
-
-                let selectedMillis = domainMillis.start +
-                    (domainMillis.end - domainMillis.start) * DATA_FOCUS_POSITION;
-
-                // User settled on this timepoint
-                onTimepointSelected(selectedMillis);
             }
         });
 
@@ -243,6 +237,9 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
         });
 
         let onXaxisRangeChange = (prop, action, newValue, oldValue) => {
+            // Sometimes we are given an invalid range
+            if (typeof newValue === 'string') return;
+
             let millisecondValue = _.map(newValue, x => new Date(x).getTime() - timezoneOffsetMillis);
             let middleMillis = millisecondValue[0] +
                 ((millisecondValue[1] - millisecondValue[0]) * DATA_FOCUS_POSITION);
@@ -350,7 +347,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             type: events.DATA_FOCUS_CHANGE,
             data: actualIndex
         });
-        lastFocusIndex = actualIndex
+        lastFocusIndex = actualIndex;
     };
 
     // Initialize only empty graph

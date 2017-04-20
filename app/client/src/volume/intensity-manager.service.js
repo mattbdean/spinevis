@@ -11,23 +11,17 @@ const IDEAL_PADDING = 50;
 // https://caolan.github.io/async/docs.html#queue for more
 const QUEUE_CONCURRENCY = 3;
 
-// Each data point is ~318 kb, so each padding increment requests about 1 MB
-// of data per request, something that most internet speeds should be able to
-// handle pretty simply
-const PADDING_INCREMENT = 3;
-
-// The amount of additional padding to request when the user gets close to the
-// end of the cached range
-const BUFFER_EXTENSION = 30;
+// The amount of milliseconds to wait after receiving the last request to start
+// buffering more data
+const ENQUEUE_DELAY = 1000;
 
 const def = ['session', function(session) {
     const self = this;
     const cache = {};
     let queue = null;
-    let cacheRange = null;
-    // Time in milliseconds of the last request
-    let lastRequestMillis = 0;
-    let lastRequestIndex = -1;
+
+    let lastRequestTime = null;
+    let queueTimeout = null;
 
     let _init = false;
 
@@ -80,18 +74,25 @@ const def = ['session', function(session) {
     };
 
     this.fetch = (index) => {
-        const tasks = determineRequestIndicies(index);
+        if (Date.now() - lastRequestTime < ENQUEUE_DELAY && queueTimeout !== null)
+            clearTimeout(queueTimeout);
 
-        // Give priority to new request ranges by removing all tasks queued up
-        // already
-        if (tasks.length !== 0) queue.kill();
+        lastRequestTime = Date.now();
 
-        // Push each task to the end of the queue. determineRequestIndicies()
-        // returns an array in order of absolute distance from the given index.
-        // In other words, |tasks[i] - index| < |tasks[i + 1] - index|. Push
-        // tasks in this order so that we process the data closest to the given
-        // index and then spread out from there.
-        for (let t of tasks) queue.push(t);
+        queueTimeout = setTimeout(() => {
+            const tasks = determineRequestIndicies(index);
+
+            // Give priority to new request ranges by removing all tasks queued up
+            // already
+            if (tasks.length !== 0) queue.kill();
+
+            // Push each task to the end of the queue. determineRequestIndicies()
+            // returns an array in order of absolute distance from the given index.
+            // In other words, |tasks[i] - index| < |tasks[i + 1] - index|. Push
+            // tasks in this order so that we process the data closest to the given
+            // index and then spread out from there.
+            for (let t of tasks) queue.push(t);
+        }, ENQUEUE_DELAY);
 
         // Now we actually have to fetch the data
         return new Promise(function(resolve, reject) {
@@ -132,12 +133,12 @@ const def = ['session', function(session) {
 
     const determineRequestIndicies = function(index) {
         // Make sure we're not requesting anything out of bounds
-        const max = Math.min(self.indexRange.end + 1, index + IDEAL_PADDING + 1);
         const min = Math.max(self.indexRange.start, index - IDEAL_PADDING);
+        const max = Math.min(self.indexRange.end, index + IDEAL_PADDING);
 
         const indicies = [];
         for (let i = min; i < max; i++) {
-            if (!self.has(index)) indicies.push(i);
+            if (!self.has(i)) indicies.push(i);
         }
 
         // Sort by absolute distance from the start of the range to the index so
