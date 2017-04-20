@@ -32,11 +32,12 @@ let serviceDef = ['$http', function($http) {
         });
     };
 
-    this.volume = function(id, start, end) {
+    this.volume = function(id, index) {
         ensureId(id);
-        return sendRequest(`/${id}/volume`, {
-            start: start,
-            end: end
+        return $http({
+            url: `${this.baseUrl}/${id}/volume/${index}`,
+            method: 'GET',
+            responseType: 'arraybuffer'
         });
     };
 

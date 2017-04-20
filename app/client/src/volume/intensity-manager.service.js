@@ -25,6 +25,9 @@ const def = ['session', function(session) {
     const cache = {};
     let queue = null;
     let cacheRange = null;
+    // Time in milliseconds of the last request
+    let lastRequestMillis = 0;
+    let lastRequestIndex = -1;
 
     let _init = false;
 
@@ -53,34 +56,10 @@ const def = ['session', function(session) {
 
         queue = async.queue((task, callback) => {
             // Use callback for both then() and catch()
-            return fetchNetwork(task.start, task.end).then(callback, callback);
+            return fetchNetwork(task).then(callback, callback);
         }, QUEUE_CONCURRENCY);
 
         _init = true;
-    };
-
-    /**
-     * Inserts an array of data into the cache.
-     *
-     * @param  {number[]} data
-     * @param  {number}   startIndex The index at which the value for data[0]
-     *                               should be placed
-     */
-    const decodeAndCache = (data, startIndex) => {
-        // Ensure that we are dealing with an array. Any other input type is
-        // probably a programming error
-        if (!Array.isArray(data)) {
-            throw new Error('expecting data to be an array');
-        }
-
-        const decoded = [];
-        for (let i = 0; i < data.length; i++) {
-            const d = decode(data[i]);
-            decoded.push(d);
-            cache[startIndex + i] = d;
-        }
-
-        return decoded;
     };
 
     /** Checks if an index exists in the cache */
@@ -101,17 +80,17 @@ const def = ['session', function(session) {
     };
 
     this.fetch = (index) => {
-        const tasks = determineRequestRanges(index);
+        const tasks = determineRequestIndicies(index);
 
         // Give priority to new request ranges by removing all tasks queued up
         // already
         if (tasks.length !== 0) queue.kill();
 
-        // Push each task to the end of the queue. determineRequestRanges()
+        // Push each task to the end of the queue. determineRequestIndicies()
         // returns an array in order of absolute distance from the given index.
-        // In other words, |tasks[i].start - index| < |tasks[i + 1].start - index|
-        // Push tasks in this order so that we process the data closest to the
-        // given index and then spread out from there.
+        // In other words, |tasks[i] - index| < |tasks[i + 1] - index|. Push
+        // tasks in this order so that we process the data closest to the given
+        // index and then spread out from there.
         for (let t of tasks) queue.push(t);
 
         // Now we actually have to fetch the data
@@ -138,71 +117,32 @@ const def = ['session', function(session) {
      * @return {Promise}       A Promise that will resolve to the data at the
      *                         requested index
      */
-    const fetchNetwork = (start, end) => {
+    const fetchNetwork = (index) => {
         // Make sure we have the required data
         if (!_init) {
             throw new Error('You need to init() the intensityManager service first');
         }
 
-        return request(start, end).then(data => {
-            return decodeAndCache(data, start);
+        return session.volume(self.sessionId, index).then(data => {
+            // data is an XHR response, data.data contains the actual ArrayBuffer
+            cache[index] = new Float32Array(data.data);
+            return cache[index];
         });
     };
 
-    const determineRequestRanges = function(index) {
+    const determineRequestIndicies = function(index) {
         // Make sure we're not requesting anything out of bounds
         const max = Math.min(self.indexRange.end + 1, index + IDEAL_PADDING + 1);
         const min = Math.max(self.indexRange.start, index - IDEAL_PADDING);
 
-        const createRanges = (start, end) => {
-            const ranges = [];
-            let rangeStart = start;
-            let count = 0;
-
-            for (let i = start; i < end; i++) {
-                if (self.has(i)) {
-                    if (count === 0) {
-                        rangeStart++;
-                    } else {
-                        ranges.push(range.create(rangeStart, rangeStart + count));
-                        rangeStart += count + 1;
-                        count = 0;
-                    }
-                } else {
-                    if (++count === PADDING_INCREMENT) {
-                        ranges.push(range.create(rangeStart, rangeStart + count));
-                        rangeStart = i + 1;
-                        count = 0;
-                    }
-                }
-            }
-
-            if (count !== 0) {
-                // There are leftovers
-                ranges.push(range.create(rangeStart, rangeStart + count));
-            }
-
-            return ranges;
-        };
-
-        const combinedRanges = _.concat(
-            createRanges(min, index),
-            // Don't include the actual index because that will be handled
-            // elsewhere
-            createRanges(index + 1, max)
-        );
+        const indicies = [];
+        for (let i = min; i < max; i++) {
+            if (!self.has(index)) indicies.push(i);
+        }
 
         // Sort by absolute distance from the start of the range to the index so
         // that points closer to the index get requested first
-        return _.sortBy(combinedRanges, (r) => Math.abs(r.start - index));
-    };
-
-    const request = (startIndex, endIndex) => {
-        return session.volume(self.sessionId, startIndex, endIndex).then(function(res) {
-            // We only care about the intensity data, which is located in
-            // the pixelF property of each element of the data array
-            return _.map(res.data.data, d => d.pixelF);
-        });
+        return _.sortBy(indicies, (i) => Math.abs(i - index));
     };
 
     /**
@@ -225,14 +165,6 @@ const def = ['session', function(session) {
 
         return arr;
     };
-
-    /**
-     * Parses a base-64 encoded string into a float-32 array
-     *
-     * @param  {object} encoded Base-64 encoded float-32 array
-     * @return {Float32Array}   A Float32Array representing the
-     */
-    const decode = (encoded) => tab64.decode(encoded, 'float32');
 
     /**
      * Interprets a 1-dimensional Float32Array as a 3-dimensional array such

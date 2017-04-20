@@ -201,21 +201,14 @@ module.exports.getTimeline = function(sessionId, traceId) {
     });
 };
 
-module.exports.getVolumes = function(sessionId, start, end) {
-    let query = {srcID: sessionId};
+module.exports.getVolumes = function(sessionId, start) {
+    let query = {srcID: sessionId, volNum: start};
 
-    if (start === end || end === undefined) {
-        // If we know that we only have to retrieve one point we can optimize
-        // our query such that it only has to find one document
-        query.volNum = start;
-    } else {
-        // Retrieving a range of points
-        query.volNum = {$gte: start, $lt: end};
-    }
     return db.mongo().collection(COLL_VOLUMES)
         .find(query)
-        .sort({volNum: 1})
-        .toArray();
+        .toArray().then(function(data) {
+            return data[0].pixelF.buffer;
+        });
 };
 
 let createDynamicQuerySegment = function(key, values) {

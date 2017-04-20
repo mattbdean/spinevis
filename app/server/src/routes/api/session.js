@@ -177,30 +177,26 @@ router.get('/:id/timeline', function(req, res, next) {
     runQuery(parameters, queries.getTimeline, res, next);
 });
 
-router.get('/:id/volume', function(req, res, next) {
-    // end is an optional integer parameter that must be greater than 1
-    let end = input.integer('end', req.query.end, 1);
-    end.optional = true;
-
+router.get('/:id/volume/:index', function(req, res, next) {
     let parameters = [
         input.sessionId(req.params.id),
         // start is a required integer parameter with no default value that must
         // be greater than 0
-        new Parameter(input.integer('start', req.query.start, 0)),
-        new Parameter(end)
+        new Parameter(input.integer('index', req.params.index, 0)),
     ];
 
-    let contracts = [];
-
-    if (_.find(parameters, p => p.name === 'end').value !== undefined) {
-        contracts.push( new Contract({
-            names: ['start', 'end'],
-            verify: (start, end) => start <= end,
-            messageOnBroken: 'start must be less than or equal to end'
-        }) );
+    for (const p of parameters) {
+        if (p.valid === false) {
+            return next(responses.errorObj(p.error));
+        }
     }
 
-    runQuery(parameters, queries.getVolumes, res, next, false, contracts);
+    return queries.getVolumes(parameters[0].value, parameters[1].value).then(function(binaryData) {
+        res.write(binaryData, 'binary');
+        res.end(null, 'binary');
+    }).catch(function(err) {
+        console.log(err);
+    });
 });
 
 module.exports = router;
