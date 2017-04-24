@@ -30,7 +30,8 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
     let hasMore = true;
     let loading = false;
 
-    $ctrl.today = () => moment().format();
+
+    $ctrl.today = moment().format();
 
     $scope.$watchCollection('$ctrl.dateRange', (newVal) => {
         $ctrl.sessions = [];
