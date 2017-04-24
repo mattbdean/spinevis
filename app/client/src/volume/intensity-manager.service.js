@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const LRU = require('lru-cache');
 const async = require('async');
 const range = require('../core/range.js');
 
@@ -14,9 +15,12 @@ const QUEUE_CONCURRENCY = 3;
 // buffering more data
 const ENQUEUE_DELAY = 1000;
 
+// The maximum amount of data in the cache
+const MAX_CACHE_LENGTH = 1000;
+
 const def = ['session', function(session) {
     const self = this;
-    const cache = {};
+    const cache = LRU(MAX_CACHE_LENGTH);
     let queue = null;
 
     let lastRequestTime = null;
@@ -56,20 +60,21 @@ const def = ['session', function(session) {
     };
 
     /** Checks if an index exists in the cache */
-    this.has = index => cache[index] !== undefined;
+    this.has = index => cache.has(index);
 
     /** Retrieves the cached value for a given index */
     this.cached = index => {
-        let x = cache[index];
+        let x = cache.peek(index);
 
         // Unpack on the fly. If we fetch 200 points and we unpack all of them
         // prematurely and the user never views them, we will have wasted
         // computing power.
         if (!isUnpacked(x)) {
-            cache[index] = unpack(x);
+            cache.set(index, unpack(x));
         }
 
-        return cache[index];
+        // Return the value from the cache so we update its "recently used"-ness
+        return cache.get(index);
     };
 
     this.fetch = (index) => {
@@ -125,8 +130,9 @@ const def = ['session', function(session) {
 
         return session.volume(self.sessionId, index).then(data => {
             // data is an XHR response, data.data contains the actual ArrayBuffer
-            cache[index] = new Float32Array(data.data);
-            return cache[index];
+            cache.set(index, new Float32Array(data.data));
+            // Access through the cache so we update its "recently used"-ness
+            return cache.get(index);
         });
     };
 
