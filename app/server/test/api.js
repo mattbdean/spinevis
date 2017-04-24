@@ -85,7 +85,7 @@ describe('API v1', function() {
                 return request(app)
                     .get(routePrefix + '/session?startDate=2017-01-02&endDate=2017-01-01')
                     .expect('Content-Type', /json/)
-                    .expect(400)
+                    .expect(400);
             });
 
             it('should accept the animal query parameter', function() {
@@ -248,7 +248,7 @@ let binaryParser = function(res, callback) {
     res.on('end', () => {
         callback(null, new Buffer(res.data, 'binary'));
     });
-}
+};
 
 let testIdEndpoint = function(app, formatEndpoint) {
     let expectedStatus = 200;
@@ -263,7 +263,7 @@ let testIdEndpoint = function(app, formatEndpoint) {
                 assert.ok(typeof res.body.data === 'object');
             });
     });
-}
+};
 
 let expectErrorResponse = function(app, path, expectedStatus) {
     return request(app)
@@ -276,7 +276,7 @@ let expectErrorResponse = function(app, path, expectedStatus) {
             assert.equal(res.body.status, expectedStatus);
             validateError(res.body.error);
         });
-}
+};
 
 let validateError = function(errorObject) {
     assert.ok(errorObject !== undefined, 'error was undefined');
