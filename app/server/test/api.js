@@ -114,6 +114,22 @@ describe('API v1', function() {
             });
         });
 
+        describe(`GET ${routePrefix}/session/dates`, function() {
+            it('should respond with an array of ISO-8601-formatted dates', function() {
+                return request(app)
+                    .get(routePrefix + '/session/dates')
+                    .expect(200)
+                    .expect('Content-Type', /json/)
+                    .expect(function(res) {
+                        const format = 'YYYY-MM-DDTHH:mm:ss.SSSZ'
+                        expect(Array.isArray(res.body.data)).to.be.true;
+                        for (const dateStr of res.body.data) {
+                            expect(moment(dateStr, format, true).isValid()).to.be.true;
+                        }
+                    });
+            });
+        });
+
         describe(`GET ${routePrefix}/session/:id`, function() {
             it('should respond with a body whose data field is an object', function() {
                 return testIdEndpoint(app, (id) => `${routePrefix}/session/${id}`);

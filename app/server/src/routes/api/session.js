@@ -131,6 +131,10 @@ router.get('/', function(req, res, next) {
     runQuery(parameters, queries.findAllSessions, res, next, true, contracts);
 });
 
+router.get('/dates', function(req, res, next) {
+    runQuery([], queries.getSessionDates, res, next);
+});
+
 // Get 'heavy' session metadata for a specific session
 router.get('/:id', function(req, res, next) {
     runQuery([input.sessionId(req.params.id)], queries.getSessionMeta, res, next);
