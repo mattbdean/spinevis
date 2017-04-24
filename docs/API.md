@@ -135,25 +135,6 @@ Sample `data` contents:
 }
 ```
 
-### `GET /api/v1/session/:id/volume`
+### `GET /api/v1/session/:id/volume/:index`
 
-Gets 3D imaging data (a volume) in a specific range. Returns an array.
-
-**Query parameters**
-
- - `start` - starting index
- - `end` - (optional) end index. If `end` is not specified, this endpoint will retrieve the data at the index specified by `start`.
-
-Sample `data` element:
-
-```json
-{
-    "_id": "58b03cd7cd41e836b4d43135",
-    "pixelF": <...>,
-    "absTime": "2016-01-06T20:49:27.106Z",
-    "volNum": 100,
-    "srcID": "BMWR34:20160106:1:1"
-}
-```
-
-`pixelF` is base-64 encoded data that should be parsed as a float 32 array.
+Gets an arraybuffer of 3D imaging data (a volume) at a specific index.

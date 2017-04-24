@@ -1,5 +1,6 @@
 {
     "esversion": 6,
     "-W083": true,
+    "-W030": true,
     "varstmt": true
 }

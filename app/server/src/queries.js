@@ -201,8 +201,8 @@ module.exports.getTimeline = function(sessionId, traceId) {
     });
 };
 
-module.exports.getVolumes = function(sessionId, start) {
-    let query = {srcID: sessionId, volNum: start};
+module.exports.getVolumes = function(sessionId, index) {
+    let query = {srcID: sessionId, volNum: index};
 
     return db.mongo().collection(COLL_VOLUMES)
         .find(query)
