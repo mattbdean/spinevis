@@ -12,6 +12,7 @@ let range = require('../core/range.js');
 let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
 let defaultPlotOptions = require('../core/plotdefaults.js');
 let events = require('../session-vis/events.js');
+const thresholds = require('./thresholds.conf.js');
 
 const PLACEHOLDER_ID = '__placeholder__';
 const PLACEHOLDER_NAME = 'Add a trace';
@@ -61,18 +62,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             sessionFrequency: $ctrl.sessionMeta.volRate,
             relTimes: $ctrl.sessionMeta.relTimes,
             colors: data.colors,
-            thresholds: [
-                {
-                    visibleDomain: Infinity,
-                    resolution: 1,
-                    nick: 'all'
-                },
-                {
-                    visibleDomain: 5 * 60 * 1000, // 5 minutes
-                    resolution: 100,
-                    nick: '5min'
-                }
-            ]
+            thresholds: thresholds
         });
 
         return initBehavior()
