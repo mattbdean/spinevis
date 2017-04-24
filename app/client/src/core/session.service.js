@@ -13,6 +13,10 @@ let serviceDef = ['$http', function($http) {
         });
     };
 
+    this.dates = function() {
+        return sendRequest('/dates');
+    };
+
     this.get = function(id) {
         ensureId(id);
         return sendRequest(`/${id}`);

@@ -1,10 +1,19 @@
 div.row
-    datepicker.col-sm-4.filter(date-format='{{$ctrl.dateFormat}}' date-max-limit='{{$ctrl.today}}')
+    datepicker.col-sm-4.filter(
+        date-format='{{$ctrl.dateFormat}}'
+        date-min-limit='{{$ctrl.dateBounds.start}}'
+        date-max-limit='{{$ctrl.dateBounds.end}}'
+    )
         input.form-control(
             ng-model='$ctrl.dateRange.start'
             placeholder='Date range start'
         )
-    datepicker.col-sm-4.filter(date-format='{{$ctrl.dateFormat}}' date-max-limit='{{$ctrl.today}}')
+
+    datepicker.col-sm-4.filter(
+        date-format='{{$ctrl.dateFormat}}'
+        date-min-limit='{{$ctrl.dateBounds.start}}'
+        date-max-limit='{{$ctrl.dateBounds.end}}'
+    )
         input.form-control(
             ng-model='$ctrl.dateRange.end'
             placeholder='Date range end'

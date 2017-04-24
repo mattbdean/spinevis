@@ -30,8 +30,10 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
     let hasMore = true;
     let loading = false;
 
-
-    $ctrl.today = moment().format();
+    $ctrl.dateBounds = {
+        start: moment().format(),
+        end: moment().format()
+    };
 
     $scope.$watchCollection('$ctrl.dateRange', (newVal) => {
         $ctrl.sessions = [];
@@ -126,6 +128,23 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         })
         .finally(function(response) {
             loading = false;
+        });
+    };
+
+    $ctrl.$onInit = function() {
+        session.dates().then(function(res) {
+            const dates = _.map(res.data.data, d => moment(d));
+            $ctrl.dateBounds = {
+                start: dates[0].format(momentInputFormat),
+                // Add 1 day to the end because the `end` API parameter is
+                // exclusive, while the `start` parameter is inclusive
+                end: dates[dates.length - 1].add(1, 'days').format(momentInputFormat)
+            };
+
+            $ctrl.dateRange = {
+                start: dates[0].format(momentInputFormat),
+                end: dates[dates.length - 1].format(momentInputFormat)
+            };
         });
     };
 }];
