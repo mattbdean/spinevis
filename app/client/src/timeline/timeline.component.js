@@ -135,6 +135,12 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                     width: 1.5
                 }
             }],
+            margin: {
+                t: 20,
+                r: 20,
+                b: 80,
+                l: 40
+            },
             showlegend: true
         };
 
