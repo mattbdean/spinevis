@@ -72,7 +72,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
     let formatMetadata = (meta) => ({
         id: meta._id,
         animal: meta.Animal,
-        run: meta.Run,
+        name: meta.name || 'Run ' + meta.Run,
         // Add new property 'duration', difference between start and end time
         // formatted in the format 'h:mm'
         duration: util.format.duration(meta.start_time, meta.end_time),
@@ -110,6 +110,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         .then(function(response) {
             let sessions = response.data.data;
             for (let session of response.data.data) {
+                console.log(session);
                 $ctrl.sessions.push(formatMetadata(session));
             }
 

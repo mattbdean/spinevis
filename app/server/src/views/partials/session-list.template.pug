@@ -17,10 +17,10 @@ div.row
 table.table.table-hover.table-striped(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
     tr
         th Animal
+        th Name
         th Start Date
         th Duration
         //- th Field of View
-        th Run
         th Samples
         th Imaging Rate
     tr(ng-repeat="session in $ctrl.sessions")
@@ -33,5 +33,5 @@ table.table.table-hover.table-striped(infinite-scroll='$ctrl.nextPage()' infinit
 
         //- Nest an <a> in each <td> so that the row will be clickable when
         //- combined with some CSS magic
-        td(ng-repeat="key in ['startTime', 'duration', 'run', 'sampleCount', 'imagingRate']")
+        td(ng-repeat="key in ['name', 'startTime', 'duration', 'sampleCount', 'imagingRate']")
             a(href='/session/{{session.id}}') {{session[key]}}
