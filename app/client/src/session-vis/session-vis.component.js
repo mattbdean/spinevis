@@ -105,6 +105,16 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
                 colors: maskColors,
                 masks: createMasksObject(response.data.data)
             });
+
+            // Wait a half second to clear the loading message if we're
+            // developing and removed any components that listen for META_LOADED
+            // events
+            setTimeout(() => {
+                if (totalComponents === 0) {
+                    $ctrl.loading = false;
+                    setTimeout(() => { $scope.$apply(); }, 0);
+                }
+            }, 500);
         });
     };
 
