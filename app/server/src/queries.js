@@ -111,6 +111,20 @@ module.exports.findAllSessions = function(start, limit, startDate, endDate, anim
 };
 
 /**
+ * Gets an array of dates that sessions started in ascending order
+ */
+module.exports.getSessionDates = function() {
+    return db.mongo().collection(COLL_META)
+        .find()
+        .project({ _id: 0, start_time: 1 })
+        .sort({ start_time: 1 })
+        .toArray()
+        .then(function(docs) {
+            return _.uniq(_.map(docs, d => d.start_time));
+        });
+};
+
+/**
  * Get all metadata, both 'light' and 'heavy', for a specific session.
  *
  * @param id The value of the session's '_id' field. Case sensitive.

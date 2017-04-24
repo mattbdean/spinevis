@@ -111,6 +111,18 @@ describe('queries', function() {
         });
     });
 
+    describe('getSessionDates()', function() {
+        it('should return an array of dates', function() {
+            return queries.getSessionDates().then(function(result) {
+                expect(Array.isArray(result)).to.be.true;
+
+                for (const r of result) {
+                    expect(r).to.be.an.instanceof(Date);
+                }
+            });
+        });
+    });
+
     describe('getSessionMeta()', function() {
         it('should return only one session', function() {
             let _id = firstSessionId;
