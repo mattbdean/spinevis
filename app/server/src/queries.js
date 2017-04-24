@@ -98,7 +98,7 @@ module.exports.findAllSessions = function(start, limit, startDate, endDate, anim
     }
 
     if (animal !== undefined) {
-        query.Animal = animal;
+        query.Animal = new RegExp(animal, 'i');
     }
 
     return db.mongo().collection(COLL_META)
