@@ -14,7 +14,7 @@ div.row
         //- Wrap .form-control inputs in a div because .form-control sets width: 100%
         input.form-control(ng-model='$ctrl.animal' placeholder='Animal name')
 
-table.table.table-hover.table-striped(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
+table.table.table-hover.table-striped.session-table(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
     tr
         th Animal
         th Name
@@ -24,14 +24,15 @@ table.table.table-hover.table-striped(infinite-scroll='$ctrl.nextPage()' infinit
         th Samples
         th Imaging Rate
     tr(ng-repeat="session in $ctrl.sessions")
-        //- Allow the user to click on the session name to find all sessions for that animal
-        td.animal-name(
-            href='#'
-            ng-click='$ctrl.animal = session.animal'
-            ng-attr-title='Show sessions for {{session.animal}}'
-        ) {{session.animal}}
+        td
+            a(href='/session/{{session.id}}') {{session.animal}}
+            a.material-icons.md-dark(
+                href='#'
+                ng-click='$ctrl.animal = session.animal'
+                ng-attr-title='Show sessions for {{session.animal}}'
+            ) search
 
         //- Nest an <a> in each <td> so that the row will be clickable when
         //- combined with some CSS magic
         td(ng-repeat="key in ['name', 'startTime', 'duration', 'sampleCount', 'imagingRate']")
-            a(href='/session/{{session.id}}') {{session[key]}}
+            a.full-width-link(href='/session/{{session.id}}') {{session[key]}}

@@ -110,7 +110,6 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         .then(function(response) {
             let sessions = response.data.data;
             for (let session of response.data.data) {
-                console.log(session);
                 $ctrl.sessions.push(formatMetadata(session));
             }
 
