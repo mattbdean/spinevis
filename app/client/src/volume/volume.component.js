@@ -88,7 +88,9 @@ function TimelineController($http, $scope, session, intensityManager) {
                 b: 0,
                 t: 0,
                 l: 0
-            }
+            },
+            // Manually set in conjunction with session-vis.css
+            height: 550
         };
 
         // Clone the plot options so we don't mess with other plots that use
