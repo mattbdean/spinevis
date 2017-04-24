@@ -7,7 +7,7 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
 
     const makeOpacityControl = (label, defaultValue) => ({
         label: label,
-        // Current value lives here, defaults to `defaultValue`
+        // Current value lives here
         model: defaultValue,
         options: {
             floor: 0,
@@ -20,14 +20,14 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
     $ctrl.controls = {
         threshold: {
             label: 'Threshold',
-            // Current values live here, defaults to [30, 400]
-            model: defaults.threshold,
+            // Current values live here
+            model: { lo: defaults.threshold.lo, hi: defaults.threshold.hi },
             options: {
                 // Values vary from [-100, 5000], the user can change the min
                 // and max value by increments/decrements of 10
-                floor: -100,
-                ceil: 5000,
-                step: 10
+                floor: defaults.threshold.absLo,
+                ceil: defaults.threshold.absHi,
+                step: defaults.threshold.step
             }
         },
         maskOpacity: makeOpacityControl('Mask Opacity', defaults.maskOpacity),
