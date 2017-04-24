@@ -1,6 +1,6 @@
 const ctrlDef = ['$fancyModal', function($fancyModal) {
     this.open = () => {
-        $fancyModal.open({ templateUrl: '/partial/help-dialog '})
+        $fancyModal.open({ templateUrl: '/partial/help-dialog '});
     };
 }];
 

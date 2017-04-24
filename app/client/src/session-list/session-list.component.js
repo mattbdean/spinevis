@@ -91,7 +91,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         start = 0;
         hasMore = true;
         $ctrl.nextPage();
-    }
+    };
 
     $ctrl.nextPage = function() {
         // Don't beat a dead horse
