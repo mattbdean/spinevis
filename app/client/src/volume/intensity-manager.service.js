@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const tab64 = require('hughsk/tab64');
 const async = require('async');
 const range = require('../core/range.js');
 

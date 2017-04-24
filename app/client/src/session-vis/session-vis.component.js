@@ -1,6 +1,5 @@
 let moment = require('moment');
 let $ = require('jquery');
-let tab64 = require('hughsk/tab64');
 let _ = require('lodash');
 let colormap = require('colormap');
 let tinycolor = require('tinycolor2');
