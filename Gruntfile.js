@@ -1,12 +1,11 @@
 let fs = require('fs');
 let path = require('path');
-let bundle = require('jspm/lib/bundle');
 
 module.exports = function(grunt) {
     let pkg = grunt.file.readJSON('package.json');
 
-    let clientBase = 'app/client/';
-    let finalDist = 'app/server/public/';
+    const clientBase = 'app/client/';
+    const finalDist = 'app/server/public/';
 
     grunt.initConfig({
         pkg: pkg,
