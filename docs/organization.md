@@ -22,7 +22,6 @@ The following is a brief overview of spinevis' directory structure.
 
 ## Build and temporary directories
 
- - `app/client/build` is a temporary website asset build location
  - `app/server/public` is the directory Express serves from. `grunt build` assembles all website assets and copies them to this directory.
  - `build/` contains build files relevant to both the server and the client (i.e. code coverage). Code coverage can be generated with `grunt testCoverage`. Server and client coverage can be merged with `grunt lcovMerge` and uploaded to Coveralls with `grunt coveralls`.
 
