@@ -7,12 +7,19 @@ Every API response follows the same format:
 ```json
 {
     "status": <HTTP status code>,
-    "data": <...>,
-    "error": <...>
+    "data": <...>
 }
 ```
 
-`status` is always present. If there is no error, `error` will not be present and `data` will be present. In a similar fashion, if there is an error, `data` will not be present and `error` will be present.
+Or for an unsuccessful response:
+
+```json
+{
+    "status": <HTTP status code>,
+    "error": <...>
+}
+
+```
 
 ### Paginated data
 
