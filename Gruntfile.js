@@ -6,13 +6,12 @@ module.exports = function(grunt) {
     let pkg = grunt.file.readJSON('package.json');
 
     let clientBase = 'app/client/';
-    let build = clientBase + 'build/';
     let finalDist = 'app/server/public/';
 
     grunt.initConfig({
         pkg: pkg,
         clean: {
-            buildPrep: [build, finalDist],
+            buildPrep: [finalDist],
             testPrep: ['build'],
             jspm: [clientBase + 'jspm_packages']
         },
@@ -81,46 +80,24 @@ module.exports = function(grunt) {
                     src: ['**/*.js'],
                     dest: finalDist + 'scripts'
                 }]
+            },
+            jspmConfig: {
+                files: [{
+                    cwd: clientBase,
+                    expand: true,
+                    src: ['jspm.config.js'],
+                    dest: finalDist + 'scripts'
+                }]
             }
         },
         depcache: {
             dist: ['src/app.module.js']
         },
         copy: {
-            rawAssets: {
-                cwd: 'app/client/_assets/raw',
-                src: '**',
-                dest: finalDist,
-                expand: true
-            },
-            config: {
-                cwd: clientBase,
-                src: 'jspm.config.js',
-                dest: finalDist + 'scripts/',
-                expand: true
-            },
             jspm: {
                 cwd: clientBase + 'jspm_packages/',
                 src: '**',
                 dest: finalDist + 'scripts/jspm_packages/',
-                expand: true
-            },
-            style: {
-                cwd: build + 'style',
-                src: ['*.min.css', '*.min.css.map'],
-                dest: finalDist + 'style',
-                expand: true
-            },
-            views: {
-                cwd: build + 'views',
-                src: '**',
-                dest: finalDist + 'views',
-                expand: true
-            },
-            dist: {
-                cwd: build,
-                src: '**', // copy all files and subdirectories
-                dest: finalDist,
                 expand: true
             }
         },
@@ -135,15 +112,11 @@ module.exports = function(grunt) {
             },
             views: {
                 files: ['app/server/src/views/**/*.pug'],
-                tasks: ['pug', 'copy:views']
-            },
-            raw: {
-                files: ['app/client/_assets/raw/**/*'],
-                tasks: ['copy:rawAssets']
+                tasks: ['pug']
             },
             jspmConfig: {
                 files: ['app/client/jspm.config.js'],
-                tasks: ['copy:config', 'copy:jspm']
+                tasks: ['babel:jspmConfig']
             }
         },
         run: {
@@ -162,7 +135,7 @@ module.exports = function(grunt) {
     for (let cssFile of cssFiles) {
         minifyTargets.push({
             src: cssFile,
-            dest: build + `style/${path.basename(cssFile, '.css')}.min.css`
+            dest: finalDist + `style/${path.basename(cssFile, '.css')}.min.css`
         });
     }
     grunt.config('cssmin.build.files', minifyTargets);
@@ -189,7 +162,7 @@ module.exports = function(grunt) {
     // app/server/src/views
 
     let srcDir = 'app/server/src/views/';
-    let outDir = build + 'views/';
+    let outDir = finalDist + 'views/';
     let filesMap = {};
 
     // Data to be passed to every template
