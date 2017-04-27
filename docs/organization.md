@@ -7,9 +7,9 @@ The following is a brief overview of spinevis' directory structure.
 
 ## Website
 
- - `app/client/_assets` contains all non-JS assets, e.g. CSS files
- - `app/client/_assets/style` contains CSS files. All files in here will be minified.
- - `app/client/_assets/raw` contains any static files that should be served directly
+ - `app/client/assets` contains all non-JS assets, e.g. CSS files
+ - `app/client/assets/style` contains CSS files. All files in here will be minified.
+ - `app/client/assets/raw` contains any static files that should be served directly
  - `app/client/src` contains all AngularJS code
  - `app/client/test` contains all website tests
 

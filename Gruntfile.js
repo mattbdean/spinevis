@@ -106,7 +106,7 @@ module.exports = function(grunt) {
                 tasks: ['babel:dist']
             },
             css: {
-                files: ['./app/client/_assets/style/*.css'],
+                files: ['./app/client/assets/style/*.css'],
                 tasks: ['cssmin', 'copy:style']
             },
             views: {
@@ -127,7 +127,7 @@ module.exports = function(grunt) {
     });
 
     // Created a .min.css file for every CSS file in the style directory
-    let cssFiles = grunt.file.expand('app/client/_assets/style/*.css');
+    let cssFiles = grunt.file.expand('app/client/assets/style/*.css');
     let minifyTargets = [];
 
     // Create cssmin.build.files dynamically
