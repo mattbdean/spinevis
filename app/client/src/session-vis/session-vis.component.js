@@ -8,13 +8,16 @@ let events = require('./events.js');
 let util = require('../core/util.js');
 let defaultPlotOptions = require('../core/plotdefaults.js');
 
+const METADATA_LOADING = '(loading)';
+
 const METADATA_DEFAULTS = {
-    Animal: '(loading)',
+    Animal: METADATA_LOADING,
     // start_time and end_time are expected to be an ISO 8601-formatted string,
     // like what the API will return. Set these values to the current date.
     start_time: moment().format(),
     end_time: moment().format(),
-    Run: '(loading)'
+    Run: METADATA_LOADING,
+    name: METADATA_LOADING
 };
 
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
@@ -136,6 +139,8 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         });
     };
 
+    let formatName = (name) => name === undefined ? '<no name>' : `"${name}"`;
+
     /**
      * Creates an array of formatted metadata. `source` should be an object
      * that is similar to the data returned by `GET /api/v1/session/:id`
@@ -146,7 +151,8 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         'Animal ' + source.Animal,
         util.format.dateTime(source.start_time),
         util.format.duration(source.start_time, source.end_time),
-        'Run ' + source.Run
+        'Run ' + source.Run,
+        formatName(source.name)
     ];
 
     $ctrl.sessionFormattedMeta = createFormattedMetadata(METADATA_DEFAULTS);
