@@ -31,13 +31,13 @@ module.exports = function(config) {
 
 
     jspm: {
-        config: 'config.js',
+        config: 'jspm.config.js',
         loadFiles: [
-            'jspm_packages/npm/angular@1.6.2.js',
             'src/**/*.js',
             'test/**/*.js'
         ],
-        serveFiles: ['jspm_packages/**/*']
+        serveFiles: ['jspm_packages/**/*'],
+        stripExtension: false
     },
 
     proxies: {

@@ -248,7 +248,7 @@ module.exports = function(grunt) {
     grunt.registerTask('noDbModeWarn', function() {
         grunt.log.writeln('WARNING: Some tests have been skipped due to no access to a database');
     });
-    grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn'/**, 'karma'*/]);
+    grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
     grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'depcache', 'copy']);
 };
