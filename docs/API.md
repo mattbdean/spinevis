@@ -67,7 +67,8 @@ Sample `data` element:
     "volRate": 14.1163,
     "start_time": "2016-01-06T20:49:20.035Z",
     "end_time": "2016-01-06T21:53:44.338Z",
-    "Animal": "BMWR34"
+    "Animal": "BMWR34",
+    "name": "some name"
 }
 ```
 
