@@ -507,7 +507,8 @@ SystemJS.config({
     ]
   },
   map: {
-    "angular-resource": "npm:angular-resource@1.6.2"
+    "angular-resource": "npm:angular-resource@1.6.2",
+    "hughsk/tab64": "github:hughsk/tab64@0.0.1"
   }
 });
 
@@ -525,6 +526,7 @@ SystemJS.config({
     "angularjs-slider": "npm:angularjs-slider@6.1.1",
     "assert": "npm:jspm-nodelibs-assert@0.2.1",
     "async": "npm:async@2.3.0",
+    "babel-polyfill": "npm:babel-polyfill@6.23.0",
     "bit-twiddle": "npm:bit-twiddle@1.0.2",
     "bootstrap": "github:twbs/bootstrap@3.3.7",
     "buffer": "npm:jspm-nodelibs-buffer@0.2.3",
@@ -537,7 +539,6 @@ SystemJS.config({
     "dtype": "npm:dtype@2.0.0",
     "events": "npm:jspm-nodelibs-events@0.2.2",
     "fs": "npm:jspm-nodelibs-fs@0.2.1",
-    "hughsk/tab64": "github:hughsk/tab64@0.0.1",
     "jquery": "npm:jquery@3.2.1",
     "lodash": "npm:lodash@4.17.4",
     "lru-cache": "npm:lru-cache@4.0.2",
@@ -1138,6 +1139,19 @@ SystemJS.config({
       "map": {
         "pseudomap": "npm:pseudomap@1.0.2",
         "yallist": "npm:yallist@2.1.2"
+      }
+    },
+    "npm:babel-polyfill@6.23.0": {
+      "map": {
+        "regenerator-runtime": "npm:regenerator-runtime@0.10.4",
+        "babel-runtime": "npm:babel-runtime@6.23.0",
+        "core-js": "npm:core-js@2.4.1"
+      }
+    },
+    "npm:babel-runtime@6.23.0": {
+      "map": {
+        "regenerator-runtime": "npm:regenerator-runtime@0.10.4",
+        "core-js": "npm:core-js@2.4.1"
       }
     }
   }

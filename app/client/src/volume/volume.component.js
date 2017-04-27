@@ -321,7 +321,7 @@ function TimelineController($http, $scope, session, intensityManager) {
     // These next three functions are adapted from here:
     // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L608
     function changeColormap() {
-        for (i = 0; i < state.traces.length; i++) {
+        for (let i = 0; i < state.traces.length; i++) {
             const cs = state.traces[i].data.colorscale;
             state.traces[i].surface._colorMap.setPixels(genColormap(parseColorScale(cs)));
         }

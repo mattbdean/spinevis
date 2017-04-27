@@ -83,6 +83,20 @@ module.exports = function(grunt) {
                 }
             }
         },
+        babel: {
+            options: {
+                sourceMap: true,
+                presets: ['es2015']
+            },
+            dist: {
+                files: [{
+                    cwd: clientBase + 'src/',
+                    expand: true,
+                    src: ['**/*.js'],
+                    dest: finalDist + 'scripts'
+                }]
+            }
+        },
         depcache: {
             dist: ['src/app.module.js']
         },
@@ -97,12 +111,6 @@ module.exports = function(grunt) {
                 cwd: clientBase,
                 src: 'jspm.config.js',
                 dest: finalDist + 'scripts/',
-                expand: true
-            },
-            scripts: {
-                cwd: clientBase + 'src/',
-                src: ['**/*.js'],
-                dest: finalDist + 'scripts',
                 expand: true
             },
             jspm: {
@@ -133,7 +141,7 @@ module.exports = function(grunt) {
         watch: {
             js: {
                 files: ['app/client/src/**/*.js'],
-                tasks: ['copy:scripts']
+                tasks: ['babel:dist']
             },
             css: {
                 files: ['./app/client/_assets/style/*.css'],
@@ -224,6 +232,7 @@ module.exports = function(grunt) {
     grunt.config('pug.compile.options.data', data);
 
     let tasks = [
+        'babel',
         'contrib-clean',
         'contrib-copy',
         'contrib-cssmin',
@@ -250,5 +259,6 @@ module.exports = function(grunt) {
     });
     grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
-    grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'depcache', 'copy']);
+
+    grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'depcache', 'babel', 'copy']);
 };

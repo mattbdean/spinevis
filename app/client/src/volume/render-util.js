@@ -262,7 +262,7 @@ module.exports.getTverts = function(surface, params) {
 
     let tptr = 0;
     let vertexCount = 0;
-    for (i = 0; i < shape[0] - 1; ++i) {
+    for (let i = 0; i < shape[0] - 1; ++i) {
         j_loop:
         for (j = 0; j < shape[1] - 1; ++j) {
             // Test for NaNs
@@ -276,17 +276,17 @@ module.exports.getTverts = function(surface, params) {
                     }
                 }
             }
-            for (k = 0; k < 6; ++k) {
+            for (let k = 0; k < 6; ++k) {
                 let r = i + QUAD[k][0];
                 let c = j + QUAD[k][1];
 
                 let tx = surface._field[0].get(r + 1, c + 1);
                 let ty = surface._field[1].get(r + 1, c + 1);
-                f = surface._field[2].get(r + 1, c + 1);
+                let f = surface._field[2].get(r + 1, c + 1);
                 let vf = f;
-                nx = normals.get(r + 1, c + 1, 0);
-                ny = normals.get(r + 1, c + 1, 1);
-                nz = normals.get(r + 1, c + 1, 2);
+                let nx = normals.get(r + 1, c + 1, 0);
+                let ny = normals.get(r + 1, c + 1, 1);
+                let nz = normals.get(r + 1, c + 1, 2);
 
                 if (params.intensity) {
                     vf = params.intensity.get(r, c);

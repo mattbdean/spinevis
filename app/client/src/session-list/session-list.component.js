@@ -102,7 +102,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
 
         // Format the moments into date strings the API will understand
         let dateRange = _.map(parseDateRange($ctrl.dateRange));
-        [startDate, endDate] = _.map(dateRange, formatMoment);
+        let [startDate, endDate] = _.map(dateRange, formatMoment);
 
         let animal = $ctrl.animal;
         if (animal === '') animal = undefined;
