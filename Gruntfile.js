@@ -16,11 +16,6 @@ module.exports = function(grunt) {
             testPrep: ['build'],
             jspm: [clientBase + 'jspm_packages']
         },
-        mochaTest: {
-            test: {
-                src: ['app/server/test/**/*.js']
-            }
-        },
         jshint: {
             all: [
                 'Gruntfile.js',
@@ -40,20 +35,11 @@ module.exports = function(grunt) {
             }
         },
         mocha_istanbul: {
-            default: {
-                src: 'app/server/test',
-                options: {
-                    coverageFolder: 'build/reports/coverage/server'
-                }
+            options: {
+                coverageFolder: 'build/reports/coverage/server'
             },
-            noDbMode: {
-                src: [
-                    'app/server/test/validation.js'
-                ],
-                options: {
-                    coverageFolder: 'build/reports/coverage/server'
-                }
-            }
+            default: ['app/server/test'],
+            noDbMode: ['app/server/test/validation.js']
         },
         lcovMerge: {
             options: {
@@ -243,7 +229,6 @@ module.exports = function(grunt) {
         'jspm-depcache',
         'karma',
         'lcov-merge',
-        'mocha-test',
         'mocha-istanbul',
         'run'
     ];
@@ -253,7 +238,7 @@ module.exports = function(grunt) {
     }
 
     grunt.registerTask('default', ['test']);
-    grunt.registerTask('test', ['mochaTest', 'karma']);
+    grunt.registerTask('test', ['mocha_istanbul:default', 'karma']);
     grunt.registerTask('noDbModeWarn', function() {
         grunt.log.writeln('WARNING: Some tests have been skipped due to no access to a database');
     });
