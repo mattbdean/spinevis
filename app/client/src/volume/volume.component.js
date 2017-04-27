@@ -226,10 +226,14 @@ function TimelineController($http, $scope, session, intensityManager) {
             let clickedTrace = data.points[0].fullData;
             let mask = _.find($ctrl.maskMeta, m => m.displayName === clickedTrace.name);
 
-            $scope.$emit(events.SIBLING_NOTIF, {
-                type: events.MASK_CLICKED,
-                data: mask
-            });
+            // mask will be undefined when clicking on a non-mask trace (e.g.
+            // the raw data)
+            if (mask !== undefined) {
+                $scope.$emit(events.SIBLING_NOTIF, {
+                    type: events.MASK_CLICKED,
+                    data: mask
+                });
+            }
         });
 
         plotNode.on('plotly_relayout', (evt) => {
