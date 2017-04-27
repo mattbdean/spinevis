@@ -29,7 +29,7 @@ The following is a brief overview of spinevis' directory structure.
 ## Special files
 
  - `app/client/jspm_packages` contain all website (i.e. JSPM) dependencies, similar to the `node_modules` folder
- - `app/client/config.js` is the JSPM configuration file
+ - `app/client/jspm.config.js` is the JSPM configuration file
  - `.travis.yml` contains metadata for the Travis Continuous Integration website
  - `.karma.conf.js` contains configuration for the Karma task runner used for website unit tests
  - `nodemon.json` specifies some configuration for [nodemon](https://github.com/remy/nodemon)
