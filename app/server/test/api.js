@@ -1,4 +1,3 @@
-let assert = require('assert');
 let expect = require('chai').expect;
 let request = require('supertest');
 let _ = require('lodash');
@@ -38,13 +37,13 @@ describe('API v1', function() {
                         // Paginated data comes with a `size` property. Ensure
                         // the value of that property equals the length of the
                         // data
-                        assert.equal(res.body.size, res.body.data.length,
+                        expect(res.body.size).to.equal(res.body.data.length,
                             'unexpected "size" property on paginated JSON data');
 
                         // HTTP status code should be mirrored in response body
-                        assert.equal(res.body.status, expectedStatus);
+                        expect(res.body.status).to.equal(expectedStatus);
                         // 'start' must be a positive integer
-                        assert.ok(res.body.start >= 0, 'start was negative');
+                        expect(res.body.start).to.be.at.least(0, 'start was negative');
                     });
             });
 
@@ -54,8 +53,8 @@ describe('API v1', function() {
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .expect(function(res) {
-                        assert.strictEqual(res.body.start, 0);
-                        assert.ok(res.body.size > 0);
+                        expect(res.body.start).to.equal(0);
+                        expect(res.body.size).to.be.above(0);
                     });
             });
 
@@ -151,7 +150,7 @@ describe('API v1', function() {
                         .get(`${routePrefix}/session/${id}/behavior`)
                         .expect(expectedStatus)
                         .expect(function(res) {
-                            assert.ok(typeof res.body.data === 'object');
+                            expect(res.body.data).to.be.an('object');
                         });
                 });
             });
@@ -168,8 +167,8 @@ describe('API v1', function() {
                         .get(`${routePrefix}/session/${id}/behavior?types=${eventTypesCsv}`)
                         .expect(expectedStatus)
                         .expect(function(res) {
-                            assert.ok(typeof res.body.data === 'object');
-                            assert.equal(Object.keys(res.body.data).length, eventTypes.length);
+                            expect(res.body.data).to.be.an('object');
+                            expect(Object.keys(res.body.data)).to.have.lengthOf(eventTypes.length);
                         });
                 });
             });
@@ -186,8 +185,8 @@ describe('API v1', function() {
                         .get(`${routePrefix}/session/${id}/behavior?types=${eventTypesCsv}`)
                         .expect(expectedStatus)
                         .expect(function(res) {
-                            assert.strictEqual(res.body.data, undefined);
-                            assert.notStrictEqual(res.body.error, undefined);
+                            expect(res.body.data).to.be.undefined;
+                            expect(res.body.error).to.not.be.undefined;
                         });
                 });
             });
@@ -205,8 +204,8 @@ describe('API v1', function() {
                         .get(`${routePrefix}/session/${id}/behavior?types=${eventTypesCsv}`)
                         .expect(expectedStatus)
                         .expect(function(res) {
-                            assert.strictEqual(res.body.data, undefined);
-                            assert.notStrictEqual(res.body.error, undefined);
+                            expect(res.body.data).to.be.undefined;
+                            expect(res.body.error).to.exist;
                         });
                 });
             });
@@ -276,7 +275,7 @@ let testIdEndpoint = function(app, formatEndpoint) {
             .get(formatEndpoint(id))
             .expect(expectedStatus)
             .expect(function(res) {
-                assert.ok(typeof res.body.data === 'object');
+                expect(res.body.data).to.be.an('object');
             });
     });
 };
@@ -289,13 +288,13 @@ let expectErrorResponse = function(app, path, expectedStatus) {
         .expect(expectedStatus)
         .expect(function(res) {
             // Test format of response body
-            assert.equal(res.body.status, expectedStatus);
+            expect(res.body.status).to.equal(expectedStatus);
             validateError(res.body.error);
         });
 };
 
 let validateError = function(errorObject) {
-    assert.ok(errorObject !== undefined, 'error was undefined');
-    assert.ok(errorObject.msg !== undefined, 'error message was undefined');
-    assert.ok(errorObject.data !== undefined, 'error data was undefined');
+    expect(errorObject).to.not.be.undefined;
+    expect(errorObject.msg).to.not.be.undefined;
+    expect(errorObject.data).to.not.be.undefined;
 };

@@ -1,5 +1,5 @@
-let assert = require('assert');
 let expect = require('chai').expect;
+let _fail = require('assert').fail;
 let _ = require('lodash');
 let db = require('../src/database.js');
 let queries = require('../src/queries.js');
@@ -30,12 +30,13 @@ describe('queries', function() {
                 for (let session of sessions) {
                     // Make sure all keys in the object are in the above array
                     for (let key of Object.keys(session)) {
-                        assert.ok(approvedKeys.includes(key), `Key '${key}' is unexpected, session ID '${session._id}'`);
+                        expect(approvedKeys.includes(key)).to.equal(true,
+                            `Key '${key}' is unexpected, session ID '${session._id}'`);
                     }
 
                     // Make sure all expected keys have defined values
                     for (let key of approvedKeys) {
-                        assert.ok(session[key] !== undefined, `Key '${key}' is undefined`);
+                        expect(session[key]).to.exist;
                     }
                 }
             });
@@ -129,12 +130,12 @@ describe('queries', function() {
 
             return queries.getSessionMeta(firstSessionId).then(function(session) {
                 // Make sure the query returns an object with a matching _id
-                assert.equal(typeof session, 'object');
-                assert.equal(session._id, _id);
+                expect(session).to.be.an('object');
+                expect(session._id).to.equal(_id);
 
                 // Global fluorescense trace array must be equal in length to
                 // the relative time array
-                assert.equal(session.globalTC.length, session.relTimes.length);
+                expect(session.globalTC).to.have.lengthOf(session.relTimes.length);
             });
         });
     });
@@ -142,13 +143,13 @@ describe('queries', function() {
     describe('sessionExists()', function() {
         it('should return true for existing IDs', function() {
             return queries.sessionExists(firstSessionId).then(function(exists) {
-                assert.ok(exists, 'Did not find existing file');
+                expect(exists).to.be.true;
             });
         });
 
         it('should return false for non-existent IDs', function() {
             return queries.sessionExists('i_dont_exist').then(function(exists) {
-                assert.ok(!exists, 'Found non-existent session');
+                expect(exists).to.be.false;
             });
         });
     });
@@ -158,7 +159,7 @@ describe('queries', function() {
             return queries.getBehavior(firstSessionId).then(function(behaviorData) {
                 for (let key of Object.keys(behaviorData)) {
                     // Make sure we are always returning an array
-                    assert.ok(Array.isArray(behaviorData[key]));
+                    expect(Array.isArray(behaviorData[key])).to.be.true;
                 }
             });
         });
@@ -169,11 +170,11 @@ describe('queries', function() {
             return queries.getBehavior(firstSessionId, events).then(function(behaviorData) {
                 let dataKeys = Object.keys(behaviorData);
                 // Lengths should be the same
-                assert.ok(dataKeys.length === events.length);
+                expect(dataKeys).to.have.lengthOf(events.length);
 
                 // Make sure that every event that was requested was returned
                 for (let event of events) {
-                    assert.ok(dataKeys.includes(event));
+                    expect(dataKeys).to.include(event);
                 }
             });
         });
@@ -182,12 +183,14 @@ describe('queries', function() {
             let events = ['lick left', 'something else that doesn\'t exist', 'lick right'];
 
             return queries.getBehavior(firstSessionId, events).then(function(behaviorData) {
-                assert.fail(undefined, undefined, 'should not have reached here');
+                _fail(undefined, undefined, 'should not have reached here');
             }).catch(function(err) {
-                assert.equal(err.type, queries.ERROR_MISSING);
+                expect(err.type).to.equal(queries.ERROR_MISSING);
                 // events[1] will not have any data, expect that the only
                 // value in the error's 'types' array will be this value
-                assert.deepStrictEqual(err.data, {types: [events[1]]});
+                expect(err.data).to.deep.equal({
+                    types: [events[1]]
+                });
             });
         });
     });
@@ -195,11 +198,11 @@ describe('queries', function() {
     describe('getTimeline()', function() {
         it('should return only mask names when only provided a session ID', function() {
             return queries.getTimeline(firstSessionId).then(function(traceNames) {
-                assert.ok(Array.isArray(traceNames));
+                expect(Array.isArray(traceNames)).to.be.true;
                 for (let name of traceNames) {
                     // Should not be an object, either a Number or a string (if
                     // we ever transition into string-based IDs)
-                    assert.notEqual(typeof name, 'object');
+                    expect(name).to.not.be.an('object');
                 }
             });
         });
@@ -212,8 +215,8 @@ describe('queries', function() {
                 requestedName = traceNames[0];
                 return queries.getTimeline(sessionId, requestedName);
             }).then(function(traceData) {
-                assert.strictEqual(Object.keys(traceData).length, 1);
-                assert.notStrictEqual(traceData[requestedName], undefined);
+                expect(Object.keys(traceData)).to.have.lengthOf(1);
+                expect(traceData[requestedName]).to.exist;
             });
         });
     });

@@ -1,5 +1,5 @@
-let assert = require('assert');
 let validation = require('../src/routes/validation.js');
+let expect = require('chai').expect;
 
 let setUpSuite = function(validationFn, strict, validInput, invalidInput) {
     if (typeof validationFn === 'string') {
@@ -10,18 +10,22 @@ let setUpSuite = function(validationFn, strict, validInput, invalidInput) {
         it('should recognize valid input', function() {
             for (let valid of validInput) {
                 if (strict) {
-                    assert.strictEqual(validationFn(valid), true, `${valid} was unexpectedly invalid`);
+                    expect(validationFn(valid)).to.equal(true,
+                        `${valid} was unexpectedly invalid`);
                 } else {
-                    assert.ok(validationFn(valid), `${valid} was unexpectedly invalid`);
+                    expect(validationFn(valid)).to.equal(true,
+                        `${valid} was unexpectedly invalid`);
                 }
             }
         });
         it('should reject invalid input', function() {
             for (let invalid of invalidInput) {
                 if (strict) {
-                    assert.strictEqual(validationFn(invalid), false, `${invalid} was unexpectedly valid`);
+                    expect(validationFn(invalid)).to.equal(false,
+                        `${invalid} was unexpectedly valid`);
                 } else {
-                    assert.ok(!validationFn(invalid), `${invalid} was unexpectedly valid`);
+                    expect(validationFn(invalid)).to.equal(false,
+                        `${invalid} was unexpectedly valid`);
                 }
             }
         });

@@ -28,7 +28,7 @@ describe('Public HTML endpoints', function() {
                 return queries.findAllSessions(0, 1)
                 .then(function(sessions) {
                     let id = sessions[0]._id;
-                    return expectHtml(app, '/session/' + id)
+                    return expectHtml(app, '/session/' + id);
                 });
             });
 
@@ -56,6 +56,6 @@ describe('Public HTML endpoints', function() {
         return request(app)
             .get(path)
             .expect('Content-Type', /html/)
-            .expect(statusCode)
+            .expect(statusCode);
     };
 });
