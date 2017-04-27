@@ -27,7 +27,8 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
                 // and max value by increments/decrements of 10
                 floor: defaults.threshold.absLo,
                 ceil: defaults.threshold.absHi,
-                step: defaults.threshold.step
+                step: defaults.threshold.step,
+                enforceStep: false
             }
         },
         maskOpacity: makeOpacityControl('Mask Opacity', defaults.maskOpacity),

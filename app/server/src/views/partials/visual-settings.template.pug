@@ -1,3 +1,16 @@
+mixin opacityControl(label, model, options)
+    div.control
+        p: strong(ng-bind=label)
+        rzslider(
+            rz-slider-model=model
+            rz-slider-options=options
+        )
+
+
+mixin subcontrol(label, ngModel)
+    small: strong.text-muted= label
+    input.form-control(type='number' ng-model=ngModel)
+
 div.control
     p: strong(ng-bind='$ctrl.controls.threshold.label')
     rzslider(
@@ -6,16 +19,25 @@ div.control
         rz-slider-options='$ctrl.controls.threshold.options'
     )
 
-div.control
-    p: strong(ng-bind='$ctrl.controls.maskOpacity.label')
-    rzslider(
-        rz-slider-model='$ctrl.controls.maskOpacity.model'
-        rz-slider-options='$ctrl.controls.maskOpacity.options'
-    )
+div.threshold-settings
+    div.row.subcontrol
+        div.col-xs-6
+            +subcontrol('Abs. Low', '$ctrl.controls.threshold.options.floor')
+        div.col-xs-6
+            +subcontrol('Abs. High', '$ctrl.controls.threshold.options.ceil')
+    div.row.subcontrol
+        div.col-xs-12
+            +subcontrol('Step', '$ctrl.controls.threshold.options.step')
 
-div.control
-    p: strong(ng-bind='$ctrl.controls.rawDataOpacity.label')
-    rzslider(
-        rz-slider-model='$ctrl.controls.rawDataOpacity.model'
-        rz-slider-options='$ctrl.controls.rawDataOpacity.options'
-    )
+
++opacityControl(
+    '$ctrl.controls.maskOpacity.label',
+    '$ctrl.controls.maskOpacity.model',
+    '$ctrl.controls.maskOpacity.options'
+)
+
++opacityControl(
+    '$ctrl.controls.rawDataOpacity.label',
+    '$ctrl.controls.rawDataOpacity.model',
+    '$ctrl.controls.rawDataOpacity.options'
+)
