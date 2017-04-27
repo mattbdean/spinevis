@@ -33,3 +33,8 @@ The following is a brief overview of spinevis' directory structure.
  - `.travis.yml` contains metadata for the Travis Continuous Integration website
  - `.karma.conf.js` contains configuration for the Karma task runner used for website unit tests
  - `nodemon.json` specifies some configuration for [nodemon](https://github.com/remy/nodemon)
+
+## Project Configuration
+
+ - `app/client/src/visual-settings/defaults.js` contains default values for things like threshold and opacity sliders
+ - `app/client/src/timeline/thresholds.conf.js` specifies resolutions to downsample at and when to use these resolutions
