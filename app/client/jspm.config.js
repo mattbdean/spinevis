@@ -7,7 +7,6 @@ SystemJS.config({
   browserConfig: {
     "baseURL": "/scripts"
   },
-  transpiler: "plugin-babel",
   babelOptions: {
     "optional": [
       "runtime",
@@ -557,7 +556,6 @@ SystemJS.config({
     "os": "npm:jspm-nodelibs-os@0.2.1",
     "param-case": "npm:param-case@2.1.1",
     "path": "npm:jspm-nodelibs-path@0.2.3",
-    "plugin-babel": "npm:systemjs-plugin-babel@0.0.21",
     "process": "npm:jspm-nodelibs-process@0.2.1",
     "source-map": "npm:source-map@0.1.43",
     "stream": "npm:jspm-nodelibs-stream@0.2.1",
