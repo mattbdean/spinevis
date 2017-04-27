@@ -1,4 +1,6 @@
-let assert = require('assert');
+let _ = require('lodash');
+let fs = require('fs');
+let path = require('path');
 let request = require('supertest');
 let queries = require('../src/queries.js');
 let util = require('./_util.js');
@@ -40,15 +42,13 @@ describe('Public HTML endpoints', function() {
         });
     });
 
-    describe('partials', function() {
+    describe('GET /partial/:name', function() {
         // Dynamically create tests for partials, make sure every partial in the
         // list responds withi 200 OK
-        for (let partial of ['session-list', 'session-vis', 'timeline', 'volume']) {
-            describe('GET /partial/' + partial, function() {
-                it('should respond with 200 OK', function() {
-                    return expectHtml(app, '/partial/' + partial)
-                });
-            });
+        const partials = _.map(fs.readdirSync(__dirname + '/../src/views/partials'), p => path.basename(p, '.template.pug'));
+        for (const name of partials) {
+            it(`should respond with HTML for "/partial/${name}"`, () =>
+                expectHtml(app, '/partial/' + name));
         }
     });
 
