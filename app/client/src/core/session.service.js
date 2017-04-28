@@ -29,11 +29,13 @@ let serviceDef = ['$http', function($http) {
         });
     };
 
-    this.timeline = function(id, name) {
+    this.timeline = function(id, traceId) {
         ensureId(id);
-        return sendRequest(`/${id}/timeline`, {
-            name: name
-        });
+        let path = `/${id}/timeline`;
+        if (traceId !== undefined)
+            path += '/' + traceId;
+
+        return sendRequest(path);
     };
 
     this.volume = function(id, index) {

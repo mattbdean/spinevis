@@ -144,7 +144,7 @@ function TimelineController($http, $scope, session, intensityManager) {
                 i: polys[i][0],
                 j: polys[i][1],
                 k: polys[i][2],
-                color: colors[i],
+                color: colors[maskMetadata[i].codeName],
                 showscale: false,
                 opacity: settings.maskOpacity,
                 type: 'mesh3d',

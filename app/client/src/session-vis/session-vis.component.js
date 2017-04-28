@@ -97,15 +97,13 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
 
             return session.timeline(meta._id);
         }).then(function(response) {
-            let maskColors = createMaskColors(metadata.masks.Pts.length);
-            // Specifically make the global trace blue
-            maskColors.global = '#1F77B4';
+            const ids = _.map(response.data.data, d => d._id);
 
             // Notify all child scopes (e.g. the timeline component) that
             // the session metadata is ready
             $scope.$broadcast(events.META_LOADED, {
                 metadata: metadata,
-                colors: maskColors,
+                colors: createMaskColors(ids),
                 masks: createMasksObject(response.data.data)
             });
 
@@ -161,28 +159,26 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
      * Creates `limit` number of colors using `colormap` in 'rgb' format (e.g.
      * "rgb(0,0,0)").
      */
-    let createMaskColors = function(limit) {
-        if (typeof limit !== "number")
-            throw new Error('limit was not a number (was ' + typeof limit + ')');
-
-        return _.shuffle(colormap({
+    let createMaskColors = function(traceIds) {
+        const colors = _.shuffle(colormap({
             colormap: 'hsv',
-            nshades: limit,
+            nshades: traceIds.length,
             format: 'rgbaString'
         }));
+
+        const mapping = {};
+        for (let i = 0; i < colors.length; i++) {
+            mapping[traceIds[i]] = colors[i];
+        }
+
+        return mapping;
     };
 
-    let createMasksObject = function(codeNames) {
-        return _.map(codeNames, codeName => {
-            let displayName = 'Mask ' + codeName;
-            if (codeName === 'global')
-                displayName = 'Global Fluorescence';
-
-            return {
-                displayName: displayName,
-                codeName: codeName
-            };
-        });
+    let createMasksObject = function(masks) {
+        return _.map(masks, m => ({
+            codeName: m._id,
+            displayName: m.maskName
+        }));
     };
 
     this.$onInit = function() {

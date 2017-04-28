@@ -140,15 +140,6 @@ router.get('/:id', function(req, res, next) {
     runQuery([input.sessionId(req.params.id)], queries.getSessionMeta, res, next);
 });
 
-let validateTraceName = function(input) {
-    return input === 'global' || validation.integer(input);
-};
-
-let postProcessTraceName = function(input) {
-    if (input !== undefined)
-        return input === 'global' ? 'global' : parseInt(input, 10);
-};
-
 router.get('/:id/behavior', function(req, res, next) {
     let parameters = [
         input.sessionId(req.params.id),
@@ -166,15 +157,21 @@ router.get('/:id/behavior', function(req, res, next) {
 });
 
 router.get('/:id/timeline', function(req, res, next) {
+    runQuery([input.sessionId(req.params.id)], queries.getTimeline, res, next);
+});
+
+const validateObjectId = (id) => {
+    return /^[A-Za-z0-9]{24}$/.test(id);
+};
+
+router.get('/:id/timeline/:traceId', function(req, res, next) {
     let parameters = [
         input.sessionId(req.params.id),
         new Parameter({
-            name: 'name',
-            rawInput: req.query.name,
-            validate: validateTraceName,
-            errorMessage: 'Invalid trace name',
-            optional: true,
-            postprocess: postProcessTraceName
+            name: 'traceId',
+            rawInput: req.params.traceId,
+            validate: validateObjectId,
+            errorMessage: 'Invalid trace ID'
         })
     ];
 

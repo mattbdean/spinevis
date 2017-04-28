@@ -14,12 +14,12 @@ let util = require('./_util.js');
 
 describe('API v1', function() {
     let app;
-    beforeEach(function createServer() {
+    before(function createServer() {
         return util.serverFactory().then(function(serverApp) {
             app = serverApp.listen(util.TESTING_PORT);
         });
     });
-    afterEach(function closeConnections(done) {
+    after(function closeConnections(done) {
         util.closeConnections(app, done);
     });
 
@@ -59,12 +59,16 @@ describe('API v1', function() {
             });
 
             it('should accept start and end date ranges', function() {
+                const test = this;
+
                 let expectedSize, startDate, endDate;
                 const start = 0, limit = 20;
 
                 let formatDate = (date) => moment(date).format('YYYY-MM-DD');
 
                 return queries.findAllSessions(start, limit).then(function(sessions) {
+                    if (sessions.length < 2) return test.skip();
+
                     startDate = sessions[sessions.length / 2].start_time;
                     endDate = sessions[0].start_time;
 
@@ -220,17 +224,22 @@ describe('API v1', function() {
                         .expect(200);
                 });
             });
+        });
 
+        describe(`GET ${routePrefix}/session/:id/timeline/:traceId`, function() {
             it('should return actual trace data when requested', function() {
                 let id;
                 return queries.findAllSessions(0, 1).then(function(sessions) {
                     id = sessions[0]._id;
                     return queries.getTimeline(id);
-                }).then(function(traceNames) {
-                    let names = traceNames.slice(0, 5);
+                }).then(function(docs) {
                     return request(app)
-                        .get(`${routePrefix}/session/${id}/timeline?names=${_.join(names, ',')}`)
-                        .expect(200);
+                        .get(`${routePrefix}/session/${id}/timeline/${docs[0]._id}`)
+                        .expect(200)
+                        .expect((res) => {
+                            expect(res.body.data).to.have.all.keys(
+                                ['_id', 'maskName', 'maskF', 'srcID']);
+                        });
                 });
             });
         });

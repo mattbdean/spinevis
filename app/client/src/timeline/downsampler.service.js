@@ -27,8 +27,9 @@ let serviceDef = ['session', function DownsamplerService(session) {
             return Promise.resolve(cache.get(traceName));
         }
 
-        return session.timeline(this.sessionId, traceName).then((fullRes) =>
-            downsample(fullRes.data.data[traceName], traceName, resolutions));
+        return session.timeline(this.sessionId, traceName).then((res) => {
+            return downsample(res.data.data.maskF, traceName, resolutions);
+        });
     };
 
     let downsample = function(fullRes, traceName, resolutions) {

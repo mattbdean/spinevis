@@ -7,6 +7,7 @@
 let db = require('./database.js');
 let _ = require('lodash');
 let moment = require('moment');
+let ObjectID = require('bson').ObjectID;
 
 const COLL_META = 'meta';
 const COLL_BEHAVIOR = 'behavior';
@@ -187,30 +188,32 @@ module.exports.getBehavior = function(id, types = []) {
         });
 };
 
-module.exports.getTimeline = function(sessionId, traceId) {
-    let namesOnly = traceId === undefined;
+module.exports.getTimeline = function(sessionId, maskId) {
+    let namesOnly = maskId === undefined;
 
     let query = {srcID: sessionId};
     if (!namesOnly) {
-        query.maskNum = traceId;
+        query._id = ObjectID(maskId);
     }
 
     let cursor = db.mongo().collection(COLL_MASK_TIME_COURSE)
         .find(query);
     if (namesOnly) {
-        cursor = cursor.project({_id: 0, maskNum: 1});
+        cursor = cursor.project({_id: 1, maskName: 1});
+    } else {
+        cursor = cursor.limit(1);
     }
 
     return cursor.toArray().then(function(timeCourseDocs) {
         if (namesOnly) {
-            return _.map(timeCourseDocs, doc => doc.maskNum);
+            return timeCourseDocs;
         } else {
             if (timeCourseDocs.length < 1) {
                 // Couldn't find the requested trace
-                return Promise.reject(errorMissing('Couldn\'t find trace', {name: traceId}));
+                return Promise.reject(errorMissing('Couldn\'t find mask', {maskId}));
             }
 
-            return rearrangeByKey(timeCourseDocs, 'maskNum', 'maskF');
+            return timeCourseDocs[0];
         }
     });
 };

@@ -53,14 +53,15 @@ describe('queries', function() {
             });
         });
 
-        let getMiddleSession = (start = 0, limit = 20) =>
+        let getMiddleSession = (test, start = 0, limit = 20) =>
             queries.findAllSessions(start, limit).then(function(sessions) {
+                if (sessions.length === 1) return test.skip();
                 return sessions[sessions.length / 2];
             });
 
         it('should allow passing only startDate', function() {
             let startDate;
-            return getMiddleSession().then(function(session) {
+            return getMiddleSession(this).then(function(session) {
                 startDate = session.start_time;
 
                 return queries.findAllSessions(0, 20, startDate);
@@ -73,7 +74,7 @@ describe('queries', function() {
 
         it('should allow passing only endDate', function() {
             let endDate;
-            return getMiddleSession().then(function(session) {
+            return getMiddleSession(this).then(function(session) {
                 endDate = session.start_time;
 
                 return queries.findAllSessions(0, 20, undefined, endDate);
@@ -86,7 +87,11 @@ describe('queries', function() {
 
         it('should return entires in only the requested range', function() {
             let unfilteredLength, expectedLength, startDate, endDate;
+            const test = this;
             return queries.findAllSessions(0, 20).then(function(sessions) {
+                if (sessions.length === 1) {
+                    test.skip();
+                }
                 startDate = sessions[sessions.length / 2].start_time;
                 endDate = sessions[0].start_time;
 
@@ -132,10 +137,6 @@ describe('queries', function() {
                 // Make sure the query returns an object with a matching _id
                 expect(session).to.be.an('object');
                 expect(session._id).to.equal(_id);
-
-                // Global fluorescense trace array must be equal in length to
-                // the relative time array
-                expect(session.globalTC).to.have.lengthOf(session.relTimes.length);
             });
         });
     });
@@ -196,27 +197,32 @@ describe('queries', function() {
     });
 
     describe('getTimeline()', function() {
-        it('should return only mask names when only provided a session ID', function() {
-            return queries.getTimeline(firstSessionId).then(function(traceNames) {
-                expect(Array.isArray(traceNames)).to.be.true;
-                for (let name of traceNames) {
-                    // Should not be an object, either a Number or a string (if
-                    // we ever transition into string-based IDs)
-                    expect(name).to.not.be.an('object');
+        it('should return an array of objects containing the ID and name of each mask when given only the session ID', function() {
+            return queries.getTimeline(firstSessionId).then(function(docs) {
+                expect(Array.isArray(docs)).to.be.true;
+                expect(docs).to.have.length.above(0);
+
+                for (const doc of docs) {
+                    expect(doc).to.be.an('object');
+                    expect(doc._id).to.exist;
+                    expect(doc.maskName).to.exist;
                 }
             });
         });
 
-        it('should return an object mapping mask names to fluorescense values otherwise', function() {
-            let requestedName;
+        it('should return all available data when also given a trace ID', function() {
+            let requestedId;
             let sessionId = firstSessionId;
 
-            return queries.getTimeline(sessionId).then(function(traceNames) {
-                requestedName = traceNames[0];
-                return queries.getTimeline(sessionId, requestedName);
+            return queries.getTimeline(sessionId).then(function(traces) {
+                requestedId = traces[0]._id;
+                return queries.getTimeline(sessionId, requestedId);
             }).then(function(traceData) {
-                expect(Object.keys(traceData)).to.have.lengthOf(1);
-                expect(traceData[requestedName]).to.exist;
+                expect(traceData).to.be.an('object');
+                expect(traceData).to.have.all.keys(['_id', 'maskF', 'maskName', 'srcID']);
+                // requestedId and traceData._id are ObjectIDs, convert them to
+                // strings before comparison
+                expect(traceData._id.toString()).to.equal(requestedId.toString());
             });
         });
     });

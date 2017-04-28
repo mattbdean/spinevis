@@ -34,7 +34,7 @@ let setUpSuite = function(validationFn, strict, validInput, invalidInput) {
 
 describe('input validation', function() {
     setUpSuite('sessionId', true,
-        /*valid = */['BMWR34:20160106:1:1', 'BMWR30:20151123:2:1'],
+        /*valid = */['BMWR34:20160106:1:1:some name here', 'BMWR30:20151123:2:1:my_1_cool_2_name'],
         /*invalid = */['SOMETHING:DATE:FOV', 'invalid', '12345:20160601:1:1', 'ABCDEF:20160106:1:1']
     );
 

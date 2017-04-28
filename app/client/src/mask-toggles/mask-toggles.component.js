@@ -6,6 +6,8 @@ let ctrlDef = ['$scope', '$http', 'session', function($scope, $http, session) {
     let $ctrl = this;
 
     $scope.$on(events.META_LOADED, (event, data) => {
+        // Expose the color mapping to the controller so that we can reference
+        // it in the view
         $ctrl.colors = data.colors;
 
         $ctrl.masks = [];
