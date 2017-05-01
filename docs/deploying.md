@@ -132,13 +132,19 @@ If you need to run a server on port below 1024, you'll need administrator privil
 $ sudo PORT=80 node server
 ```
 
+> The standard ports are 80 for HTTP traffic and 443 for HTTPS traffic.
+
+By default, the application tries to connect to a database at `mongodb://127.0.0.1:27017`. Changing this is similar changing the port:
+
+```sh
+$ MONGO_URI=mongodb://my.custom.host:27017 node server
+```
+
 You can also run the server with [nodemon](https://nodemon.io/) to automatically restart when you change a server-side file
 
 ```sh
 $ nodemon server
 ```
-
-> Web browsers use port 80 for HTTP traffic and port 443 for HTTPS traffic.
 
 ## Using HTTP/2
 
