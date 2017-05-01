@@ -50,11 +50,17 @@ p.loading-text {
 volume {
     min-height: 550px;
     height: 550px;
+    padding: 0 !important;
 }
 
 /* Enough space for the volume component and controls */
 div.top {
     height: 550px;
+}
+
+visual-settings {
+    height: 550px;
+    overflow-y: scroll;
 }
 
 mask-toggles {
