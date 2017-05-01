@@ -99,7 +99,7 @@ $ jspm install
 SpineVis uses Grunt for its build process. You can run a Grunt task like this:
 
 ```sh
-grunt <task name>
+$ grunt <task name>
 ```
 
 `build` &mdash; gets the website ready to serve (minifies CSS, compiles templates, etc.)
