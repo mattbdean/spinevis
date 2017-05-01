@@ -65,6 +65,10 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
         // Make sure AngularJS recieves the update
         setTimeout(() => $scope.$apply(), 0);
     });
+
+    $scope.$on(events.DATA_FOCUS_CHANGE, (event, point) => {
+        $ctrl.currentTimepoint = point;
+    });
 }];
 
 module.exports = {
