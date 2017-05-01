@@ -31,6 +31,6 @@ switched to db spinevis
 ```js
 {
     srcID: 1,
-    volName: 1
+    volNum: 1
 }
 ```
