@@ -208,7 +208,8 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
                 type: 'scatter',
                 line: { color: t.color },
                 uid: t.uuid,
-                name: t.displayName
+                name: t.displayName,
+                legendgroup: 'Masks' 
             };
         });
 

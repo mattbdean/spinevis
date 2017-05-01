@@ -161,7 +161,8 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             // Set the opacity to 0 so the users can't see it, but can still see
             // the effects of hovering over it
             opacity: 0,
-            name: 'Point Identifier'
+            name: 'Point Identifier',
+            legendgroup: 'Special'
         };
 
         return Plotly.addTraces(plotNode, trace);
@@ -196,7 +197,8 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                     mode: 'markers',
                     yaxis: 'y2', // Plot this on y-axis 2 (bottom subplot)
                     hoverinfo: 'skip', // change to 'none' if hover events become necessary
-                    marker: marker
+                    marker: marker,
+                    legendgroup: 'Behavior'
                 });
             }
 
