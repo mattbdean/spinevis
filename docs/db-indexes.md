@@ -26,6 +26,12 @@ switched to db spinevis
 { start_time: -1 }
 ```
 
+## `masktc`
+
+```js
+{ srcID: 1}
+```
+
 ## `volumes`
 
 ```js
