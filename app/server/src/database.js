@@ -9,7 +9,7 @@ let state = {
 // https://www.terlici.com/2014/09/15/node-testing.html
 
 const TEST_URI = 'mongodb://127.0.0.1:27017/' + appName + '_test';
-const PRODUCTION_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/' + appName;
+const PRODUCTION_URI = (process.env.MONGO_URI || 'mongodb://127.0.0.1:27017') + '/' + appName;
 
 module.exports.MODE_TEST = 'mode_test';
 module.exports.MODE_PRODUCTION = 'mode_production';
