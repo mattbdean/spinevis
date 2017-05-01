@@ -14,10 +14,12 @@ let defaultPlotOptions = require('../core/plotdefaults.js');
 let events = require('../session-vis/events.js');
 const thresholds = require('./thresholds.conf.js');
 
-const PLACEHOLDER_ID = '__placeholder__';
-const PLACEHOLDER_NAME = 'Add a trace';
-
 const BEHAVIOR_Y = 0;
+
+// The y-value at which to plot all elements of a special trace which shows the
+// index of the current timepoint
+const POINT_RESOLUTION_TRACE_Y = 0;
+
 // A vertical line will be drawn at 50% of the plot
 const DATA_FOCUS_POSITION = 0.5;
 
@@ -66,6 +68,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
         });
 
         return initBehavior()
+        .then(initPointIdentifierTrace)
         .then(registerCallbacks)
         .then(function() {
             // Emit a DATA_FOCUS_CHANGE event with high priority so that volume
@@ -137,6 +140,31 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
         return Plotly.newPlot(plotNode, [], layout, defaultPlotOptions).then(function() {
             console.timeEnd(timeId);
         });
+    };
+
+    /**
+     * Creates a trace whose sole purpose is to show the user the index of the
+     * timepoint their cursor is under.
+     */
+    let initPointIdentifierTrace = function() {
+        const trace = {
+            // Convert every relative time to a Date for the x-axis
+            x: _.map($ctrl.sessionMeta.relTimes, t => new Date(relTime.relativeMillis(t))),
+            // This trace is a straight line modeled by the function
+            //     y = POINT_RESOLUTION_TRACE_Y
+            y: _.fill(Array($ctrl.sessionMeta.relTimes.length), POINT_RESOLUTION_TRACE_Y),
+            // Map every index to a string
+            text: _.map(_.range(0, $ctrl.sessionMeta.nSamples - 1), i => 'Point ' + i),
+            // Only show the 'text' on hover, which will be the value of the
+            // text array (specified above) at any given index
+            hoverinfo: 'text',
+            // Set the opacity to 0 so the users can't see it, but can still see
+            // the effects of hovering over it
+            opacity: 0,
+            name: 'Point Identifier'
+        };
+
+        return Plotly.addTraces(plotNode, trace);
     };
 
     /**
