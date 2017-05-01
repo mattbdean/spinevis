@@ -107,7 +107,7 @@ module.exports = function(grunt) {
             },
             css: {
                 files: ['./app/client/assets/style/*.css'],
-                tasks: ['cssmin', 'copy:style']
+                tasks: ['cssmin']
             },
             views: {
                 files: ['app/server/src/views/**/*.pug'],
