@@ -169,7 +169,8 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             // the effects of hovering over it
             opacity: 0,
             name: 'Point Identifier',
-            legendgroup: 'Special'
+            legendgroup: 'Special',
+            line: { color: 'black' }
         };
 
         return Plotly.addTraces(plotNode, trace);
