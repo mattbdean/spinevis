@@ -21,6 +21,9 @@ const events = [
     'MOVE_FORWARD',
     // The user has pressed the left arrow key to move backward by one timepoint
     'MOVE_BACKWARD',
+    // The user has zoomed in or out and the TraceManager is changing the
+    // resolution at which the timeline data is displayed at
+    'RESOLUTION_CHANGED',
 
     ///////////////////////////////////////////////////////////////////////////
     // Visual settings

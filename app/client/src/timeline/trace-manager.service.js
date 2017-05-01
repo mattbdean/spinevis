@@ -46,6 +46,7 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
 
         // Assume the whole domain is visible
         this.currentThresh = identifyThresh(Infinity);
+        this.onResolutionChanged(this.currentThresh.resolution);
         this.onDomainChange(0, Infinity);
     };
 
@@ -182,9 +183,17 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
             this.displayRange = range.boundBy(displayRange, this.absoluteBounds);
             this.currentThresh = newThreshold;
 
-            return applyResolution(this.traces);
+            return applyResolution(this.traces).then(function() {
+                self.onResolutionChanged(newThreshold.resolution);
+            });
         }
     };
+
+    /**
+     * Called when the resolution is changed. Meant to be overridden and does
+     * nothing by default.
+     */
+    this.onResolutionChanged = (newRes) => {};
 
     /**
      * Applies a new resolution to the given traces.
@@ -209,7 +218,7 @@ let serviceDef = ['$http', 'downsampler', function TraceManagerService($http, do
                 line: { color: t.color },
                 uid: t.uuid,
                 name: t.displayName,
-                legendgroup: 'Masks' 
+                legendgroup: 'Masks'
             };
         });
 

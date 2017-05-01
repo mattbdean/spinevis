@@ -29,7 +29,6 @@ div.threshold-settings
         div.col-xs-12
             +subcontrol('Step', '$ctrl.controls.threshold.options.step')
 
-
 +opacityControl(
     '$ctrl.controls.maskOpacity.label',
     '$ctrl.controls.maskOpacity.model',
@@ -41,3 +40,7 @@ div.threshold-settings
     '$ctrl.controls.rawDataOpacity.model',
     '$ctrl.controls.rawDataOpacity.options'
 )
+
+div.control
+    p Current timeline resolution:
+        b {{ ' ' + $ctrl.currentResolution + '%' }}

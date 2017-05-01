@@ -58,6 +58,13 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             ((1 / $ctrl.sessionMeta.volRate) * 1000) + PERIOD_SAFETY_NET
         );
 
+        traceManager.onResolutionChanged = (newRes) => {
+            $scope.$emit(events.SIBLING_NOTIF, {
+                type: events.RESOLUTION_CHANGED,
+                data: newRes
+            });
+        };
+
         traceManager.init({
             plotNode: plotNode,
             sessionId: sessionId,

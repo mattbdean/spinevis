@@ -58,6 +58,13 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
             data: data
         });
     };
+
+    $scope.$on(events.RESOLUTION_CHANGED, (event, newRes) => {
+        $ctrl.currentResolution = newRes;
+
+        // Make sure AngularJS recieves the update
+        setTimeout(() => $scope.$apply(), 0);
+    });
 }];
 
 module.exports = {
