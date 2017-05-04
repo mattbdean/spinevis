@@ -77,7 +77,7 @@ module.exports.findAllSessions = function(start, limit, startDate, endDate, anim
         return Promise.reject(errorPagination(paginationError, start, limit));
     }
 
-    const identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'name', 'nSamples', 'volRate'];
+    const identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'name', 'nSamples', 'volRate', 'FOV'];
 
     let projection = {};
     for (let prop of identifyingProperties) {
