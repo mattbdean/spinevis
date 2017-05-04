@@ -242,6 +242,9 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                 const startMillis = new Date(evt['xaxis.range[0]']).getTime() - timezoneOffsetMillis;
                 const endMillis = new Date(evt['xaxis.range[1]']).getTime() - timezoneOffsetMillis;
                 domainMillis = range.create(startMillis, endMillis);
+
+                // Update the 3D figure
+                onTimepointSelected(domainMillis.start + DATA_FOCUS_POSITION * (domainMillis.end - domainMillis.start));
             } else if (evt['xaxis.range']) {
                 // Plotly usually sends the range update in two properties,
                 // `xaxis.range[0]` and `xaxis.range[1]`. However, it may be
