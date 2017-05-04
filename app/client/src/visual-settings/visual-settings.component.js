@@ -69,6 +69,22 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
     $scope.$on(events.DATA_FOCUS_CHANGE, (event, point) => {
         $ctrl.currentTimepoint = point;
     });
+
+    // Wait for a parent component (i.e. session-vis) to send the session
+    // metadata through an event. Immediately unsubscribe.
+    const unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
+        unsubscribe();
+        init(data.threshold);
+    });
+
+    const init = (threshold) => {
+        // Leave the defaults as is
+        if (threshold === undefined) return;
+
+        $ctrl.controls.threshold.model.lo = threshold.min;
+        $ctrl.controls.threshold.model.hi = threshold.max;
+        $ctrl.controls.threshold.options.step = threshold.step;
+    };
 }];
 
 module.exports = {
