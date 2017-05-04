@@ -26,7 +26,8 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
 
     // Pagination variables
     let start = 0;
-    const limit = 20;
+    const limitFirst = 50;
+    const limitNext = 20;
     let hasMore = true;
     let loading = false;
 
@@ -110,6 +111,8 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         if (animal === '') animal = undefined;
 
         loading = true;
+
+        let limit = start === 0 ? limitFirst : limitNext;
         // Request the data and add it to the controller sessions
         session.list(start, limit, startDate, endDate, animal)
         .then(function(response) {
