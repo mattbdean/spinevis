@@ -233,6 +233,9 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                 // (converted to milliseconds)
                 domainMillis = range.create(0,
                     $ctrl.sessionMeta.relTimes[$ctrl.sessionMeta.nSamples - 1] * 1000);
+
+                // Show the middle point again
+                emitDataFocusChange($ctrl.sessionMeta.relTimes.length * DATA_FOCUS_POSITION);
             } else if (evt['xaxis.range[0]']) {
                 // Zooming/panning around gives definitive ranges.
 
