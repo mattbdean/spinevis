@@ -1,13 +1,13 @@
-let util = require('../core/util.js');
-let moment = require('moment');
-let numeral = require('numeral');
-let _ = require('lodash');
+const util = require('../core/util.js');
+const moment = require('moment');
+const numeral = require('numeral');
+const _ = require('lodash');
 
-let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
+const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
     // Use base title
     title.useBase();
 
-    let $ctrl = this;
+    const $ctrl = this;
 
     // Format a date like '1 January 1970' with this spec:
     // https://docs.angularjs.org/api/ng/filter/date
@@ -40,7 +40,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         $ctrl.sessions = [];
 
         // Parse dates into moment objects
-        let [startDate, endDate] = parseDateRange($ctrl.dateRange);
+        const [startDate, endDate] = parseDateRange($ctrl.dateRange);
 
         // Swap start and end dates if the start date is before the end date
         if (startDate.isValid() && endDate.isValid() && startDate.isAfter(endDate)) {
@@ -58,22 +58,23 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         resetPagination();
     });
 
-    let parseDateRange = (dateRange) => _.map(
+    const parseDateRange = (dateRange) => _.map(
         [dateRange.start, dateRange.end], parseDate
     );
 
     /**
      * Use moment to strictly parse a date in the format that the date picker uses
      */
-    let parseDate = (str) => moment(str, momentInputFormat, true);
+    const parseDate = (str) => moment(str, momentInputFormat, true);
 
     /**
      * Formats a moment in the format that the API expects. If the moment is
      * not valid, returns undefined.
      */
-    let formatMoment = (m) => m.isValid() ? m.format(momentOutputFormat) : undefined;
+    const formatMoment = (m) => m.isValid() ? m.format(momentOutputFormat) : undefined;
 
-    let formatMetadata = (meta) => ({
+    /** Formats a session metadata object for use in the template */
+    const formatMetadata = (meta) => ({
         id: meta._id,
         animal: meta.Animal,
         name: meta.name,
@@ -91,7 +92,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         imagingRate: numeral(meta.volRate).format('0.0') + ' Hz'
     });
 
-    let resetPagination = function() {
+    const resetPagination = () => {
         // Reset our pagination variables
         $ctrl.sessions = [];
         start = 0;
@@ -99,7 +100,7 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         $ctrl.nextPage();
     };
 
-    $ctrl.nextPage = function() {
+    $ctrl.nextPage = () => {
         // Don't beat a dead horse
         if (!hasMore || loading) return;
 

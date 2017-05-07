@@ -1,9 +1,9 @@
-let _ = require('lodash');
-let events = require('../session-vis/events.js');
-let tinycolor = require('tinycolor2');
+const _ = require('lodash');
+const events = require('../session-vis/events.js');
+const tinycolor = require('tinycolor2');
 
-let ctrlDef = ['$scope', '$http', 'session', function($scope, $http, session) {
-    let $ctrl = this;
+const ctrlDef = ['$scope', '$http', 'session', function($scope, $http, session) {
+    const $ctrl = this;
 
     $scope.$on(events.META_LOADED, (event, data) => {
         // Expose the color mapping to the controller so that we can reference
@@ -12,7 +12,9 @@ let ctrlDef = ['$scope', '$http', 'session', function($scope, $http, session) {
 
         $ctrl.masks = [];
         for (let mask of data.masks) {
+            // Clone the mask so we don't mess with other components' data
             let m = _.clone(mask);
+            // Mask toggles are disabled by default
             m.enabled = false;
             $ctrl.masks.push(m);
         }
@@ -27,25 +29,34 @@ let ctrlDef = ['$scope', '$http', 'session', function($scope, $http, session) {
         // Notify siblings that the mask has been toggled
         $ctrl.toggled(localMask);
 
-        // This fixes an issue where toggles don't show that they are disabled
-        // when they actually are
+        // A bit of a hack, this fixes an issue where toggles don't show that
+        // they are disabled when they actually are
         $scope.$apply();
     });
 
-    $ctrl.toggled = function(mask) {
+    /**
+     * Emits a MASK_TOGGLED sibling notification with the mask that was toggled
+     * as its data .
+     */
+    $ctrl.toggled = (mask) => {
         $scope.$emit(events.SIBLING_NOTIF, {
             type: events.MASK_TOGGLED,
             data: mask
         });
     };
 
-    let setAllEnabled = function(enabled) {
+    /** Enables all masks */
+    const setAllEnabled = (enabled) => {
         for (let mask of $ctrl.masks) {
             mask.enabled = enabled;
         }
     };
 
-    $ctrl.toggleAll = function() {
+    /**
+     * If there is at least one mask that isn't enabled, the disabled masks will
+     * toggle. If all masks are enabled, all masks will be disabled.
+     */
+    $ctrl.toggleAll = () => {
         let disabled = _.filter($ctrl.masks, m => !m.enabled);
         let enabled = _.filter($ctrl.masks, m => m.enabled);
         let mode = 'enable';

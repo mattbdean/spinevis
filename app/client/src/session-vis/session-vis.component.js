@@ -6,7 +6,6 @@ let tinycolor = require('tinycolor2');
 
 let events = require('./events.js');
 let util = require('../core/util.js');
-let defaultPlotOptions = require('../core/plotdefaults.js');
 
 const METADATA_LOADING = '(loading)';
 

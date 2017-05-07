@@ -1,44 +1,44 @@
-let _ = require('lodash');
-let tinycolor = require('tinycolor2');
-let colormap = require('colormap');
-let pack = require('ndarray-pack');
-let ops = require('ndarray-ops');
+const _ = require('lodash');
+const tinycolor = require('tinycolor2');
+const colormap = require('colormap');
+const pack = require('ndarray-pack');
+const ops = require('ndarray-ops');
 
-let renderUtil = require('./render-util.js');
-let range = require('../core/range.js');
-let defaultPlotOptions = require('../core/plotdefaults.js');
-let events = require('../session-vis/events.js');
-let defaultSettings = require('../visual-settings/defaults.js');
+const renderUtil = require('./render-util.js');
+const range = require('../core/range.js');
+const defaultPlotOptions = require('../core/plotdefaults.js');
+const events = require('../session-vis/events.js');
+const defaultSettings = require('../visual-settings/defaults.js');
 
 // The amount unique colors in a colorscale
 const N_COLORS = 256;
 
 // This looks pretty ugly but I'd rather keep lines generally less than 80
 // characters
-let ctrlDef = ['$http', '$scope', 'session', 'intensityManager',
+const ctrlDef = ['$http', '$scope', 'session', 'intensityManager',
 function TimelineController($http, $scope, session, intensityManager) {
-    let $ctrl = this;
+    const $ctrl = this;
 
-    const settings = defaultSettings;
+    const settings = _.clone(defaultSettings);
     // Opacity is displayed as a number 0-100 but we need a number from 0-1
     settings.rawDataOpacity /= 100;
     settings.maskOpacity /= 100;
 
     // Wait for a parent component (i.e. session-vis) to send the session
     // metadata through an event. Immediately unsubscribe.
-    let unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
+    const unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
         unsubscribe();
         $scope.$emit(events.META_RECEIVED);
         init(data);
     });
 
-    let plotNode = $('#plot-volume')[0];
+    const plotNode = $('#plot-volume')[0];
 
     let traceManager = null;
     let sessionId = null;
     let currentIndex = null;
 
-    let state = {
+    const state = {
         // shape and tptr are from legacy code and are lazy-initialized when
         // processInitialData is called
         shape: null,
@@ -49,7 +49,7 @@ function TimelineController($http, $scope, session, intensityManager) {
         webGlData: []
     };
 
-    let init = function(data) {
+    const init = (data) => {
         $ctrl.sessionMeta = data.metadata;
         $ctrl.maskMeta = data.masks;
         sessionId = data.metadata._id;
@@ -58,7 +58,7 @@ function TimelineController($http, $scope, session, intensityManager) {
         .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors, data.masks))
         .then(processInitialData)
         .then(registerCallbacks)
-        .then(function() {
+        .then(() => {
             // Set initial opacity
             updateRawDataOpacity(settings.rawDataOpacity);
             updateMasksOpacity(settings.maskOpacity);
@@ -69,8 +69,8 @@ function TimelineController($http, $scope, session, intensityManager) {
         });
     };
 
-    let initPlot = function() {
-        let layout = {
+    const initPlot = () => {
+        const layout = {
             paper_bgcolor: 'rgb(22, 22, 22)',
             plot_bgcolor: 'rgb(22, 22, 22)',
             type: 'layout',
@@ -101,10 +101,10 @@ function TimelineController($http, $scope, session, intensityManager) {
         return Plotly.newPlot(plotNode, [], layout, plotOptions);
     };
 
-    let initTraces = function() {
-        let traces = [];
+    const initTraces = function() {
+        const traces = [];
         for (let i = 0; i < $ctrl.sessionMeta.surfs.length; i++) {
-            let surf = $ctrl.sessionMeta.surfs[i];
+            const surf = $ctrl.sessionMeta.surfs[i];
             traces.push({
                 name: 'surface ' + i,
                 x: surf.x,
@@ -131,10 +131,10 @@ function TimelineController($http, $scope, session, intensityManager) {
         return Plotly.addTraces(plotNode, traces);
     };
 
-    let initMasks = function(points, polys, colors, maskMetadata) {
+    const initMasks = (points, polys, colors, maskMetadata) => {
         // points, polys, and colors are arrays of the same length
 
-        let traces = [];
+        const traces = [];
         for (let i = 0; i < points.length; i++) {
             traces.push({
                 name: maskMetadata[i].displayName,
@@ -155,24 +155,24 @@ function TimelineController($http, $scope, session, intensityManager) {
         return Plotly.addTraces(plotNode, traces);
     };
 
-    let processInitialData = function() {
+    const processInitialData = () => {
         // plotNode.(...).traces is an object mapping trace IDs to trace data
         for (let traceId of Object.keys(plotNode._fullLayout.scene._scene.traces)) {
-            let trace = plotNode._fullLayout.scene._scene.traces[traceId];
+            const trace = plotNode._fullLayout.scene._scene.traces[traceId];
 
             // Determine the type of trace. If trace.surface is defined, it's
             // a SurfaceTrace, which represents raw data. If trace.mesh is
             // defined, it's a Mesh3DTrace, which represents a mask
 
             if (trace.surface) {
-                let index = trace.data.index;
+                const index = trace.data.index;
 
                 // Get configuration to pass to getTverts to make the data webGL
                 // compatible
-                let paramCoords = renderUtil.getParams(trace).coords;
+                const paramCoords = renderUtil.getParams(trace).coords;
 
                 // Upsample trace's intensity data
-                let upsampledIntensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
+                const upsampledIntensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
 
                 state.webGlData[index] = renderUtil.getTverts(trace.surface, {
                     coords: paramCoords,
@@ -196,11 +196,11 @@ function TimelineController($http, $scope, session, intensityManager) {
             state.tptr = (state.shape[0] - 1) * (state.shape[1] - 1) * 6 * 10;
         }
 
-        changeColormap();//reset colormap with alpha control
+        changeColormap(); // Reset colormap with alpha control
         applyIntensityUpdate();
     };
 
-    let registerCallbacks = function() {
+    const registerCallbacks = () => {
         // Convenience function
         let handle = (eventType, handlerFn) => {
             if (events[eventType] === undefined)
@@ -255,23 +255,23 @@ function TimelineController($http, $scope, session, intensityManager) {
      *                                  is undefined, will work with existing
      *                                  data.
      */
-    let applyIntensityUpdate = function(surfacecolorData) {
+    const applyIntensityUpdate = (surfacecolorData) => {
         // This function is adapted from here:
         // https://github.com/aaronkerlin/fastply/blob/d966e5a72dc7f7489689757aa2f24b819e46ceb5/src/surface4d.js#L706
 
-        let thresh = settings.threshold;
+        const thresh = settings.threshold;
 
         // Process new intensity data and update GL objects directly for
         // efficiency
         for (let m = 0; m < state.traces.length; m++) {
-            let trace = state.traces[m];
+            const trace = state.traces[m];
 
             // If we are given new data to work with, apply it to the trace
             if (surfacecolorData !== undefined) {
                 trace.data.surfacecolor = surfacecolorData[m];
             }
             // Upsample the intensity to fit the upsampled x, y, and z coordinates
-            let intensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
+            const intensity = renderUtil.getUpsampled(trace, trace.data.surfacecolor);
             // Change the intensity values in tverts (webGL-compatible
             // representation of the entire surface object)
             let count = 6, r, c;
@@ -301,7 +301,7 @@ function TimelineController($http, $scope, session, intensityManager) {
      * Updates the opacity of each trace
      * @param  {number} newOpacity A value between 0 and 1
      */
-    let updateRawDataOpacity = function(newOpacity) {
+    const updateRawDataOpacity = (newOpacity) => {
         // Make a note of the new opacity
         settings.rawDataOpacity = newOpacity;
 
@@ -312,7 +312,7 @@ function TimelineController($http, $scope, session, intensityManager) {
         changeColormap();
     };
 
-    let updateMasksOpacity = function(newOpacity) {
+    const updateMasksOpacity = (newOpacity) => {
         settings.maskOpacity = newOpacity;
 
         for (let i = 0; i < state.masks.length; i++) {
@@ -361,9 +361,8 @@ function TimelineController($http, $scope, session, intensityManager) {
         return x;
     }
 
-    let forceGlRedraw = function() {
-        state.traces[0].scene.glplot.redraw();
-    };
+    /** Forces a webGL-level redraw of the plot */
+    const forceGlRedraw = () => { state.traces[0].scene.glplot.redraw(); };
 
     // Initialize only empty graph
     initPlot();

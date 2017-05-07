@@ -1,9 +1,9 @@
-let _ = require('lodash');
-let events = require('../session-vis/events.js');
-let defaults = require('./defaults.js');
+const _ = require('lodash');
+const events = require('../session-vis/events.js');
+const defaults = require('./defaults.js');
 
-let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
-    let $ctrl = this;
+const ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
+    const $ctrl = this;
 
     const makeOpacityControl = (label, defaultValue) => ({
         label: label,
@@ -47,7 +47,7 @@ let ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
         sendSiblingEvent(events.SET_OPACITY_MASKS, newVal / 100);
     });
 
-    let sendSiblingEvent = function(type, data) {
+    const sendSiblingEvent = (type, data) => {
         if (type === undefined || type === null)
             throw new Error('Expected type to exist');
 

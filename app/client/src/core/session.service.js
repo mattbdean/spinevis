@@ -1,9 +1,10 @@
-let _ = require('lodash');
+const _ = require('lodash');
 
-let serviceDef = ['$http', function($http) {
+const serviceDef = ['$http', function($http) {
     this.baseUrl = '/api/v1/session';
 
-    this.list = function(start = 0, limit = 20, startDate = undefined, endDate = undefined, animal = undefined) {
+    // /api/v1/session
+    this.list = (start = 0, limit = 20, startDate = undefined, endDate = undefined, animal = undefined) => {
         return sendRequest('', {
             start: start,
             limit: limit,
@@ -13,23 +14,27 @@ let serviceDef = ['$http', function($http) {
         });
     };
 
-    this.dates = function() {
+    // /api/v1/session/dates
+    this.dates = () => {
         return sendRequest('/dates');
     };
 
-    this.get = function(id) {
+    // /api/v1/session/:id
+    this.get = (id) => {
         ensureId(id);
         return sendRequest(`/${id}`);
     };
 
-    this.behavior = function(id, types) {
+    // /api/v1/session/:id/behavior
+    this.behavior = (id, types) => {
         ensureId(id);
         return sendRequest(`/${id}/behavior`, {
             types: types === undefined ? undefined : _.join(types, ',')
         });
     };
 
-    this.timeline = function(id, traceId) {
+    // /api/v1/session/:id/timeline
+    this.timeline = (id, traceId) => {
         ensureId(id);
         let path = `/${id}/timeline`;
         if (traceId !== undefined)
@@ -38,7 +43,8 @@ let serviceDef = ['$http', function($http) {
         return sendRequest(path);
     };
 
-    this.volume = function(id, index) {
+    // /api/v1/session/:id/volume/:index
+    this.volume = (id, index) => {
         ensureId(id);
         return $http({
             url: `${this.baseUrl}/${id}/volume/${index}`,
@@ -47,22 +53,40 @@ let serviceDef = ['$http', function($http) {
         });
     };
 
-    let ensureId = (id) => {
-        if (id === undefined) throw new Error('id must be defined');
+    const ensureId = (id) => {
+        if (id === undefined || id === null) throw new Error('id must exist');
     };
 
-    let sendRequest = (relativeUrl, queryParams) => {
+    /**
+     * Uses AngularJS' $http service to send a request to the API.
+     * @param  {string} relativeUrl The URL relative to the host, for example,
+     *                              '/api/v1/foo/bar'
+     * @param  {object} queryParams An object to be concatenated together to
+     *                              form a query string. May be null or undefined
+     * @return {Promise}            A Promise that resolves with the response
+     *                              data
+     */
+    const sendRequest = (relativeUrl, queryParams) => {
         let relUrl = relativeUrl.trim();
         if (relUrl[0] !== '/') relUrl = '/' + relUrl;
         return $http.get(`${this.baseUrl}${relUrl}${createQuery(queryParams)}`);
     };
 
-    let createQuery = (paramObj) => {
+    /**
+     * Creates a query string based on the given object
+     * @param  {object} paramObj An object detailing all parameters to send as a
+     *                           query string. May be null or undefined.
+     * @return {string}            A query string that can be plopped at the end
+     *                             of a relative URL. Will start with '?' if
+     *                             applicable
+     */
+    const createQuery = (paramObj) => {
         if (paramObj === undefined || paramObj === null) return '';
         if (typeof paramObj !== 'object')
             throw new Error('expecting paramObj to be an object');
 
-        let usableProps = _.filter(Object.keys(paramObj), key => paramObj[key] !== undefined);
+        // Filter out all properties whose value is undefined
+        const usableProps = _.filter(Object.keys(paramObj), key => paramObj[key] !== undefined);
         if (usableProps.length === 0) return '';
 
         let query = '?';

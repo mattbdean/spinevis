@@ -4,25 +4,23 @@
  */
 
 // Stolen from http://stackoverflow.com/a/11888430
-let year = new Date().getFullYear();
-let jan = new Date(year, 0, 1);
-let jul = new Date(year, 6, 1);
-let timezoneOffsetStandard = Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+const year = new Date().getFullYear();
+const jan = new Date(year, 0, 1);
+const jul = new Date(year, 6, 1);
+const timezoneOffsetStandard = Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
 
-let timezoneOffsetAdjusted = timezoneOffsetStandard;
-if (new Date().getTimezoneOffset() > timezoneOffsetStandard) {
-    // Add 1 hour for daylight savings time
-    timezoneOffsetAdjusted += 60;
-}
+const timezoneOffsetAdjusted = new Date().getTimezoneOffset() > timezoneOffsetStandard ?
+    // Add 1 hour for DST
+    timezoneOffsetStandard + 60 : timezoneOffsetStandard;
 
-let timezoneOffsetMillis = timezoneOffsetAdjusted * 60 * 1000;
 /** Offset in milliseconds of timezone. Accounds for daylight savings time. */
+const timezoneOffsetMillis = timezoneOffsetAdjusted * 60 * 1000;
 module.exports.timezoneOffsetMillis = timezoneOffsetMillis;
 
 /**
  * In order to get Plotly to display a date on the x-axis, we assume our
- * time series data starts at unix time 0 (1 Jan 1970). Doing this is the
- * least computationally expensive starting position for showing relative
+ * time series data starts at unix time 0 (12:00 AM @ 1 Jan 1970). Doing this is
+ * the least computationally expensive starting position for showing relative
  * times. Think of this less as a "hack" and more of a "workaround."
  *
  * N.B. Will not work as expected if relativeSeconds is greater than the

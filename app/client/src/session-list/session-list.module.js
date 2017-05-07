@@ -1,8 +1,8 @@
-let angular = require('angular');
-let core = require('../core/core.module.js');
-let sessionListComponent = require('./session-list.component.js');
-let ngInfiniteScroll = require('ng-infinite-scroll');
-let importCss = require('../core/util.js').css;
+const angular = require('angular');
+const core = require('../core/core.module.js');
+const sessionListComponent = require('./session-list.component.js');
+const ngInfiniteScroll = require('ng-infinite-scroll');
+const importCss = require('../core/util.js').css;
 
 require('angularjs-datepicker');
 require('angularjs-datepicker/dist/angular-datepicker.min.css!');

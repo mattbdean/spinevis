@@ -18,7 +18,7 @@ const ENQUEUE_DELAY = 1000;
 // The maximum amount of data in the cache
 const MAX_CACHE_LENGTH = 1000;
 
-const def = ['session', function(session) {
+const def = ['session', function IntensityManagerService(session) {
     const self = this;
     const cache = LRU(MAX_CACHE_LENGTH);
     let queue = null;
@@ -99,7 +99,7 @@ const def = ['session', function(session) {
         }, ENQUEUE_DELAY);
 
         // Now we actually have to fetch the data
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
             if (self.has(index)) {
                 // We already have this data cached
                 return resolve(self.cached(index));
@@ -128,7 +128,7 @@ const def = ['session', function(session) {
             throw new Error('You need to init() the intensityManager service first');
         }
 
-        return session.volume(self.sessionId, index).then(data => {
+        return session.volume(self.sessionId, index).then((data) => {
             // data is an XHR response, data.data contains the actual ArrayBuffer
             cache.set(index, new Float32Array(data.data));
             // Access through the cache so we update its "recently used"-ness
@@ -136,7 +136,7 @@ const def = ['session', function(session) {
         });
     };
 
-    const determineRequestIndicies = function(index) {
+    const determineRequestIndicies = (index) => {
         // Make sure we're not requesting anything out of bounds
         const min = Math.max(self.indexRange.start, index - IDEAL_PADDING);
         const max = Math.min(self.indexRange.end, index + IDEAL_PADDING);

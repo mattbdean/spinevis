@@ -1,27 +1,26 @@
-let _ = require('lodash');
-let relTime = require('./relative-time.js');
-let LRU = require('lru-cache');
+const _ = require('lodash');
+const relTime = require('./relative-time.js');
+const LRU = require('lru-cache');
 
 const RESOLUTION_FULL = 100; // 100% = all data
 
-let serviceDef = ['session', function DownsamplerService(session) {
-    let self = this;
+const serviceDef = ['session', function DownsamplerService(session) {
+    const self = this;
 
     // LRU cache with maximum size of 500
-    let cache = new LRU(500);
+    const cache = new LRU(500);
 
-    this.init = function(sessionId, relTimes) {
+    this.init = (sessionId, relTimes) => {
         this.sessionId = sessionId;
         this.relTimes = relTimes;
         this.initialized = true;
     };
 
-    this.process = function(traceName, resolutions) {
+    this.process = (traceName, resolutions) => {
         // Some simple validation first
         if (!this.initialized) throw new Error('init() first');
         if (traceName === undefined) throw new Error('traceName was undefined');
 
-        let self = this;
         if (cache.has(traceName)) {
             console.log('cache: ' + traceName);
             return Promise.resolve(cache.get(traceName));
@@ -32,11 +31,8 @@ let serviceDef = ['session', function DownsamplerService(session) {
         });
     };
 
-    let downsample = function(fullRes, traceName, resolutions) {
-        let id = `Downsample '${traceName}' (${fullRes.length} samples, resolutions=${resolutions})`;
-        console.time(id);
-
-        let downsampled = {};
+    const downsample = (fullRes, traceName, resolutions) => {
+        const downsampled = {};
         for (let resolution of resolutions) {
             let resolutionData;
 
@@ -45,7 +41,7 @@ let serviceDef = ['session', function DownsamplerService(session) {
             if (resolution < 1) resolution = 1;
 
             if (resolution < RESOLUTION_FULL) {
-                let indexes = [];
+                const indexes = [];
 
                 // Prevent 0% or negative resolutions
                 if (resolution < 1) resolution = 1;
@@ -54,19 +50,19 @@ let serviceDef = ['session', function DownsamplerService(session) {
                 // the downsampled array.
 
                 // 50% res = chunk size of 2, 25% res = chunk size of 4, etc.
-                let chunkSize = RESOLUTION_FULL / resolution;
-                let chunks = _.chunk(fullRes, chunkSize);
+                const chunkSize = RESOLUTION_FULL / resolution;
+                const chunks = _.chunk(fullRes, chunkSize);
 
                 for (let i = 0; i < chunks.length; i++) {
                     // Find the index within this chumk of the maximum value
                     // of this chunk
-                    let localIndex = _.indexOf(chunks[i], _.max(chunks[i]));
+                    const localIndex = _.indexOf(chunks[i], _.max(chunks[i]));
                     // Calculate the index of this maximum value in reference
                     // to the full resolution timeline
-                    let globalIndex = (i * chunkSize) + localIndex;
+                    const globalIndex = (i * chunkSize) + localIndex;
                     indexes.push(globalIndex);
                 }
-                resolutionData = {indexes: indexes};
+                resolutionData = { indexes };
             } else {
                 resolutionData = {
                     x: _.map(self.relTimes, t => new Date(relTime.relativeMillis(t))),
@@ -77,9 +73,7 @@ let serviceDef = ['session', function DownsamplerService(session) {
             downsampled[resolution] = resolutionData;
         }
 
-        console.timeEnd(id);
-
-        let data = {
+        const data = {
             fullRes: fullRes,
             downsampled: downsampled
         };

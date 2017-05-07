@@ -34,16 +34,6 @@ describe('range', function() {
         });
     });
 
-    describe('fromPadding', function() {
-        it('should accept a single padding', function() {
-            let r = range.fromPadding(100, 10);
-
-            expect(r.start).to.equal(90);
-            expect(r.end).to.equal(110);
-            expect(r.middle).to.equal(100);
-        });
-    });
-
     describe('copy', function() {
         it('should copy the ranges properties', function() {
             let r = range.create(0, 10);
