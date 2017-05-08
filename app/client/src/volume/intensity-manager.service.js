@@ -131,8 +131,8 @@ const def = ['session', function IntensityManagerService(session) {
         return session.volume(self.sessionId, index).then((data) => {
             // data is an XHR response, data.data contains the actual ArrayBuffer
             cache.set(index, new Float32Array(data.data));
-            // Access through the cache so we update its "recently used"-ness
-            return cache.get(index);
+            // Let cached() unpack the data for us
+            return this.cached(index);
         });
     };
 
