@@ -24,11 +24,6 @@ const POINT_RESOLUTION_TRACE_Y = 0;
 // A vertical line will be drawn at 50% of the plot
 const DATA_FOCUS_POSITION = 0.5;
 
-// The amount of milliseconds to add to imagingDelay such that when a
-// MOVE_FORWARD or MOVE_BACKWARD event is handled, there is no chance of
-// accidentally focusing on the same point twice.
-const PERIOD_SAFETY_NET = 5;
-
 const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function TimelineController($http, $window, $scope, session, traceManager) {
     const $ctrl = this;
 
@@ -234,10 +229,10 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
                 // the 0th and 1st element are a number representing the time
                 // in milliseconds of the start and end of the domain
                 // respectively. These types of events only originate from our
-                // code, specifically from shiftViewportX()
+                // code, specifically from setViewportX()
                 domainMillis = range.create(
-                    evt['xaxis.range'][0],
-                    evt['xaxis.range'][1]
+                    evt['xaxis.range'][0] - relTime.timezoneOffsetMillis,
+                    evt['xaxis.range'][1] - relTime.timezoneOffsetMillis
                 );
             }
 
@@ -266,9 +261,8 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             const middleMillis = millisecondValue[0] +
                 ((millisecondValue[1] - millisecondValue[0]) * DATA_FOCUS_POSITION);
 
-            // When this function is called as a result of plotNode._dragging
-            // being true (the user is dragging around the timeline),
-            // highPriority will always be false.
+            // Let the volume component know that the user chose a different
+            // timepoint
             onTimepointSelected(middleMillis);
         };
 
@@ -287,23 +281,17 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             }
         });
 
-        // Move the x-axis viewport by ~1 index when the user presses the left
-        // or right arrow key
-        $scope.$on(events.MOVE_FORWARD, () =>  { shiftViewportX(1);  });
-        $scope.$on(events.MOVE_BACKWARD, () => { shiftViewportX(-1); });
+        $scope.$on(events.INSPECT_TIMEPOINT, (event, data) => {
+            setViewportX(data.point - data.padding, data.point + data.padding);
+        });
     };
 
-    const shiftViewportX = (indexCount) => {
-        const shiftMillis = indexCount * imagingDelay;
-
-        // plotNode.(...).range is a date string parsable by the Date function
-        // (and by extension, moment). Parse these strings with moment and add
-        // the shift amount
-        const newDomain = _.map(plotNode._fullLayout.xaxis.range,
-            r => moment(r).add(shiftMillis, 'milliseconds').valueOf());
-
+    const setViewportX = (minIndex, maxIndex) => {
         return Plotly.relayout(plotNode, {
-            'xaxis.range': newDomain
+            'xaxis.range': [
+                relTime.relativeMillis($ctrl.sessionMeta.relTimes[minIndex]),
+                relTime.relativeMillis($ctrl.sessionMeta.relTimes[maxIndex])
+            ]
         });
     };
 

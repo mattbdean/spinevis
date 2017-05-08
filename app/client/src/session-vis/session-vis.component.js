@@ -73,16 +73,6 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         return Promise.all(promises);
     };
 
-    // Handle pressing left and right arrow keys to move backwards or forwards
-    // by one timepoint
-    $window.onkeyup = function(event) {
-        if (event.key === 'ArrowRight') {
-            $scope.$broadcast(events.MOVE_FORWARD);
-        } else if (event.key === 'ArrowLeft') {
-            $scope.$broadcast(events.MOVE_BACKWARD);
-        }
-    };
-
     /**
      * Bootstraps this component. Written as a function to minimize clutter in
      * controller function definition. Returns a Promise.

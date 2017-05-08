@@ -2,8 +2,13 @@ const _ = require('lodash');
 const events = require('../session-vis/events.js');
 const defaults = require('./defaults.js');
 
+const INSPECT_TIMEPOINT_PADDING = 50;
+
 const ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
     const $ctrl = this;
+
+    // The number of samples in the session minus 1
+    let maxIndex;
 
     const makeOpacityControl = (label, defaultValue) => ({
         label: label,
@@ -33,6 +38,19 @@ const ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
         },
         maskOpacity: makeOpacityControl('Mask Opacity', defaults.maskOpacity),
         rawDataOpacity: makeOpacityControl('Raw Data Opacity', defaults.rawDataOpacity)
+    };
+
+    $ctrl.inspect = () => {
+        let point = $ctrl.currentTimepoint;
+        if (point < INSPECT_TIMEPOINT_PADDING) point = INSPECT_TIMEPOINT_PADDING;
+        if (point > maxIndex - INSPECT_TIMEPOINT_PADDING) point = maxIndex - INSPECT_TIMEPOINT_PADDING;
+        // Make sure the user knows that their input has been sanitized
+        $ctrl.currentTimepoint = point;
+
+        sendSiblingEvent(events.INSPECT_TIMEPOINT, {
+            point: point,
+            padding: INSPECT_TIMEPOINT_PADDING
+        });
     };
 
     $scope.$watchCollection('$ctrl.controls.threshold.model', (newVal, oldVal) => {
@@ -74,7 +92,8 @@ const ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
     // metadata through an event. Immediately unsubscribe.
     const unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
         unsubscribe();
-        init(data.threshold);
+        maxIndex = data.metadata.nSamples - 1;
+        init(data.metadata.threshold);
     });
 
     const init = (threshold) => {

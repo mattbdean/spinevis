@@ -46,4 +46,6 @@ div.control
         b {{ ' ' + $ctrl.currentResolution + '%' }}
 
 div.control
-    input.form-control(type='number' ng-model='$ctrl.currentTimepoint')
+    form.inspect-timepoint(ng-submit='$ctrl.inspect()')
+        input.form-control(type='number' ng-model='$ctrl.currentTimepoint')
+        button.btn.btn-default(type='submit') Inspect

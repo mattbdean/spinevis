@@ -149,8 +149,18 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
 
             const visibleBoundsToUser = range.create(startIndex, endIndex);
 
-            if (!range.contained(minimumBounds, visibleBoundsToUser)) {
-                // Add new data, determine whether to append or prepend
+            if (minimumBounds.start > visibleBoundsToUser.end || minimumBounds.end < visibleBoundsToUser.start) {
+                // The user has jumped to a random position (probably through
+                // the "inspect" button), reset everything
+                const displayRange = range.create(startIndex - paddingMultSize, endIndex + paddingMultSize);
+                this.displayRange = range.boundBy(displayRange, this.absoluteBounds);
+
+                // Use applyResolution() to reset the buffer since we assume
+                // that we have a contiguous buffer at all times
+                return applyResolution(this.traces);
+            } else if (!range.contained(minimumBounds, visibleBoundsToUser)) {
+                // The user has dragged out of the buffer, append or prepend
+                // to the current traces
 
                 const additionRange = visibleBoundsToUser.start < minimumBounds.start ?
                     // prepend
@@ -169,9 +179,9 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
                 }
 
                 if (additionRange.start === this.displayRange.end) {
-                    this.displayRange.end = additionRange.end;
+                    this.displayRange = range.create(this.displayRange.start, additionRange.end);
                 } else if (additionRange.end === this.displayRange.start) {
-                    this.displayRange.start = additionRange.start;
+                    this.displayRange = range.create(additionRange.start, this.displayRange.end);
                 }
             }
         } else {
