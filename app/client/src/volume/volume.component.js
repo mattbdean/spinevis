@@ -347,14 +347,20 @@ function TimelineController($http, $scope, session, intensityManager) {
 
     //return alpha-threhsolded webGL-compatible colormap from rgba colormap
     function genColormap (name) {
-        const x = pack([colormap({
+        const map = colormap({
             colormap: name,
             nshades: N_COLORS,
             format: 'rgba',
-            alpha: [0,1]
-        }).map(function (c) {
-            return [c[0], c[1], c[2], 255 * c[3]];
-        })]);
+            alpha: [0, 1]
+        });
+
+        for (let i = 1; i < map.length; i++) {
+            // Make all alpha values 255 (opaque) except for the very first
+            map[i][3] = 255;
+        }
+
+        // Convert the colormap into an ndarray
+        const x = pack([map]);
 
         // Convert all values from a scale of [0-255] to [0-1] for webGL
         ops.divseq(x, 255.0);
