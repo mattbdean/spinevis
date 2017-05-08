@@ -29,7 +29,7 @@ switched to db spinevis
 ## `masktc`
 
 ```js
-{ srcID: 1}
+{ srcID: 1 }
 ```
 
 ## `volumes`
