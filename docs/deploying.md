@@ -148,4 +148,18 @@ $ nodemon server
 
 ## Using HTTP/2
 
-SpineVis is capable of leveraging HTTP/2 for faster load speeds. See [here](https://github.com/thatJavaNerd/spinevis/blob/master/docs/http2.md) for more.
+SpineVis is capable of leveraging HTTP/2 for faster load speeds. See [here](https://github.com/thatJavaNerd/spinevis/blob/master/docs/http2.md) to get that ready.
+
+To redirect all HTTP/1.1 traffic to HTTP/2 traffic, specify the `HTTPS_REDIRECT_PORT` environmental variable.
+
+```sh
+$ sudo PORT=443 HTTPS_REDIRECT_PORT=80 node server
+```
+
+This way, if the user makes a request to `http://localhost`, they get automatically redirected to `https://localhost`
+
+```sh
+$ curl http://localhost -i
+HTTP/1.1 301 Moved Permanently
+Location: https://localhost:443/
+```
