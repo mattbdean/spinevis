@@ -2,7 +2,7 @@
 module.exports = Object.freeze([
     {
         visibleDomain: Infinity, // whole session is visible
-        resolution: 1, // 1% resolution
+        resolution: 3, // 3% resolution
         nick: 'all'
     },
     {
