@@ -60,7 +60,7 @@ div.top {
 
 visual-settings {
     height: 550px;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 mask-toggles {

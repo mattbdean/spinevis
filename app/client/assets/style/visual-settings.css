@@ -14,3 +14,7 @@ div.subcontrol {
 .inspect-timepoint input {
     flex-grow: 1;
 }
+
+.no-spacing {
+    margin: 0;
+}
