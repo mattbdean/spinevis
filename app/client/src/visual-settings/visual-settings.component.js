@@ -100,10 +100,22 @@ const ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
         // Leave the defaults as is
         if (threshold === undefined) return;
 
-        $ctrl.controls.threshold.model.lo = threshold.min;
-        $ctrl.controls.threshold.model.hi = threshold.max;
-        $ctrl.controls.threshold.options.step = threshold.step;
+        $ctrl.controls.threshold.model = {
+            lo: ensureNumber(threshold, 'min'),
+            hi: ensureNumber(threshold, 'max')
+        };
+        $ctrl.controls.threshold.options = {
+            floor: ensureNumber(threshold, 'absMin'),
+            ceil: ensureNumber(threshold, 'absMax'),
+            step: ensureNumber(threshold, 'step')
+        };
     };
+
+    const ensureNumber = (src, propName) => {
+        if (typeof src[propName] !== 'number')
+            throw new Error(`Expected ${propName} to be a number, was "${src.propName}"`);
+        return src[propName];
+    }
 }];
 
 module.exports = {

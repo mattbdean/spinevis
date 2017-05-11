@@ -54,6 +54,11 @@ function TimelineController($http, $scope, session, intensityManager) {
         $ctrl.maskMeta = data.masks;
         sessionId = data.metadata._id;
 
+        if (data.threshold) {
+            settings.threshold.lo = data.threshold.min;
+            settings.threshold.hi = data.threshold.max;
+        }
+
         return initTraces()
         .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors, data.masks))
         .then(processInitialData)
