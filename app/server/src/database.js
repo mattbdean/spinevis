@@ -1,5 +1,6 @@
 let MongoClient = require('mongodb').MongoClient;
-let appName = require('../../../package.json').name;
+
+const appName = 'spinevis';
 
 let state = {
     db: null,
