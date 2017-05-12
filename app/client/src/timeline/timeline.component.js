@@ -234,6 +234,9 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
                     evt['xaxis.range'][0] - relTime.timezoneOffsetMillis,
                     evt['xaxis.range'][1] - relTime.timezoneOffsetMillis
                 );
+
+                // Update the 3D figure
+                onTimepointSelected(domainMillis.start + DATA_FOCUS_POSITION * (domainMillis.end - domainMillis.start));
             }
 
             if (domainMillis !== undefined) {
