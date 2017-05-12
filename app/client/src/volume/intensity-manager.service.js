@@ -2,25 +2,11 @@ const _ = require('lodash');
 const LRU = require('lru-cache');
 const async = require('async');
 const range = require('../core/range.js');
-
-// The ideal amount of padding on either side of the requested index. This
-// service will continue to run until this is satisified.
-const IDEAL_PADDING = 50;
-
-// How many tasks will run at a time. See
-// https://caolan.github.io/async/docs.html#queue for more
-const QUEUE_CONCURRENCY = 3;
-
-// The amount of milliseconds to wait after receiving the last request to start
-// buffering more data
-const ENQUEUE_DELAY = 1000;
-
-// The maximum amount of data in the cache
-const MAX_CACHE_LENGTH = 1000;
+const strategy = require('./cache-strategy.conf.js');
 
 const def = ['session', function IntensityManagerService(session) {
     const self = this;
-    const cache = LRU(MAX_CACHE_LENGTH);
+    const cache = LRU(strategy.maxCacheLength);
     let queue = null;
 
     let lastRequestTime = null;
@@ -54,7 +40,7 @@ const def = ['session', function IntensityManagerService(session) {
         queue = async.queue((task, callback) => {
             // Use callback for both then() and catch()
             return fetchNetwork(task).then(callback, callback);
-        }, QUEUE_CONCURRENCY);
+        }, strategy.queueConcurrency);
 
         _init = true;
     };
@@ -78,7 +64,7 @@ const def = ['session', function IntensityManagerService(session) {
     };
 
     this.fetch = (index) => {
-        if (Date.now() - lastRequestTime < ENQUEUE_DELAY && queueTimeout !== null)
+        if (Date.now() - lastRequestTime < strategy.enqueueDelay && queueTimeout !== null)
             clearTimeout(queueTimeout);
 
         lastRequestTime = Date.now();
@@ -96,7 +82,7 @@ const def = ['session', function IntensityManagerService(session) {
             // tasks in this order so that we process the data closest to the given
             // index and then spread out from there.
             for (let t of tasks) queue.push(t);
-        }, ENQUEUE_DELAY);
+        }, strategy.enqueueDelay);
 
         // Now we actually have to fetch the data
         return new Promise((resolve, reject) => {
@@ -138,8 +124,8 @@ const def = ['session', function IntensityManagerService(session) {
 
     const determineRequestIndicies = (index) => {
         // Make sure we're not requesting anything out of bounds
-        const min = Math.max(self.indexRange.start, index - IDEAL_PADDING);
-        const max = Math.min(self.indexRange.end, index + IDEAL_PADDING);
+        const min = Math.max(self.indexRange.start, index - strategy.idealPadding);
+        const max = Math.min(self.indexRange.end, index + strategy.idealPadding);
 
         const indicies = [];
         for (let i = min; i < max; i++) {

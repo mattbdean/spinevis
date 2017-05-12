@@ -37,3 +37,4 @@ The following is a brief overview of spinevis' directory structure.
 
  - `app/client/src/visual-settings/defaults.js` contains default values for things like threshold and opacity sliders
  - `app/client/src/timeline/thresholds.conf.js` specifies resolutions to downsample at and when to use these resolutions
+ - `app/client/src/volume/cache-strategy.conf.js` configures the size of the cache and how much padding to maintain
