@@ -140,6 +140,12 @@ By default, the application tries to connect to a database at `mongodb://127.0.0
 $ MONGO_URI=mongodb://my.custom.host:27017 node server
 ```
 
+By default, the server connects to a database called "spinevis", but this can be overridden.
+
+```sh
+$ DB_NAME=foo node server
+```
+
 You can also run the server with [nodemon](https://nodemon.io/) to automatically restart when you change a server-side file
 
 ```sh
