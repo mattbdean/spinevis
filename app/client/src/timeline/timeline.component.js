@@ -153,7 +153,6 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             // the effects of hovering over it
             opacity: 0,
             name: 'Point Identifier',
-            legendgroup: 'Special',
             line: { color: 'black' }
         });
     };
@@ -184,8 +183,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
                     mode: 'markers',
                     yaxis: 'y2', // Plot this on y-axis 2 (bottom subplot)
                     hoverinfo: 'skip', // change to 'none' if hover events become necessary
-                    marker: marker,
-                    legendgroup: 'Behavior'
+                    marker: marker
                 });
             }
 

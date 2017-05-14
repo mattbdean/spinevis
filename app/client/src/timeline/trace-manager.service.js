@@ -224,8 +224,7 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
                 type: 'scatter',
                 line: { color: t.color },
                 uid: t.uuid,
-                name: t.displayName,
-                legendgroup: 'Masks'
+                name: t.displayName
             };
         });
 
