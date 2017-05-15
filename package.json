@@ -2,7 +2,6 @@
   "name": "spinevis",
   "version": "0.3.0",
   "description": "",
-  "main": "server.js",
   "repository": "https://github.com/thatJavaNerd/spinevis",
   "private": true,
   "license": "UNLICENSED",
