@@ -39,15 +39,15 @@ const runQuery = function(parameters, queryFn, res, next, paginated = false, con
     }
 
     // Call queryFn with the parameter values
-    queryFn.apply(null, _.map(parameters, i => i.value))
+    queryFn.apply(null, _.map(parameters, (i) => i.value))
     .then(function(result) {
         // Choose the correct type of response, whether that be a standard
         // success or a paginated success object
         let response;
         if (paginated) {
             // Identify values of start and limit
-            const start = _.find(parameters, p => p.name === 'start').value;
-            const limit = _.find(parameters, p => p.name === 'limit').value;
+            const start = _.find(parameters, (p) => p.name === 'start').value;
+            const limit = _.find(parameters, (p) => p.name === 'limit').value;
             response = responses.paginatedSuccess(result, limit, start);
         } else {
             response = responses.success(result);
@@ -122,7 +122,7 @@ router.get('/', function(req, res, next) {
             if (startDate === undefined || endDate === undefined) return true;
             // Parse each date using moment
             const [start, end] = _.map([startDate, endDate],
-                d => moment(d, inputDateFormat));
+                (d) => moment(d, inputDateFormat));
             return start.isBefore(end);
         },
         messageOnBroken: 'startDate must be before endDate'

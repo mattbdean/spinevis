@@ -1,5 +1,4 @@
 const moment = require('moment');
-const $ = require('jquery');
 const _ = require('lodash');
 const colormap = require('colormap');
 
@@ -85,7 +84,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sess
 
             return session.timeline(meta._id);
         }).then(function(response) {
-            const ids = _.map(response.data.data, d => d._id);
+            const ids = _.map(response.data.data, (d) => d._id);
 
             // Notify all child scopes (e.g. the timeline component) that
             // the session metadata is ready
@@ -163,7 +162,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sess
     };
 
     const createMasksObject = function(masks) {
-        return _.map(masks, m => ({
+        return _.map(masks, (m) => ({
             codeName: m._id,
             displayName: m.maskName
         }));

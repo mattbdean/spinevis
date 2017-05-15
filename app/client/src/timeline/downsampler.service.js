@@ -65,7 +65,7 @@ const serviceDef = ['session', function DownsamplerService(session) {
                 resolutionData = { indexes };
             } else {
                 resolutionData = {
-                    x: _.map(self.relTimes, t => new Date(relTime.relativeMillis(t))),
+                    x: _.map(self.relTimes, (t) => new Date(relTime.relativeMillis(t))),
                     y: fullRes
                 };
             }

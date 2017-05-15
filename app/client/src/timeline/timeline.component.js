@@ -140,12 +140,12 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
     const initPointIdentifierTrace = () => {
         return Plotly.addTraces(plotNode, {
             // Convert every relative time to a Date for the x-axis
-            x: _.map($ctrl.sessionMeta.relTimes, t => new Date(relTime.relativeMillis(t))),
+            x: _.map($ctrl.sessionMeta.relTimes, (t) => new Date(relTime.relativeMillis(t))),
             // This trace is a straight line modeled by the function
             //     y = POINT_RESOLUTION_TRACE_Y
             y: _.fill(Array($ctrl.sessionMeta.relTimes.length), POINT_RESOLUTION_TRACE_Y),
             // Map every index to a string
-            text: _.map(_.range(0, $ctrl.sessionMeta.nSamples - 1), i => 'Point ' + i),
+            text: _.map(_.range(0, $ctrl.sessionMeta.nSamples - 1), (i) => 'Point ' + i),
             // Only show the 'text' on hover, which will be the value of the
             // text array (specified above) at any given index
             hoverinfo: 'text',
@@ -174,7 +174,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
                 const marker = behaviorMarkers[name];
 
                 traces.push({
-                    x: _.map(behaviorIndexes, index => new Date(relTime.relativeMillis($ctrl.sessionMeta.relTimes[index]))),
+                    x: _.map(behaviorIndexes, (index) => new Date(relTime.relativeMillis($ctrl.sessionMeta.relTimes[index]))),
                     y: _.fill(Array(behaviorIndexes.length), BEHAVIOR_Y),
                     name: name,
                     type: 'scatter',
@@ -256,7 +256,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             // Sometimes we are given an invalid range
             if (typeof newValue === 'string') return;
 
-            const millisecondValue = _.map(newValue, x => new Date(x).getTime() - timezoneOffsetMillis);
+            const millisecondValue = _.map(newValue, (x) => new Date(x).getTime() - timezoneOffsetMillis);
             const middleMillis = millisecondValue[0] +
                 ((millisecondValue[1] - millisecondValue[0]) * DATA_FOCUS_POSITION);
 

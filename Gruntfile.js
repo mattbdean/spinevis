@@ -142,7 +142,7 @@ module.exports = function(grunt) {
 
         let results = [];
         const files = fs.readdirSync(dir);
-        files.forEach(file => {
+        files.forEach((file) => {
             file = dir + '/' + file;
             const stat = fs.statSync(file);
             if (stat && stat.isDirectory())
@@ -170,7 +170,7 @@ module.exports = function(grunt) {
 
     // All views that can't be rendered statically or shouldn't be rendered
     // directly
-    walkTree(srcDir).forEach(view => {
+    walkTree(srcDir).forEach((view) => {
         // Get the file name relative to srcDir
         const relativeName = view.slice(srcDir.length);
 

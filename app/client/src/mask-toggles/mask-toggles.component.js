@@ -21,7 +21,7 @@ const ctrlDef = ['$scope', function($scope) {
 
     $scope.$on(events.MASK_CLICKED, (event, mask) => {
         // Update our mask data here
-        const maskIndex = _.findIndex($ctrl.masks, m => m.codeName === mask.codeName);
+        const maskIndex = _.findIndex($ctrl.masks, (m) => m.codeName === mask.codeName);
         const localMask = $ctrl.masks[maskIndex];
         localMask.enabled = !localMask.enabled;
 
@@ -56,7 +56,7 @@ const ctrlDef = ['$scope', function($scope) {
      * toggle. If all masks are enabled, all masks will be disabled.
      */
     $ctrl.clearAll = () => {
-        const enabled = _.filter($ctrl.masks, m => m.enabled);
+        const enabled = _.filter($ctrl.masks, (m) => m.enabled);
 
         // We don't need to do any more work
         if (enabled.length === 0) return;

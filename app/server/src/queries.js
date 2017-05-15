@@ -119,7 +119,7 @@ module.exports.getSessionDates = function() {
         .sort({ start_time: 1 })
         .toArray()
         .then(function(docs) {
-            return _.uniq(_.map(docs, d => d.start_time));
+            return _.uniq(_.map(docs, (d) => d.start_time));
         });
 };
 
@@ -177,8 +177,8 @@ module.exports.getBehavior = function(id, types = []) {
         .then(function(behaviorDocs) {
             if (types.length > 0 && behaviorDocs.length !== types.length) {
                 // Identify the types that could not be found
-                const returnedTypes = _.map(behaviorDocs, o => o.evtType);
-                const missing = _.filter(types, t => returnedTypes.indexOf(t) < 0);
+                const returnedTypes = _.map(behaviorDocs, (o) => o.evtType);
+                const missing = _.filter(types, (t) => returnedTypes.indexOf(t) < 0);
                 return Promise.reject(errorMissing('Some behavior types could not be found', {types: missing}));
             }
 

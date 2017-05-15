@@ -46,10 +46,10 @@ const def = ['session', function IntensityManagerService(session) {
     };
 
     /** Checks if an index exists in the cache */
-    this.has = index => cache.has(index);
+    this.has = (index) => cache.has(index);
 
     /** Retrieves the cached value for a given index */
-    this.cached = index => {
+    this.cached = (index) => {
         const x = cache.peek(index);
 
         // Unpack on the fly. If we fetch 200 points and we unpack all of them

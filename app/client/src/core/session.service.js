@@ -86,7 +86,7 @@ const serviceDef = ['$http', function($http) {
             throw new Error('expecting paramObj to be an object');
 
         // Filter out all properties whose value is undefined
-        const usableProps = _.filter(Object.keys(paramObj), key => paramObj[key] !== undefined);
+        const usableProps = _.filter(Object.keys(paramObj), (key) => paramObj[key] !== undefined);
         if (usableProps.length === 0) return '';
 
         let query = '?';

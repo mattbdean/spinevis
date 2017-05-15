@@ -224,7 +224,7 @@ const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function Time
 
         plotNode.on('plotly_click', function(data) {
             const clickedTrace = data.points[0].fullData;
-            const mask = _.find($ctrl.maskMeta, m => m.displayName === clickedTrace.name);
+            const mask = _.find($ctrl.maskMeta, (m) => m.displayName === clickedTrace.name);
 
             // mask will be undefined when clicking on a non-mask trace (e.g.
             // the raw data)

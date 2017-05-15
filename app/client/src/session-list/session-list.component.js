@@ -139,7 +139,7 @@ const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) 
 
     $ctrl.$onInit = function() {
         session.dates().then(function(res) {
-            const dates = _.map(res.data.data, d => moment(d));
+            const dates = _.map(res.data.data, (d) => moment(d));
             $ctrl.dateBounds = {
                 start: dates[0].format(momentInputFormat),
                 // Add 1 day to the end because the `end` API parameter is

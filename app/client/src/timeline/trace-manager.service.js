@@ -77,7 +77,7 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
         }
 
         const downsamplingPromises = _.map(masks, (m) =>
-            downsampler.process(m.codeName, _.map(this.thresholds, t => t.resolution))
+            downsampler.process(m.codeName, _.map(this.thresholds, (t) => t.resolution))
         );
 
         return Promise.all(downsamplingPromises).then((data) => {
@@ -87,7 +87,7 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
                 self.traces[masks[i].codeName].fullRes = data[i].fullRes;
             }
 
-            const newTraces = _.map(newMaskCodeNames, m => self.traces[m]);
+            const newTraces = _.map(newMaskCodeNames, (m) => self.traces[m]);
             return applyResolution(newTraces);
         });
     };
@@ -104,7 +104,7 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
             }
 
             const trace = this.traces[mask.codeName];
-            const traceIndex = _.findIndex(this.plotNode.data, t => t.uid === trace.uuid);
+            const traceIndex = _.findIndex(this.plotNode.data, (t) => t.uid === trace.uuid);
             if (traceIndex < 0) {
                 console.error(`Already removed trace with code name '${mask.codeName}'`);
             } else {
@@ -132,7 +132,7 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
     this.onDomainChange = (startMillis, endMillis) => {
         const newThreshold = identifyThresh(endMillis - startMillis);
         // Convert start and end times into indexes
-        const [startIndex, endIndex] = _.map([startMillis, endMillis], t => relTime.toIndex(this.relTimes, t));
+        const [startIndex, endIndex] = _.map([startMillis, endMillis], (t) => relTime.toIndex(this.relTimes, t));
 
         const paddingMultSize = newThreshold.paddingUnit * PADDING_ADD_MULT;
 
@@ -215,8 +215,8 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
 
         // Find all new traces by filtering all traces whose UUID does not exist in
         // plot node's data object
-        const newTraceData = _.filter(traces, t => traceIndexByUuid(t.uuid) < 0);
-        const newTraces = _.map(newTraceData, t => {
+        const newTraceData = _.filter(traces, (t) => traceIndexByUuid(t.uuid) < 0);
+        const newTraces = _.map(newTraceData, (t) => {
             const computedData = createCoordinateData(t, self.displayRange, self.currentThresh);
             return {
                 x: computedData.x,
@@ -235,8 +235,8 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
         }
 
         // Identify pre-existing traces by getting the inverse of newTraces
-        const newUuids = _.map(newTraces, t => t.uid);
-        const oldTraceData = _.filter(traces, t => !newUuids.includes(t.uuid));
+        const newUuids = _.map(newTraces, (t) => t.uid);
+        const oldTraceData = _.filter(traces, (t) => !newUuids.includes(t.uuid));
 
         const updateX = [], updateY = [], updateIndexes = [];
         for (const trace of oldTraceData) {
@@ -264,9 +264,9 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
      * count the number of traces whose 'mode' is undefined.
      */
     const countPlottedTraces = () =>
-        _.countBy(this.plotNode.data, t => t.mode).undefined || 0;
+        _.countBy(this.plotNode.data, (t) => t.mode).undefined || 0;
 
-    const traceIndexByUuid = (uuid) => _.findIndex(self.plotNode.data, d => d.uid === uuid);
+    const traceIndexByUuid = (uuid) => _.findIndex(self.plotNode.data, (d) => d.uid === uuid);
 
     const addDataToTrace = (traceData, range) => {
         const computedData = createCoordinateData(traceData, range, self.currentThresh);
