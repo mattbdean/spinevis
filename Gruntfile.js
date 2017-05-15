@@ -4,15 +4,13 @@ const path = require('path');
 module.exports = function(grunt) {
     const pkg = grunt.file.readJSON('package.json');
 
-    const clientBase = 'app/client/';
     const finalDist = 'app/server/public/';
 
     grunt.initConfig({
         pkg: pkg,
         clean: {
             buildPrep: [finalDist],
-            testPrep: ['build'],
-            jspm: [clientBase + 'jspm_packages']
+            testPrep: ['build']
         },
         eslint: {
             all: [
@@ -62,39 +60,6 @@ module.exports = function(grunt) {
                 files: {
                     // Created dynamically
                 }
-            }
-        },
-        babel: {
-            options: {
-                sourceMap: true,
-                presets: ['es2015']
-            },
-            dist: {
-                files: [{
-                    cwd: clientBase + 'src/',
-                    expand: true,
-                    src: ['**/*.js'],
-                    dest: finalDist + 'scripts'
-                }]
-            },
-            jspmConfig: {
-                files: [{
-                    cwd: clientBase,
-                    expand: true,
-                    src: ['jspm.config.js'],
-                    dest: finalDist + 'scripts'
-                }]
-            }
-        },
-        depcache: {
-            dist: ['src/app.module.js']
-        },
-        copy: {
-            jspm: {
-                cwd: clientBase + 'jspm_packages/',
-                src: '**',
-                dest: finalDist + 'scripts/jspm_packages/',
-                expand: true
             }
         },
         watch: {
@@ -166,7 +131,7 @@ module.exports = function(grunt) {
         year: '2016 - ' + new Date().getFullYear()
     };
 
-    const excludedTemplates = ['error.pug', 'layout.pug', 'session.pug'];
+    const excludedTemplates = ['error.pug', 'layout.pug'];
 
     // All views that can't be rendered statically or shouldn't be rendered
     // directly
@@ -187,9 +152,7 @@ module.exports = function(grunt) {
     grunt.config('pug.compile.options.data', data);
 
     const tasks = [
-        'babel',
         'contrib-clean',
-        'contrib-copy',
         'contrib-cssmin',
         'contrib-pug',
         'contrib-watch',
@@ -214,5 +177,5 @@ module.exports = function(grunt) {
     grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
 
-    grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'depcache', 'babel', 'copy']);
+    grunt.registerTask('build', ['clean:buildPrep', 'pug', 'cssmin']);
 };

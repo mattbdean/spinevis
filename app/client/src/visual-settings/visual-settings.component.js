@@ -118,6 +118,6 @@ const ctrlDef = ['$scope', function($scope) {
 }];
 
 module.exports = {
-    templateUrl: '/partial/visual-settings',
+    template: require('./visual-settings.template.pug'),
     controller: ctrlDef
 };

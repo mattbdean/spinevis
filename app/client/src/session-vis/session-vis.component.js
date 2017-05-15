@@ -186,7 +186,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sess
 }];
 
 module.exports = {
-    templateUrl: '/partial/session-vis',
+    template: require('./session-vis.template.pug'),
     controller: ctrlDef,
     bindings: {
         sessionId: '@'

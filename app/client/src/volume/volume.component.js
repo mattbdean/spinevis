@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const $ = require('jquery');
 const tinycolor = require('tinycolor2');
 const colormap = require('colormap');
 const pack = require('ndarray-pack');
@@ -375,6 +376,6 @@ const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function Time
 }];
 
 module.exports = {
-    templateUrl: '/partial/volume',
+    template: require('./volume.template.pug'),
     controller: ctrlDef
 };

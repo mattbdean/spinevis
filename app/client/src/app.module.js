@@ -1,5 +1,3 @@
-require('babel-polyfill');
-
 const angular = require('angular');
 
 const sessionVis = require('./session-vis/session-vis.module.js');
