@@ -23,6 +23,12 @@ module.exports = {
             {
                 test: /\.css$/,
                 loader: ['style-loader', 'css-loader']
+            },
+            // Necessary for building Plotly.js, see
+            // https://github.com/plotly/plotly.js#webpack-usage-with-modules
+            {
+                test: /node_modules/,
+                loader: 'ify-loader'
             }
         ]
     },

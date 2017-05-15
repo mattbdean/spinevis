@@ -17,6 +17,7 @@ require('moment-duration-format');
 require('jquery');
 
 // Graphics
+require('./plotly');
 require('bit-twiddle');
 require('colormap');
 require('ndarray');

@@ -1,3 +1,4 @@
+const Plotly = require('../plotly');
 const moment = require('moment');
 const _ = require('lodash');
 const colormap = require('colormap');

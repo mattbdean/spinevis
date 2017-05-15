@@ -1,3 +1,4 @@
+const Plotly = require('../plotly');
 const _ = require('lodash');
 const $ = require('jquery');
 const tinycolor = require('tinycolor2');

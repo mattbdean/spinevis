@@ -1,8 +1,8 @@
+const Plotly = require('../plotly');
 const _ = require('lodash');
 const $ = require('jquery');
 
 const WatchJS = require('watchjs');
-const moment = require('moment');
 const watch = WatchJS.watch;
 const unwatch = WatchJS.unwatch;
 
