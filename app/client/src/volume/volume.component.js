@@ -1,4 +1,6 @@
+const Plotly = require('../plotly');
 const _ = require('lodash');
+const $ = require('jquery');
 const tinycolor = require('tinycolor2');
 const colormap = require('colormap');
 const pack = require('ndarray-pack');
@@ -375,6 +377,6 @@ const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function Time
 }];
 
 module.exports = {
-    templateUrl: '/partial/volume',
+    template: '<div id="plot-volume">',
     controller: ctrlDef
 };

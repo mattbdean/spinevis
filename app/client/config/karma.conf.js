@@ -1,21 +1,26 @@
-// Karma configuration
-// Generated on Fri Dec 30 2016 18:38:18 GMT-0500 (EST)
-
+/* Karma configuration */
 module.exports = function(config) {
     config.set({
 
         // base path that will be used to resolve all patterns (eg. files, exclude)
-        basePath: 'app/client',
+        basePath: '',
 
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-        frameworks: ['jspm', 'mocha'],
+        frameworks: ['mocha'],
+
+        // karma-webpack plugin
+        webpack: require('./webpack.test'),
+        webpackMiddleware: { stats: 'errors-only' },
+        webpackServer: { noInfo: true },
 
 
         // list of non-CommonJS files / patterns to load in the browser
         // NB: Specify source files for JSPM in jspm.loadFiles
-        files: [],
+        files: [
+            { pattern: './karma-test-shim.js', watched: false }
+        ],
 
 
         // list of files to exclude
@@ -26,39 +31,13 @@ module.exports = function(config) {
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
-            'src/**/*.js': ['coverage']
-        },
-
-
-        jspm: {
-            config: 'jspm.config.js',
-            loadFiles: [
-                'src/**/*.js',
-                'test/**/*.js'
-            ],
-            serveFiles: ['jspm_packages/**/*'],
-            stripExtension: false
-        },
-
-        proxies: {
-            '/scripts/jspm_packages/': '/base/jspm_packages/',
-            '/scripts/src/': '/base/src/',
-            '/scripts/test/': '/base/test/'
+            './karma-test-shim.js': ['webpack', 'sourcemap']
         },
 
         // test results reporter to use
         // possible values: 'dots', 'progress'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['progress', 'coverage', 'mocha'],
-
-
-        coverageReporter: {
-            dir: '../../build/reports/coverage/client',
-            reporters: [
-                { type: 'html', subdir: 'lcov-report' },
-                { type: 'lcovonly', subdir: '.', file: 'lcov.info' }
-            ]
-        },
+        reporters: ['mocha-clean'],
 
 
         // web server port
@@ -80,12 +59,12 @@ module.exports = function(config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['Chrome', 'Firefox'],
+        browsers: ['Firefox'],
 
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits
-        singleRun: false,
+        singleRun: true,
 
         // Concurrency level
         // how many browser should be started simultaneous

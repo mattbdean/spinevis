@@ -3,9 +3,6 @@ extends layout.pug
 block append stylesheets
     link(rel='stylesheet', href='/style/base.min.css')
 
-block prepend scripts
-    script(src='https://cdn.plot.ly/plotly-latest.js')
-
 block content
     //- Pass our pug variable from the server into the session-vis attribute
     //- which gets bound to its controller

@@ -7,11 +7,9 @@ const maskToggles = require('../mask-toggles/mask-toggles.module.js');
 const sessionVisComponent = require('./session-vis.component.js');
 const help = require('../help/help.module.js');
 
-const importCss = require('../core/util.js').css;
-
 module.exports = angular.module('sessionVis',
     [core.name, timeline.name, volume.name, visualSettings.name, maskToggles.name, help.name])
     .component('sessionVis', sessionVisComponent);
 
-
-importCss(module.exports);
+// Import the component's stylesheet
+require('./session-vis.css');

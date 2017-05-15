@@ -73,6 +73,6 @@ const ctrlDef = ['$scope', function($scope) {
 }];
 
 module.exports = {
-    templateUrl: '/partial/mask-toggles',
+    template: require('./mask-toggles.template.pug'),
     controller: ctrlDef
 };

@@ -1,3 +1,4 @@
+const Plotly = require('../plotly');
 const moment = require('moment');
 const _ = require('lodash');
 const colormap = require('colormap');
@@ -186,7 +187,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sess
 }];
 
 module.exports = {
-    templateUrl: '/partial/session-vis',
+    template: require('./session-vis.template.pug'),
     controller: ctrlDef,
     bindings: {
         sessionId: '@'

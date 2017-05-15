@@ -156,6 +156,6 @@ const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) 
 }];
 
 module.exports = {
-    templateUrl: '/partial/session-list',
+    template: require('./session-list.template.pug'),
     controller: ctrlDef
 };

@@ -1,3 +1,4 @@
+const Plotly = require('../plotly');
 const _ = require('lodash');
 const uuid = require('uuid');
 const range = require('../core/range.js');

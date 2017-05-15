@@ -1,7 +1,7 @@
 let chai = require('chai');
 let expect = chai.expect;
 
-let range = require('../src/core/range.js');
+let range = require('./range.js');
 
 describe('range', function() {
     describe('create', function() {

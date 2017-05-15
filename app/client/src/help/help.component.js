@@ -4,11 +4,11 @@ const ctrlDef = ['$fancyModal', function($fancyModal) {
      * displays the contents of the 'help-dialog' partial template.
      */
     this.open = () => {
-        $fancyModal.open({ templateUrl: '/partial/help-dialog '});
+        $fancyModal.open({ template: require('./help-dialog.template.pug') });
     };
 }];
 
 module.exports = {
-    templateUrl: '/partial/help',
+    template: require('./help.template.pug'),
     controller: ctrlDef
 };
