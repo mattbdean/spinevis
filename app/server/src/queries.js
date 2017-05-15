@@ -186,6 +186,14 @@ module.exports.getBehavior = function(id, types = []) {
         });
 };
 
+/**
+ * Gets a specified mask uniquely identified by the sessionID and maskId
+ * parameters. If maskId is undefined, this function returns the name and _id of
+ * each mask.
+ *
+ * @param {string} sessionId The ID of the session that hosts the mask
+ * @param {string} maskId Optional
+ */
 module.exports.getTimeline = function(sessionId, maskId) {
     const namesOnly = maskId === undefined;
 
@@ -218,11 +226,16 @@ module.exports.getTimeline = function(sessionId, maskId) {
     });
 };
 
+/**
+ * Gets a single entry from the volumes collection uniquely identified by the
+ * given session ID and volume index.
+ */
 module.exports.getVolumes = function(sessionId, index) {
     const query = {srcID: sessionId, volNum: index};
 
     return db.mongo().collection(COLL_VOLUMES)
         .find(query)
+        .limit(1)
         .toArray().then(function(data) {
             return data[0].pixelF.buffer;
         });
