@@ -96,21 +96,57 @@ $ jspm install
 
 ## Building
 
-SpineVis uses Grunt for its build process. You can run a Grunt task like this:
+SpineVis uses Grunt to build server-side assets and Webpack to build client side assets. You can run a Grunt task like this:
+
+### Server
 
 ```sh
 $ grunt <task name>
 ```
 
-`build` &mdash; gets the website ready to serve (minifies CSS, compiles templates, etc.)
+`build` &mdash; gets the **server-side** assets ready (minifies CSS, compiles templates, etc.)
 
-`watch` &mdash; automatically rebuilds templates, CSS, and JS files when changed
+`watch` &mdash; automatically rebuilds **server-side** templates, CSS, and JS files when changed
 
-`test` &mdash; runs server-side and client-side tests
+`test` &mdash; runs server-side **and** client-side tests
 
-`jshint` &mdash; lints the project to make sure there are no outstanding syntax or style errors
+`eslint` &mdash; lints the project to make sure there are no outstanding syntax or style errors
 
-While developing, use `grunt build watch` to build the server and automatically apply any changes while you work
+### Client
+
+If you **only** want to build the client side, you should have webpack installed globally. This isn't really necessary and most people will refer to the "Everything" section.
+
+```sh
+$ npm install webpack --global
+```
+
+The webpack configuration is located at `app/client/`
+
+```sh
+$ webpack app/client/webpack.config.js
+```
+
+You can also build for production using this method:
+
+```sh
+$ NODE_ENV=prod webpack app/client/webpack.config.js
+```
+
+### Everything
+
+Build the *entire* site using the "build" script defined in package.json
+
+```sh
+$ yarn build
+```
+
+Or for production,
+
+```sh
+$ NODE_ENV=prod yarn build
+```
+
+While developing, use `yarn build:watch` to build the app and automatically apply any changes while you work.
 
 ## Running the Server
 
