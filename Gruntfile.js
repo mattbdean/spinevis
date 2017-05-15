@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 
 module.exports = function(grunt) {
     const pkg = grunt.file.readJSON('package.json');
@@ -67,21 +66,13 @@ module.exports = function(grunt) {
             }
         },
         watch: {
-            js: {
-                files: ['app/client/src/**/*.js'],
-                tasks: ['babel:dist']
-            },
             css: {
-                files: ['./app/client/assets/style/*.css'],
+                files: ['app/client/assets/**/*.css'],
                 tasks: ['cssmin']
             },
             views: {
                 files: ['app/server/src/views/**/*.pug'],
                 tasks: ['pug']
-            },
-            jspmConfig: {
-                files: ['app/client/jspm.config.js'],
-                tasks: ['babel:jspmConfig']
             }
         },
         run: {
