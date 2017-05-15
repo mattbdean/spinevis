@@ -44,10 +44,10 @@ const ctrlDef = ['$scope', function($scope) {
         });
     };
 
-    /** Enables all masks */
+    /** Turns on/off all masks based on the "truthyness" of the given flag */
     const setAllEnabled = (enabled) => {
         for (let mask of $ctrl.masks) {
-            mask.enabled = enabled;
+            mask.enabled = !!enabled;
         }
     };
 
@@ -55,27 +55,18 @@ const ctrlDef = ['$scope', function($scope) {
      * If there is at least one mask that isn't enabled, the disabled masks will
      * toggle. If all masks are enabled, all masks will be disabled.
      */
-    $ctrl.toggleAll = () => {
-        let disabled = _.filter($ctrl.masks, m => !m.enabled);
-        let enabled = _.filter($ctrl.masks, m => m.enabled);
-        let mode = 'enable';
-        let selectedMasks;
+    $ctrl.clearAll = () => {
+        const enabled = _.filter($ctrl.masks, m => m.enabled);
 
-        // Enable any disabled masks
-        if (disabled.length > 0) {
-            selectedMasks = disabled;
-        } else if (enabled.length === $ctrl.masks.length) {
-            // Only disable if all masks are enabled
-            mode = 'disable';
-            selectedMasks = enabled;
-        }
+        // We don't need to do any more work
+        if (enabled.length === 0) return;
 
-        setAllEnabled(mode === 'enable');
+        setAllEnabled(false);
         $scope.$emit(events.SIBLING_NOTIF, {
             type: events.TOGGLE_ALL,
             data: {
-                mode: mode,
-                masks: selectedMasks
+                mode: 'disable',
+                masks: enabled
             }
         });
     };
