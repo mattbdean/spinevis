@@ -1,6 +1,3 @@
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
 const request = require('supertest');
 const queries = require('../src/queries.js');
 const util = require('./_util.js');
@@ -38,16 +35,6 @@ describe('Public HTML endpoints', function() {
         it('should 404 when given a valid, but non-existent ID', () => {
             return expectHtml(app, '/session/AAAA11:11111111:1:1:myname', 404);
         });
-    });
-
-    describe('GET /partial/:name', function() {
-        // Dynamically create tests for partials, make sure every partial in the
-        // list responds withi 200 OK
-        const partials = _.map(fs.readdirSync(__dirname + '/../src/views/partials'), p => path.basename(p, '.template.pug'));
-        for (const name of partials) {
-            it(`should respond with HTML for "/partial/${name}"`, () =>
-                expectHtml(app, '/partial/' + name));
-        }
     });
 
     const expectHtml = function(app, path, statusCode = 200) {

@@ -1,6 +1,6 @@
 let expect = require('chai').expect;
 
-let util = require('../src/core/util.js');
+let util = require('./util.js');
 
 describe('util', function() {
     describe('format', function() {
