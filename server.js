@@ -15,7 +15,7 @@ const createApp = require('./app/server/src/server.js');
 const packageJson = require('./package.json');
 
 // Catch unhandled Promises
-process.on('unhandledRejection', function(reason, p) {
+process.on('unhandledRejection', function(reason) {
     console.error("Unhandled Promise rejection: ");
     throw reason;
 });

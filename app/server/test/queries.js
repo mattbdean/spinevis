@@ -1,6 +1,5 @@
 let expect = require('chai').expect;
 let _fail = require('assert').fail;
-let _ = require('lodash');
 let db = require('../src/database.js');
 let queries = require('../src/queries.js');
 
@@ -183,7 +182,7 @@ describe('queries', function() {
         it('should report missing when one of the behaviors cannot be found', function() {
             let events = ['lick left', 'something else that doesn\'t exist', 'lick right'];
 
-            return queries.getBehavior(firstSessionId, events).then(function(behaviorData) {
+            return queries.getBehavior(firstSessionId, events).then(function() {
                 _fail(undefined, undefined, 'should not have reached here');
             }).catch(function(err) {
                 expect(err.type).to.equal(queries.ERROR_MISSING);

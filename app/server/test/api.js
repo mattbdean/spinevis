@@ -3,7 +3,6 @@ let request = require('supertest');
 let _ = require('lodash');
 let moment = require('moment');
 
-let db = require('../src/database.js');
 let queries = require('../src/queries.js');
 let util = require('./_util.js');
 
@@ -61,7 +60,7 @@ describe('API v1', function() {
             it('should accept start and end date ranges', function() {
                 const test = this;
 
-                let expectedSize, startDate, endDate;
+                let startDate, endDate;
                 const start = 0, limit = 20;
 
                 let formatDate = (date) => moment(date).format('YYYY-MM-DD');

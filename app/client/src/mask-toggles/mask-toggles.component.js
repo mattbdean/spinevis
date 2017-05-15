@@ -1,8 +1,7 @@
 const _ = require('lodash');
 const events = require('../session-vis/events.js');
-const tinycolor = require('tinycolor2');
 
-const ctrlDef = ['$scope', '$http', 'session', function($scope, $http, session) {
+const ctrlDef = ['$scope', function($scope) {
     const $ctrl = this;
 
     $scope.$on(events.META_LOADED, (event, data) => {

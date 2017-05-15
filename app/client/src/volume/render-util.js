@@ -17,7 +17,6 @@ let homography = require('ndarray-homography');
 let ops = require('ndarray-ops');
 let tinycolor = require('tinycolor2');
 
-const SURFACE_VERTEX_SIZE = 4 * (4 + 3 + 3);
 const MIN_RESOLUTION = 128;
 
 const homographyArray = (scaleF) => [
@@ -61,9 +60,7 @@ module.exports.getUpsampled = function(trace, data) {
 };
 
 module.exports.getParams = function(trace) {
-    let i,
-        scene = trace.scene,
-        surface = trace.surface,
+    let scene = trace.scene,
         data = trace.data,
         sceneLayout = scene.fullSceneLayout,
         alpha = data.opacity,
@@ -83,8 +80,7 @@ module.exports.getParams = function(trace) {
             ndarray(new Float32Array(xlen * ylen), [xlen, ylen])
         ],
         xc = coords[0],
-        yc = coords[1],
-        contourLevels = scene.contourLevels;
+        yc = coords[1];
 
     /*
      * Fill and transpose zdata.
@@ -374,25 +370,3 @@ let parseColorScale = function(colorscale, alpha) {
     });
 };
 
-let refine = function(coords) {
-    let minScale = Math.max(coords[0].shape[0], coords[0].shape[1]);
-
-    if (minScale < MIN_RESOLUTION) {
-        let scaleF = MIN_RESOLUTION / minScale;
-        let nshape = [
-            Math.floor((coords[0].shape[0]) * scaleF+1)|0,
-            Math.floor((coords[0].shape[1]) * scaleF+1)|0 ];
-        let nsize = nshape[0] * nshape[1];
-
-        for(let i = 0; i < coords.length; ++i) {
-            let padImg = padField(coords[i]);
-            let scaledImg = ndarray(new Float32Array(nsize), nshape);
-            homography(scaledImg, padImg, homographyArray(scaleF));
-            coords[i] = scaledImg;
-        }
-
-        return scaleF;
-    }
-
-    return 1.0;
-};

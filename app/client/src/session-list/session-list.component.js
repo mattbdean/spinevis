@@ -36,7 +36,7 @@ const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) 
         end: moment().format()
     };
 
-    $scope.$watchCollection('$ctrl.dateRange', (newVal) => {
+    $scope.$watchCollection('$ctrl.dateRange', () => {
         $ctrl.sessions = [];
 
         // Parse dates into moment objects
@@ -132,7 +132,7 @@ const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) 
             console.error('Unable to execute request: ' + response.data.error.msg);
             console.error(response.data.error.data);
         })
-        .finally(function(response) {
+        .finally(function() {
             loading = false;
         });
     };

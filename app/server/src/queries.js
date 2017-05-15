@@ -14,8 +14,6 @@ const COLL_BEHAVIOR = 'behavior';
 const COLL_MASK_TIME_COURSE = 'masktc';
 const COLL_VOLUMES = 'volumes';
 
-const RESOLUTION_FULL = 100; // 100% = all data
-
 module.exports.ERROR_MISSING = "missing";
 module.exports.ERROR_PAGINATION = "pagination";
 

@@ -2,7 +2,6 @@ let moment = require('moment');
 let $ = require('jquery');
 let _ = require('lodash');
 let colormap = require('colormap');
-let tinycolor = require('tinycolor2');
 
 let events = require('./events.js');
 let util = require('../core/util.js');

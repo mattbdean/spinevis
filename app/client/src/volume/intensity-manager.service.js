@@ -85,7 +85,7 @@ const def = ['session', function IntensityManagerService(session) {
         }, strategy.enqueueDelay);
 
         // Now we actually have to fetch the data
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (self.has(index)) {
                 // We already have this data cached
                 return resolve(self.cached(index));

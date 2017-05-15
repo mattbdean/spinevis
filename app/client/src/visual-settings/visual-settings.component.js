@@ -1,10 +1,9 @@
-const _ = require('lodash');
 const events = require('../session-vis/events.js');
 const defaults = require('./defaults.js');
 
 const INSPECT_TIMEPOINT_PADDING = 50;
 
-const ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
+const ctrlDef = ['$scope', function($scope) {
     const $ctrl = this;
 
     // The number of samples in the session minus 1
@@ -53,7 +52,7 @@ const ctrlDef = ['$scope', '$timeout', function($scope, $timeout) {
         });
     };
 
-    $scope.$watchCollection('$ctrl.controls.threshold.model', (newVal, oldVal) => {
+    $scope.$watchCollection('$ctrl.controls.threshold.model', (newVal) => {
         sendSiblingEvent(events.SET_THRESHOLD_RAW_DATA, newVal);
     });
 

@@ -166,8 +166,6 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             behaviorData = behaviorData.data.data;
             let traces = [];
 
-            let startDelta = Date.now();
-
             // behaviorData is an object mapping event types to the index of the
             // relative position at which the event occurred
             for (let name of Object.keys(behaviorData)) {
@@ -254,7 +252,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             else disableTraces(data.masks);
         });
 
-        const onXaxisRangeChange = (prop, action, newValue, oldValue) => {
+        const onXaxisRangeChange = (prop, action, newValue) => {
             // Sometimes we are given an invalid range
             if (typeof newValue === 'string') return;
 
@@ -269,7 +267,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
 
         // Watch the '_dragging' property of the plot node. When true, the user
         // is dragging the timeline around.
-        watch(plotNode, '_dragging', (prop, action, newValue, oldValue) => {
+        watch(plotNode, '_dragging', (prop, action, newValue) => {
             if (newValue) {
                 // The user has started dragging, watch the xaxis property
                 // maintained by Plotly so that we can emit DATA_FOCUS_CHANGE

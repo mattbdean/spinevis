@@ -4,8 +4,6 @@
  * Note that ranges created from range.create() are read-only via Object.freeze()
  */
 
-let _ = require('lodash');
-
 /**
  * Checks if small can be completely encompassed within big, where big and small
  * are range objects.

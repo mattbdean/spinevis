@@ -34,7 +34,6 @@ function TimelineController($http, $scope, session, intensityManager) {
 
     const plotNode = $('#plot-volume')[0];
 
-    let traceManager = null;
     let sessionId = null;
     let currentIndex = null;
 
@@ -241,7 +240,7 @@ function TimelineController($http, $scope, session, intensityManager) {
             }
         });
 
-        plotNode.on('plotly_relayout', (evt) => {
+        plotNode.on('plotly_relayout', () => {
             // When Plotly has to relyout() (in practise, when the user resizes
             // the window), it destroys the work we've done. This call restores
             // the plot to how it was before the relayout()
