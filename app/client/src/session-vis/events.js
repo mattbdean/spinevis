@@ -32,9 +32,9 @@ const events = [
     'SET_THRESHOLD_RAW_DATA'
 ];
 
-let eventMap = {};
+const eventMap = {};
 
-for (let e of events) {
+for (const e of events) {
     eventMap[e] = e;
 }
 

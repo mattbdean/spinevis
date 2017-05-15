@@ -5,7 +5,6 @@ const pack = require('ndarray-pack');
 const ops = require('ndarray-ops');
 
 const renderUtil = require('./render-util.js');
-const range = require('../core/range.js');
 const defaultPlotOptions = require('../core/plotdefaults.js');
 const events = require('../session-vis/events.js');
 const defaultSettings = require('../visual-settings/defaults.js');
@@ -13,10 +12,7 @@ const defaultSettings = require('../visual-settings/defaults.js');
 // The amount unique colors in a colorscale
 const N_COLORS = 256;
 
-// This looks pretty ugly but I'd rather keep lines generally less than 80
-// characters
-const ctrlDef = ['$http', '$scope', 'session', 'intensityManager',
-function TimelineController($http, $scope, session, intensityManager) {
+const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function TimelineController($http, $scope, session, intensityManager) {
     const $ctrl = this;
 
     const settings = _.clone(defaultSettings);
@@ -161,7 +157,7 @@ function TimelineController($http, $scope, session, intensityManager) {
 
     const processInitialData = () => {
         // plotNode.(...).traces is an object mapping trace IDs to trace data
-        for (let traceId of Object.keys(plotNode._fullLayout.scene._scene.traces)) {
+        for (const traceId of Object.keys(plotNode._fullLayout.scene._scene.traces)) {
             const trace = plotNode._fullLayout.scene._scene.traces[traceId];
 
             // Determine the type of trace. If trace.surface is defined, it's
@@ -206,7 +202,7 @@ function TimelineController($http, $scope, session, intensityManager) {
 
     const registerCallbacks = () => {
         // Convenience function
-        let handle = (eventType, handlerFn) => {
+        const handle = (eventType, handlerFn) => {
             if (events[eventType] === undefined)
                 throw new Error(`No such event: '${eventType}'`);
 
@@ -227,8 +223,8 @@ function TimelineController($http, $scope, session, intensityManager) {
         handle('SET_OPACITY_MASKS', updateMasksOpacity);
 
         plotNode.on('plotly_click', function(data) {
-            let clickedTrace = data.points[0].fullData;
-            let mask = _.find($ctrl.maskMeta, m => m.displayName === clickedTrace.name);
+            const clickedTrace = data.points[0].fullData;
+            const mask = _.find($ctrl.maskMeta, m => m.displayName === clickedTrace.name);
 
             // mask will be undefined when clicking on a non-mask trace (e.g.
             // the raw data)
@@ -339,9 +335,9 @@ function TimelineController($http, $scope, session, intensityManager) {
     //return rgba colormap from tinycolor-compatible colorscale string
     function parseColorScale(colorscale) {
         return colorscale.map(function(elem) {
-            let index = elem[0];
-            let color = tinycolor(elem[1]);
-            let rgb = color.toRgb();
+            const index = elem[0];
+            const color = tinycolor(elem[1]);
+            const rgb = color.toRgb();
             return {
                 index: index,
                 rgb: [rgb.r, rgb.g, rgb.b]

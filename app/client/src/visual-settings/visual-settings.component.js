@@ -114,7 +114,7 @@ const ctrlDef = ['$scope', function($scope) {
         if (typeof src[propName] !== 'number')
             throw new Error(`Expected ${propName} to be a number, was "${src.propName}"`);
         return src[propName];
-    }
+    };
 }];
 
 module.exports = {

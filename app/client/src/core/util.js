@@ -19,8 +19,8 @@ module.exports = {
          * parameters are valid inputs to the Date constructor.
          */
         duration: function(start, end) {
-            let diffInMillis = new Date(end).getTime() - new Date(start).getTime();
-            return moment.duration(diffInMillis, "milliseconds").format(FORMAT_DURATION);
+            const diffInMillis = new Date(end).getTime() - new Date(start).getTime();
+            return moment.duration(diffInMillis, 'milliseconds').format(FORMAT_DURATION);
         },
         /** Formats a date */
         date: function(date) {

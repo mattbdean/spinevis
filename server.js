@@ -176,7 +176,7 @@ function readFile(file) {
     return new Promise(function(resolve, reject) {
         fs.readFile(file, (err, data) => {
             if (err) reject(err);
-            else resolve(data)
+            else resolve(data);
         });
     });
 }

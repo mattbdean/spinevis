@@ -1,14 +1,14 @@
-let _ = require('lodash');
-let express = require('express');
-let moment = require('moment');
-let Parameter = require('pinput/parameter');
-let Contract = require('pinput/contract');
+const _ = require('lodash');
+const express = require('express');
+const moment = require('moment');
+const Parameter = require('pinput/parameter');
+const Contract = require('pinput/contract');
 
-let router = express.Router();
-let queries = require('../../queries.js');
-let responses = require('./responses.js');
-let validation = require('../validation.js');
-let input = require('./input.js');
+const router = express.Router();
+const queries = require('../../queries.js');
+const responses = require('./responses.js');
+const validation = require('../validation.js');
+const input = require('./input.js');
 
 
 /** Maximum sessions returned at one time */
@@ -23,15 +23,15 @@ const MAX_SESSION_DATA = 100;
  * @param  {object}    res        Express Response object
  * @param  {function}  next       Express 'next' function
  */
-let runQuery = function(parameters, queryFn, res, next, paginated = false, contracts = []) {
+const runQuery = function(parameters, queryFn, res, next, paginated = false, contracts = []) {
     // If any parameter is invalid, reject
-    for (let p of parameters) {
+    for (const p of parameters) {
         if (p.valid === false) {
             return next(responses.errorObj(p.error));
         }
     }
 
-    for (let contract of contracts) {
+    for (const contract of contracts) {
         contract.check(parameters);
         if (contract.valid === false) {
             return next(responses.errorObj(contract.error));
@@ -46,8 +46,8 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
         let response;
         if (paginated) {
             // Identify values of start and limit
-            let start = _.find(parameters, p => p.name === 'start').value;
-            let limit = _.find(parameters, p => p.name === 'limit').value;
+            const start = _.find(parameters, p => p.name === 'start').value;
+            const limit = _.find(parameters, p => p.name === 'limit').value;
             response = responses.paginatedSuccess(result, limit, start);
         } else {
             response = responses.success(result);
@@ -78,9 +78,9 @@ let runQuery = function(parameters, queryFn, res, next, paginated = false, contr
 
 const inputDateFormat = 'YYYY-MM-DD';
 // Validate a date using moment.js strict mode (3rd parameter = true for strict)
-let validateDate = (dateStr) => moment(dateStr, inputDateFormat, true).isValid();
+const validateDate = (dateStr) => moment(dateStr, inputDateFormat, true).isValid();
 
-let makeDateParam = (name, source, optional = true) => new Parameter({
+const makeDateParam = (name, source, optional = true) => new Parameter({
     name: name,
     rawInput: source[name],
     validate: validateDate,
@@ -90,15 +90,15 @@ let makeDateParam = (name, source, optional = true) => new Parameter({
 
 // Get 'light' session metadata for all sessions
 router.get('/', function(req, res, next) {
-    let start = input.integer('start', req.query.start, 0, Infinity);
+    const start = input.integer('start', req.query.start, 0, Infinity);
     start.defaultAllowed = true;
     start.defaultValue = 0;
 
-    let limit = input.integer('limit', req.query.limit, 1, MAX_SESSION_DATA);
+    const limit = input.integer('limit', req.query.limit, 1, MAX_SESSION_DATA);
     limit.defaultAllowed = true;
     limit.defaultValue = 20;
 
-    let parameters = [
+    const parameters = [
         new Parameter(start),
         new Parameter(limit),
         makeDateParam('startDate', req.query),
@@ -115,13 +115,13 @@ router.get('/', function(req, res, next) {
 
     // Make sure that if both startDate and endDate are defined that startDate
     // comes before endDate
-    let contracts = [new Contract({
+    const contracts = [new Contract({
         names: ['startDate', 'endDate'],
         verify: (startDate, endDate) => {
             // We only care if both startDate and endDate are defined
             if (startDate === undefined || endDate === undefined) return true;
             // Parse each date using moment
-            let [start, end] = _.map([startDate, endDate],
+            const [start, end] = _.map([startDate, endDate],
                 d => moment(d, inputDateFormat));
             return start.isBefore(end);
         },
@@ -141,7 +141,7 @@ router.get('/:id', function(req, res, next) {
 });
 
 router.get('/:id/behavior', function(req, res, next) {
-    let parameters = [
+    const parameters = [
         input.sessionId(req.params.id),
         new Parameter({
             name: 'types',
@@ -165,7 +165,7 @@ const validateObjectId = (id) => {
 };
 
 router.get('/:id/timeline/:traceId', function(req, res, next) {
-    let parameters = [
+    const parameters = [
         input.sessionId(req.params.id),
         new Parameter({
             name: 'traceId',
@@ -179,7 +179,7 @@ router.get('/:id/timeline/:traceId', function(req, res, next) {
 });
 
 router.get('/:id/volume/:index', function(req, res, next) {
-    let parameters = [
+    const parameters = [
         input.sessionId(req.params.id),
         // start is a required integer parameter with no default value that must
         // be greater than 0
@@ -196,7 +196,7 @@ router.get('/:id/volume/:index', function(req, res, next) {
         res.write(binaryData, 'binary');
         res.end(null, 'binary');
     }).catch(function(err) {
-        console.log(err);
+        throw err;
     });
 });
 

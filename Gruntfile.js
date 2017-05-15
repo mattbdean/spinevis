@@ -1,8 +1,8 @@
-let fs = require('fs');
-let path = require('path');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = function(grunt) {
-    let pkg = grunt.file.readJSON('package.json');
+    const pkg = grunt.file.readJSON('package.json');
 
     const clientBase = 'app/client/';
     const finalDist = 'app/server/public/';
@@ -14,16 +14,13 @@ module.exports = function(grunt) {
             testPrep: ['build'],
             jspm: [clientBase + 'jspm_packages']
         },
-        jshint: {
+        eslint: {
             all: [
                 'Gruntfile.js',
                 'karma.conf.js',
-                'app/client/!(build|jspm_packages)/**/*.js',
+                'app/client/src/**/*.js',
                 'app/server/src/**/*.js'
-            ],
-            options: {
-                jshintrc: true
-            }
+            ]
         },
         karma: {
             unit: {
@@ -127,11 +124,11 @@ module.exports = function(grunt) {
     });
 
     // Created a .min.css file for every CSS file in the style directory
-    let cssFiles = grunt.file.expand('app/client/assets/style/*.css');
-    let minifyTargets = [];
+    const cssFiles = grunt.file.expand('app/client/assets/style/*.css');
+    const minifyTargets = [];
 
     // Create cssmin.build.files dynamically
-    for (let cssFile of cssFiles) {
+    for (const cssFile of cssFiles) {
         minifyTargets.push({
             src: cssFile,
             dest: finalDist + `style/${path.basename(cssFile, '.css')}.min.css`
@@ -139,15 +136,15 @@ module.exports = function(grunt) {
     }
     grunt.config('cssmin.build.files', minifyTargets);
 
-    let walkTree = function(dir) {
+    const walkTree = function(dir) {
         if (dir.endsWith('/'))
             dir = dir.substring(0, dir.length - 1);
 
         let results = [];
-        let files = fs.readdirSync(dir);
+        const files = fs.readdirSync(dir);
         files.forEach(file => {
             file = dir + '/' + file;
-            let stat = fs.statSync(file);
+            const stat = fs.statSync(file);
             if (stat && stat.isDirectory())
                 results = results.concat(walkTree(file));
             else
@@ -160,44 +157,44 @@ module.exports = function(grunt) {
     // Dynamically add a key-value-pair to pug.compile.files for every file in
     // app/server/src/views
 
-    let srcDir = 'app/server/src/views/';
-    let outDir = finalDist + 'views/';
-    let filesMap = {};
+    const srcDir = 'app/server/src/views/';
+    const outDir = finalDist + 'views/';
+    const filesMap = {};
 
     // Data to be passed to every template
-    let data = {
-        year: "2016 - " + new Date().getFullYear()
+    const data = {
+        year: '2016 - ' + new Date().getFullYear()
     };
 
-    let excludedTemplates = ["error.pug", "layout.pug", "session.pug"];
+    const excludedTemplates = ['error.pug', 'layout.pug', 'session.pug'];
 
     // All views that can't be rendered statically or shouldn't be rendered
     // directly
     walkTree(srcDir).forEach(view => {
         // Get the file name relative to srcDir
-        let relativeName = view.slice(srcDir.length);
+        const relativeName = view.slice(srcDir.length);
 
         // Ignore dynamic views
         if (excludedTemplates.includes(relativeName)) {
             return;
         }
 
-        let relativeBasename = relativeName.substring(0, relativeName.lastIndexOf('.'));
-        let compiledPath = outDir + relativeBasename + '.html';
+        const relativeBasename = relativeName.substring(0, relativeName.lastIndexOf('.'));
+        const compiledPath = outDir + relativeBasename + '.html';
         filesMap[compiledPath] = view;
     });
     grunt.config('pug.compile.files', filesMap);
     grunt.config('pug.compile.options.data', data);
 
-    let tasks = [
+    const tasks = [
         'babel',
         'contrib-clean',
         'contrib-copy',
         'contrib-cssmin',
-        'contrib-jshint',
         'contrib-pug',
         'contrib-watch',
         'coveralls',
+        'eslint',
         'jspm-depcache',
         'karma',
         'lcov-merge',

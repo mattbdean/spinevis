@@ -1,5 +1,5 @@
 /**
- * responses.js -- functions to generate standard API response bodies
+ * @file responses.js -- functions to generate standard API response bodies
  */
 
 exports.success = function(data, httpCode = 200) {

@@ -1,8 +1,8 @@
-let MongoClient = require('mongodb').MongoClient;
+const MongoClient = require('mongodb').MongoClient;
 
 const dbName = process.env.DB_NAME || 'spinevis';
 
-let state = {
+const state = {
     db: null,
     mode: null
 };

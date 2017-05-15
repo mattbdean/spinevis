@@ -105,20 +105,20 @@ const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) 
         if (!hasMore || loading) return;
 
         // Format the moments into date strings the API will understand
-        let dateRange = _.map(parseDateRange($ctrl.dateRange));
-        let [startDate, endDate] = _.map(dateRange, formatMoment);
+        const dateRange = _.map(parseDateRange($ctrl.dateRange));
+        const [startDate, endDate] = _.map(dateRange, formatMoment);
 
         let animal = $ctrl.animal;
         if (animal === '') animal = undefined;
 
         loading = true;
 
-        let limit = start === 0 ? limitFirst : limitNext;
+        const limit = start === 0 ? limitFirst : limitNext;
         // Request the data and add it to the controller sessions
         session.list(start, limit, startDate, endDate, animal)
         .then(function(response) {
-            let sessions = response.data.data;
-            for (let session of response.data.data) {
+            const sessions = response.data.data;
+            for (const session of response.data.data) {
                 $ctrl.sessions.push(formatMetadata(session));
             }
 

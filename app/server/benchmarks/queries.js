@@ -1,12 +1,12 @@
-let db = require('../src/database.js');
-let queries = require('../src/queries.js');
-let Benchmark = require('benchmark');
+const db = require('../src/database.js');
+const queries = require('../src/queries.js');
+const Benchmark = require('benchmark');
 
-let suite = new Benchmark.Suite();
+const suite = new Benchmark.Suite();
 
-let id = 'BMWR34:20160106:1:1';
+const id = 'BMWR34:20160106:1:1';
 
-let addQuery = function(suite, name, query) {
+const addQuery = function(suite, name, query) {
     return suite.add(name, {
         defer: true,
         fn: function(deferred) {
@@ -14,8 +14,8 @@ let addQuery = function(suite, name, query) {
                 deferred.resolve();
             });
         }
-    })
-}
+    });
+};
 
 addQuery(suite, 'findAllSessions()', () => queries.findAllSessions(0, 20));
 addQuery(suite, 'getSessionMeta()', () => queries.getSessionMeta(id));

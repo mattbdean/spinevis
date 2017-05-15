@@ -50,7 +50,7 @@ const def = ['session', function IntensityManagerService(session) {
 
     /** Retrieves the cached value for a given index */
     this.cached = index => {
-        let x = cache.peek(index);
+        const x = cache.peek(index);
 
         // Unpack on the fly. If we fetch 200 points and we unpack all of them
         // prematurely and the user never views them, we will have wasted
@@ -81,7 +81,7 @@ const def = ['session', function IntensityManagerService(session) {
             // In other words, |tasks[i] - index| < |tasks[i + 1] - index|. Push
             // tasks in this order so that we process the data closest to the given
             // index and then spread out from there.
-            for (let t of tasks) queue.push(t);
+            for (const t of tasks) queue.push(t);
         }, strategy.enqueueDelay);
 
         // Now we actually have to fetch the data
@@ -148,10 +148,10 @@ const def = ['session', function IntensityManagerService(session) {
      */
     const createNdArray = function(length) {
         let arr = new Array(length || 0),
-        i = length;
+            i = length;
 
         if (arguments.length > 1) {
-            let args = Array.prototype.slice.call(arguments, 1);
+            const args = Array.prototype.slice.call(arguments, 1);
             while (i--) arr[length - 1 - i] = createNdArray.apply(this, args);
         }
 
@@ -169,7 +169,7 @@ const def = ['session', function IntensityManagerService(session) {
      */
     const unpack = (flat) => {
         // Create an empty array with the same shape as self.shape
-        let unpacked = createNdArray.apply(null, self.shape);
+        const unpacked = createNdArray.apply(null, self.shape);
 
         let count = 0;
         for (let j = 0; j < self.shape[1]; j++) {

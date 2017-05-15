@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const $ = require('jquery');
 
-const moment = require('moment');
 const WatchJS = require('watchjs');
+const moment = require('moment');
 const watch = WatchJS.watch;
 const unwatch = WatchJS.unwatch;
 
@@ -79,11 +79,11 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
     /**
      * Initializes a brand-new plot for the timeline. Returns a Promise.
      */
-    let initPlot = () => {
+    const initPlot = () => {
         const fluorGraphStart = 0.25;
 
         // Simple layout data
-        let layout = {
+        const layout = {
             // yaxis is for fluorescence data
             yaxis: {
                 // Goes 25% to 100% of the element (where 0% is the bottom and
@@ -164,14 +164,14 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
     const initBehavior = () => {
         return session.behavior(sessionId).then(function(behaviorData) {
             behaviorData = behaviorData.data.data;
-            let traces = [];
+            const traces = [];
 
             // behaviorData is an object mapping event types to the index of the
             // relative position at which the event occurred
-            for (let name of Object.keys(behaviorData)) {
-                let behaviorIndexes = behaviorData[name];
+            for (const name of Object.keys(behaviorData)) {
+                const behaviorIndexes = behaviorData[name];
 
-                let marker = behaviorMarkers[name];
+                const marker = behaviorMarkers[name];
 
                 traces.push({
                     x: _.map(behaviorIndexes, index => new Date(relTime.relativeMillis($ctrl.sessionMeta.relTimes[index]))),

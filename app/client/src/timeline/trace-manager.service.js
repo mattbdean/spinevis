@@ -53,14 +53,14 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
         const newMaskCodeNames = [];
         for (const mask of masks) {
             if (this.traces[mask.codeName] !== undefined) {
-                console.error(`Attempted to add trace with code name ` +
-                    `"${codeName}" more than once`);
+                console.error('Attempted to add trace with code name ' +
+                    `"${mask.codeName}" more than once`);
                 continue;
             }
 
             // Allocate a variable location for each resolution
-            let emptyData = {};
-            for (let thresh of this.thresholds) {
+            const emptyData = {};
+            for (const thresh of this.thresholds) {
                 emptyData[thresh.resolution] = {};
             }
 
@@ -200,7 +200,7 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
      * Called when the resolution is changed. Meant to be overridden and does
      * nothing by default.
      */
-    this.onResolutionChanged = (newRes) => {};
+    this.onResolutionChanged = (/*newRes*/) => {};
 
     /**
      * Applies a new resolution to the given traces.
@@ -211,7 +211,7 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
      *                         here. If the trace already exists, it will be updated
      *                         with new data appropriate for the given threshold.
      */
-    let applyResolution = (traces) => {
+    const applyResolution = (traces) => {
 
         // Find all new traces by filtering all traces whose UUID does not exist in
         // plot node's data object
@@ -297,7 +297,7 @@ const serviceDef = ['$http', 'downsampler', function TraceManagerService($http, 
 
             // Selectively add data to the arrays like above
             for (let i = 0; i < end; i++) {
-                let adjustedIndex = indexes[i] + offset;
+                const adjustedIndex = indexes[i] + offset;
                 x[i + offset] = new Date(relTime.relativeMillis(self.relTimes[adjustedIndex]));
                 y[i + offset] = traceData.fullRes[adjustedIndex];
             }

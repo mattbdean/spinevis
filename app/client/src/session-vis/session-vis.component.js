@@ -1,10 +1,10 @@
-let moment = require('moment');
-let $ = require('jquery');
-let _ = require('lodash');
-let colormap = require('colormap');
+const moment = require('moment');
+const $ = require('jquery');
+const _ = require('lodash');
+const colormap = require('colormap');
 
-let events = require('./events.js');
-let util = require('../core/util.js');
+const events = require('./events.js');
+const util = require('../core/util.js');
 
 const METADATA_LOADING = '(loading)';
 
@@ -21,14 +21,14 @@ const METADATA_DEFAULTS = {
 // TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
 // let Plotly = require('plotly/plotly.js');
 
-let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function SessionVisController($http, $window, $scope, title, session) {
+const ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function SessionVisController($http, $window, $scope, title, session) {
     // Use base title until we get some information
     title.useBase();
 
-    let $ctrl = this;
+    const $ctrl = this;
 
     // Use a Set to prevent potential excessive calls to Plotly.Plots.resize()
-    let plotNodes = new Set();
+    const plotNodes = new Set();
 
     let totalComponents = 0;
     let initializedComponents = 0;
@@ -65,9 +65,9 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
 
     // Resize the plots when the window resizes
     $window.onresize = function() {
-        let promises = [];
+        const promises = [];
         // I'd normally do this with lodash but it doesn't seem to like Sets
-        for (let p of plotNodes)
+        for (const p of plotNodes)
             promises.push(Plotly.Plots.resize(p));
         return Promise.all(promises);
     };
@@ -76,7 +76,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
      * Bootstraps this component. Written as a function to minimize clutter in
      * controller function definition. Returns a Promise.
      */
-    let init = function() {
+    const init = function() {
         // Both plots require session metadata, grab that before creating them
         let metadata;
         return initSessionMeta().then(function(meta) {
@@ -112,11 +112,11 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
      *
      * @return {Promise} A Promise with no result to allow for chaining
      */
-    let initSessionMeta = function() {
+    const initSessionMeta = function() {
         return session.get($ctrl.sessionId).then(function(result) {
             // result is an XHR response, result.data is our JSON data, including
             // response metadata, result.data.data is the ACTUAL data
-            let metadata = result.data.data;
+            const metadata = result.data.data;
 
             // Grab specific elements from the session metadata to display at the top
             $ctrl.sessionFormattedMeta = createFormattedMetadata(metadata);
@@ -125,7 +125,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         });
     };
 
-    let formatName = (name) => name === undefined ? '<no name>' : `"${name}"`;
+    const formatName = (name) => name === undefined ? '<no name>' : `"${name}"`;
 
     /**
      * Creates an array of formatted metadata. `source` should be an object
@@ -133,7 +133,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
      *
      * @param  {object} source Object to pull data from
      */
-    let createFormattedMetadata = (source) => [
+    const createFormattedMetadata = (source) => [
         'Animal ' + source.Animal,
         util.format.dateTime(source.start_time),
         util.format.duration(source.start_time, source.end_time),
@@ -147,7 +147,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
      * Creates `limit` number of colors using `colormap` in 'rgb' format (e.g.
      * "rgb(0,0,0)").
      */
-    let createMaskColors = function(traceIds) {
+    const createMaskColors = function(traceIds) {
         const colors = _.shuffle(colormap({
             colormap: 'hsv',
             nshades: traceIds.length,
@@ -162,7 +162,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         return mapping;
     };
 
-    let createMasksObject = function(masks) {
+    const createMasksObject = function(masks) {
         return _.map(masks, m => ({
             codeName: m._id,
             displayName: m.maskName

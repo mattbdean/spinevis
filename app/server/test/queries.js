@@ -1,7 +1,7 @@
-let expect = require('chai').expect;
-let _fail = require('assert').fail;
-let db = require('../src/database.js');
-let queries = require('../src/queries.js');
+const expect = require('chai').expect;
+const _fail = require('assert').fail;
+const db = require('../src/database.js');
+const queries = require('../src/queries.js');
 
 describe('queries', function() {
     let firstSession = null;
@@ -24,17 +24,17 @@ describe('queries', function() {
         it('should find only appropriate session metadata', function() {
             return queries.findAllSessions(0, 20).then(function(sessions) {
                 // For each document ensure that only specific data is returned
-                let approvedKeys = ['_id', 'start_time', 'end_time', 'Animal', 'Run', 'name', 'nSamples', 'volRate', 'FOV'];
+                const approvedKeys = ['_id', 'start_time', 'end_time', 'Animal', 'Run', 'name', 'nSamples', 'volRate', 'FOV'];
 
-                for (let session of sessions) {
+                for (const session of sessions) {
                     // Make sure all keys in the object are in the above array
-                    for (let key of Object.keys(session)) {
+                    for (const key of Object.keys(session)) {
                         expect(approvedKeys.includes(key)).to.equal(true,
                             `Key '${key}' is unexpected, session ID '${session._id}'`);
                     }
 
                     // Make sure all expected keys have defined values
-                    for (let key of approvedKeys) {
+                    for (const key of approvedKeys) {
                         expect(session[key]).to.exist;
                     }
                 }
@@ -45,14 +45,14 @@ describe('queries', function() {
             return queries.findAllSessions(0, 20).then(function(sessions) {
                 let lastStart = new Date(sessions[0].start_time).getTime();
                 for (let i = 1; i < sessions.length; i++) {
-                    let thisStart = new Date(sessions[i].start_time).getTime();
+                    const thisStart = new Date(sessions[i].start_time).getTime();
                     expect(thisStart).to.be.below(lastStart);
                     lastStart = thisStart;
                 }
             });
         });
 
-        let getMiddleSession = (test, start = 0, limit = 20) =>
+        const getMiddleSession = (test, start = 0, limit = 20) =>
             queries.findAllSessions(start, limit).then(function(sessions) {
                 if (sessions.length === 1) return test.skip();
                 return sessions[sessions.length / 2];
@@ -65,7 +65,7 @@ describe('queries', function() {
 
                 return queries.findAllSessions(0, 20, startDate);
             }).then(function(sessions) {
-                for (let session of sessions) {
+                for (const session of sessions) {
                     expect(session.start_time.getTime()).to.be.at.least(startDate.getTime());
                 }
             });
@@ -78,7 +78,7 @@ describe('queries', function() {
 
                 return queries.findAllSessions(0, 20, undefined, endDate);
             }).then(function(sessions) {
-                for (let session of sessions) {
+                for (const session of sessions) {
                     expect(session.start_time.getTime()).to.be.below(endDate.getTime());
                 }
             });
@@ -109,7 +109,7 @@ describe('queries', function() {
             return queries.findAllSessions(0, 20, undefined, undefined, animal)
             .then(function(sessions) {
                 expect(sessions.length).to.be.above(0);
-                for (let s of sessions) {
+                for (const s of sessions) {
                     expect(s.Animal).to.equal(animal);
                 }
             });
@@ -130,7 +130,7 @@ describe('queries', function() {
 
     describe('getSessionMeta()', function() {
         it('should return only one session', function() {
-            let _id = firstSessionId;
+            const _id = firstSessionId;
 
             return queries.getSessionMeta(firstSessionId).then(function(session) {
                 // Make sure the query returns an object with a matching _id
@@ -157,7 +157,7 @@ describe('queries', function() {
     describe('getBehavior()', function() {
         it('should return an object mapping behavior events to timepoint indexes', function() {
             return queries.getBehavior(firstSessionId).then(function(behaviorData) {
-                for (let key of Object.keys(behaviorData)) {
+                for (const key of Object.keys(behaviorData)) {
                     // Make sure we are always returning an array
                     expect(Array.isArray(behaviorData[key])).to.be.true;
                 }
@@ -165,22 +165,22 @@ describe('queries', function() {
         });
 
         it('should only return events which are asked for', function() {
-            let events = ['lick left', 'lick right'];
+            const events = ['lick left', 'lick right'];
 
             return queries.getBehavior(firstSessionId, events).then(function(behaviorData) {
-                let dataKeys = Object.keys(behaviorData);
+                const dataKeys = Object.keys(behaviorData);
                 // Lengths should be the same
                 expect(dataKeys).to.have.lengthOf(events.length);
 
                 // Make sure that every event that was requested was returned
-                for (let event of events) {
+                for (const event of events) {
                     expect(dataKeys).to.include(event);
                 }
             });
         });
 
         it('should report missing when one of the behaviors cannot be found', function() {
-            let events = ['lick left', 'something else that doesn\'t exist', 'lick right'];
+            const events = ['lick left', 'something else that doesn\'t exist', 'lick right'];
 
             return queries.getBehavior(firstSessionId, events).then(function() {
                 _fail(undefined, undefined, 'should not have reached here');
@@ -211,7 +211,7 @@ describe('queries', function() {
 
         it('should return all available data when also given a trace ID', function() {
             let requestedId;
-            let sessionId = firstSessionId;
+            const sessionId = firstSessionId;
 
             return queries.getTimeline(sessionId).then(function(traces) {
                 requestedId = traces[0]._id;

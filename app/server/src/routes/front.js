@@ -1,10 +1,10 @@
-let router = require('express').Router();
-let fs = require('fs');
-let path = require('path');
-let validation = require('./validation.js');
-let queries = require('../queries.js');
+const router = require('express').Router();
+const fs = require('fs');
+const path = require('path');
+const validation = require('./validation.js');
+const queries = require('../queries.js');
 
-let year = new Date().getFullYear();
+const year = new Date().getFullYear();
 
 router.get('/', function(req, res, next) {
     sendView(res, 'index').catch(function(err) {
@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/session/:id', function(req, res, next) {
-    let id = req.params.id;
+    const id = req.params.id;
     if (!validation.sessionId(id)) {
         return next({status: 400});
     }
@@ -28,10 +28,10 @@ router.get('/session/:id', function(req, res, next) {
 // template at partials/my-template.template.pug
 router.get('/partial/:name', function(req, res, next) {
     if (validation.partialName(req.params.name)) {
-        let templateBasename = req.params.name;
+        const templateBasename = req.params.name;
 
-        let relativePath = `partials/${templateBasename}.template`;
-        let prerenderedFile = path.join(fileServeOptions.root, relativePath + '.html');
+        const relativePath = `partials/${templateBasename}.template`;
+        const prerenderedFile = path.join(fileServeOptions.root, relativePath + '.html');
         // Prefer to use pre-rendered templates
         if (fs.existsSync(prerenderedFile)) {
             sendView(res, relativePath).catch(function(err) {
@@ -46,16 +46,16 @@ router.get('/partial/:name', function(req, res, next) {
     }
 });
 
-let sendError = function(next, message, status = 404) {
+const sendError = function(next, message, status = 404) {
     return next({status: status, message: message});
 };
 
-let fileServeOptions = {
+const fileServeOptions = {
     dotfiles: 'deny',
     root: path.resolve(path.join(__dirname, '../../public/views'))
 };
 
-let sendView = function(res, fileName) {
+const sendView = function(res, fileName) {
     return new Promise(function(fulfill, reject) {
         res.sendFile(fileName + '.html', fileServeOptions, function(err) {
             if (err) return reject(err);

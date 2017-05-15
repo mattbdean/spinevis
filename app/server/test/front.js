@@ -1,9 +1,9 @@
-let _ = require('lodash');
-let fs = require('fs');
-let path = require('path');
-let request = require('supertest');
-let queries = require('../src/queries.js');
-let util = require('./_util.js');
+const _ = require('lodash');
+const fs = require('fs');
+const path = require('path');
+const request = require('supertest');
+const queries = require('../src/queries.js');
+const util = require('./_util.js');
 
 describe('Public HTML endpoints', function() {
     let app;
@@ -50,7 +50,7 @@ describe('Public HTML endpoints', function() {
         }
     });
 
-    let expectHtml = function(app, path, statusCode = 200) {
+    const expectHtml = function(app, path, statusCode = 200) {
         return request(app)
             .get(path)
             .expect('Content-Type', /html/)

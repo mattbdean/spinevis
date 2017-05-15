@@ -10,9 +10,9 @@ const ctrlDef = ['$scope', function($scope) {
         $ctrl.colors = data.colors;
 
         $ctrl.masks = [];
-        for (let mask of data.masks) {
+        for (const mask of data.masks) {
             // Clone the mask so we don't mess with other components' data
-            let m = _.clone(mask);
+            const m = _.clone(mask);
             // Mask toggles are disabled by default
             m.enabled = false;
             $ctrl.masks.push(m);
@@ -21,8 +21,8 @@ const ctrlDef = ['$scope', function($scope) {
 
     $scope.$on(events.MASK_CLICKED, (event, mask) => {
         // Update our mask data here
-        let maskIndex = _.findIndex($ctrl.masks, m => m.codeName === mask.codeName);
-        let localMask = $ctrl.masks[maskIndex];
+        const maskIndex = _.findIndex($ctrl.masks, m => m.codeName === mask.codeName);
+        const localMask = $ctrl.masks[maskIndex];
         localMask.enabled = !localMask.enabled;
 
         // Notify siblings that the mask has been toggled
@@ -46,7 +46,7 @@ const ctrlDef = ['$scope', function($scope) {
 
     /** Turns on/off all masks based on the "truthyness" of the given flag */
     const setAllEnabled = (enabled) => {
-        for (let mask of $ctrl.masks) {
+        for (const mask of $ctrl.masks) {
             mask.enabled = !!enabled;
         }
     };

@@ -6,10 +6,10 @@ function validateRegex(input, reg) {
 }
 
 // http://regexr.com/3frsd
-let sessionIdRegex = /^[A-Z]{4}\d{2}:\d{8}:\d:\d:[\w ]+$/;
-let partialNameRegex = /^[a-z0-9-]+$/;
+const sessionIdRegex = /^[A-Z]{4}\d{2}:\d{8}:\d:\d:[\w ]+$/;
+const partialNameRegex = /^[a-z0-9-]+$/;
 // Only letters and spaces for the entire string
-let alphabeticWordsRegex = /^[a-zA-Z ]+$/;
+const alphabeticWordsRegex = /^[a-zA-Z ]+$/;
 
 module.exports = {
     /**
@@ -32,7 +32,7 @@ module.exports = {
         if (input === undefined || isNaN(input) || parseFloat(input) !== parseInt(input))
             return false;
 
-        let result = parseInt(input, 10);
+        const result = parseInt(input, 10);
 
         return result >= minValue && result <= maxValue;
     },
@@ -45,7 +45,7 @@ module.exports = {
             if (input.length === 0)
                 return false;
 
-            for (let i of input) {
+            for (const i of input) {
                 if (!validateRegex(i, alphabeticWordsRegex)) {
                     return false;
                 }

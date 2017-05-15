@@ -65,14 +65,12 @@ module.exports.toIndex = function(relTimes, millis) {
  * is closest in value to the item given. Adapted from
  * http://oli.me.uk/2014/12/17/revisiting-searching-javascript-arrays-with-a-binary-search/
  */
-let inexactBinarySearch = function(list, item) {
+const inexactBinarySearch = function(list, item) {
     let min = 0;
     let max = list.length - 1;
     let guess;
-    let lastGuess;
 
     while (min <= max) {
-        lastGuess = guess;
         guess = Math.floor((min + max) / 2);
 
         if (list[guess] === item) {

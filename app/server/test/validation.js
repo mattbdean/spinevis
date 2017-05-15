@@ -1,14 +1,14 @@
-let validation = require('../src/routes/validation.js');
-let expect = require('chai').expect;
+const validation = require('../src/routes/validation.js');
+const expect = require('chai').expect;
 
-let setUpSuite = function(validationFn, strict, validInput, invalidInput) {
+const setUpSuite = function(validationFn, strict, validInput, invalidInput) {
     if (typeof validationFn === 'string') {
         validationFn = validation[validationFn];
     }
 
     describe(validationFn.name, function() {
         it('should recognize valid input', function() {
-            for (let valid of validInput) {
+            for (const valid of validInput) {
                 if (strict) {
                     expect(validationFn(valid)).to.equal(true,
                         `${valid} was unexpectedly invalid`);
@@ -19,7 +19,7 @@ let setUpSuite = function(validationFn, strict, validInput, invalidInput) {
             }
         });
         it('should reject invalid input', function() {
-            for (let invalid of invalidInput) {
+            for (const invalid of invalidInput) {
                 if (strict) {
                     expect(validationFn(invalid)).to.equal(false,
                         `${invalid} was unexpectedly valid`);
@@ -30,7 +30,7 @@ let setUpSuite = function(validationFn, strict, validInput, invalidInput) {
             }
         });
     });
-}
+};
 
 describe('input validation', function() {
     setUpSuite('sessionId', true,

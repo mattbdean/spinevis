@@ -1,6 +1,6 @@
 const BASE = 'spinevis';
 
-let factoryDef = ['$window', function($window) {
+const factoryDef = ['$window', function($window) {
     /**
      * Sets the document's title (using $window.document.title). For example:
      * `title.set('hello')` will change the title of the tab to
@@ -9,7 +9,7 @@ let factoryDef = ['$window', function($window) {
      *
      * @param {*} where
      */
-    let set = (where) => {
+    const set = (where) => {
         let title = BASE;
 
         if (where !== undefined) {
@@ -22,7 +22,7 @@ let factoryDef = ['$window', function($window) {
     /**
      * Sets the title to the base. Equivalent to calling `title.set()`.
      */
-    let useBase = () => { set(); };
+    const useBase = () => { set(); };
 
     return {
         useBase: useBase,
