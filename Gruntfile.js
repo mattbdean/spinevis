@@ -51,7 +51,11 @@ module.exports = function(grunt) {
             },
             build: {
                 files: [{
-                    // Created dynamically
+                    expand: true,
+                    cwd: 'app/client/assets',
+                    src: ['*.css'],
+                    dest: finalDist + 'style',
+                    ext: '.min.css'
                 }]
             }
         },
@@ -87,19 +91,6 @@ module.exports = function(grunt) {
             }
         }
     });
-
-    // Created a .min.css file for every CSS file in the style directory
-    const cssFiles = grunt.file.expand('app/client/assets/style/*.css');
-    const minifyTargets = [];
-
-    // Create cssmin.build.files dynamically
-    for (const cssFile of cssFiles) {
-        minifyTargets.push({
-            src: cssFile,
-            dest: finalDist + `style/${path.basename(cssFile, '.css')}.min.css`
-        });
-    }
-    grunt.config('cssmin.build.files', minifyTargets);
 
     const walkTree = function(dir) {
         if (dir.endsWith('/'))
