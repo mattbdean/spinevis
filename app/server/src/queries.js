@@ -197,7 +197,9 @@ module.exports.getTimeline = function(sessionId, maskId) {
     }
 
     let cursor = db.mongo().collection(COLL_MASK_TIME_COURSE)
-        .find(query);
+        .find(query)
+        .sort({ maskID: 1 });
+
     if (namesOnly) {
         cursor = cursor.project({_id: 1, maskName: 1});
     } else {
