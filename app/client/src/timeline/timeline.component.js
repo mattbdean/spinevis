@@ -365,6 +365,6 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
 }];
 
 module.exports = {
-    template: require('./timeline.template.pug'),
+    template: '<div id="plot-timeline">',
     controller: ctrlDef
 };

@@ -377,6 +377,6 @@ const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function Time
 }];
 
 module.exports = {
-    template: require('./volume.template.pug'),
+    template: '<div id="plot-volume">',
     controller: ctrlDef
 };
