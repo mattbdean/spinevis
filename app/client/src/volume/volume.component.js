@@ -91,6 +91,9 @@ const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function Time
                 t: 0,
                 l: 0
             },
+            scene: {
+                aspectmode: "data"
+            },
             // Manually set in conjunction with session-vis.css
             height: 550
         };
