@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = Object.freeze({
     threshold: {
         lo: 30,
         hi: 400,
@@ -8,4 +8,4 @@ module.exports = {
     },
     rawDataOpacity: 80,
     maskOpacity: 10
-};
+});

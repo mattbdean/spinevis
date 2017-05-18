@@ -1,9 +1,10 @@
+const _ = require('lodash');
 const events = require('../session-vis/events.js');
 const defaults = require('./defaults.conf.js');
 
 const INSPECT_TIMEPOINT_PADDING = 50;
 
-const ctrlDef = ['$scope', function($scope) {
+const ctrlDef = ['$scope', '$fancyModal', function($scope, $fancyModal) {
     const $ctrl = this;
 
     // The number of samples in the session minus 1
@@ -49,6 +50,38 @@ const ctrlDef = ['$scope', function($scope) {
         sendSiblingEvent(events.INSPECT_TIMEPOINT, {
             point: point,
             padding: INSPECT_TIMEPOINT_PADDING
+        });
+    };
+
+    /**
+     * Uses the 3rd party $fancyModal service to open a modal dialog to edit the
+     * threshold settings
+     */
+    $ctrl.editThresholdSettings = () => {
+        const modal = $fancyModal.open({
+            template: require('./threshold-settings.template.pug'),
+            controller: ['$scope', function($scope) {
+                // Make a copy of the current options so we can manually save it later
+                $scope.options = _.clone($ctrl.controls.threshold.options);
+
+                $scope.save = () => {
+                    const currentOpts = $ctrl.controls.threshold.options;
+                    const inputOpts = $scope.options;
+
+                    // Go through every input and ensure that it's type is 'number'
+                    // and it's not a NaN. Default to the current value for each
+                    // option
+                    currentOpts.ceil = ensureNumber(inputOpts.ceil, currentOpts.ceil);
+                    currentOpts.floor = ensureNumber(inputOpts.floor, currentOpts.floor);
+                    currentOpts.step = ensureNumber(inputOpts.step, currentOpts.step);
+
+                    // Close the dialog
+                    modal.close();
+                };
+
+                const ensureNumber = (val, defaultValue) =>
+                    typeof val !== 'number' || isNaN(val) ? defaultValue : val;
+            }]
         });
     };
 

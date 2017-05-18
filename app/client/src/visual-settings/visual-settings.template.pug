@@ -6,28 +6,15 @@ mixin opacityControl(label, model, options)
             rz-slider-options=options
         )
 
-
-mixin subcontrol(label, ngModel)
-    small: strong.text-muted= label
-    input.form-control(type='number' ng-model=ngModel)
-
 div.control
-    p: strong(ng-bind='$ctrl.controls.threshold.label')
+    div.thresh-edit-wrapper
+        p: strong(ng-bind='$ctrl.controls.threshold.label')
+        i.material-icons(ng-click='$ctrl.editThresholdSettings()') mode_edit
     rzslider(
         rz-slider-model='$ctrl.controls.threshold.model.lo'
         rz-slider-high='$ctrl.controls.threshold.model.hi'
         rz-slider-options='$ctrl.controls.threshold.options'
     )
-
-div.threshold-settings
-    div.row.subcontrol
-        div.col-xs-6
-            +subcontrol('Abs. Low', '$ctrl.controls.threshold.options.floor')
-        div.col-xs-6
-            +subcontrol('Abs. High', '$ctrl.controls.threshold.options.ceil')
-    div.row.subcontrol
-        div.col-xs-12
-            +subcontrol('Step', '$ctrl.controls.threshold.options.step')
 
 +opacityControl(
     '$ctrl.controls.maskOpacity.label',
