@@ -44,10 +44,10 @@ For other distributions, see [here](https://nodejs.org/en/download/package-manag
 
 ### Package Managers and Build Tools
 
-Install [Grunt](https://gruntjs.com/), [Yarn](https://yarnpkg.com/en/), and [JSPM](http://jspm.io/).
+Install [Grunt](https://gruntjs.com/) and [Yarn](https://yarnpkg.com/en/)
 
 ```sh
-$ sudo npm install grunt-cli yarn jspm@beta --global
+$ sudo npm install grunt-cli yarn --global
 ```
 
 ### Database
@@ -86,12 +86,6 @@ Install server-side dependencies
 
 ```sh
 $ yarn install
-```
-
-Install client-side dependencies
-
-```sh
-$ jspm install
 ```
 
 ## Building
