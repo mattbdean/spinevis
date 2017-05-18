@@ -18,9 +18,6 @@ const METADATA_DEFAULTS = {
     name: METADATA_LOADING
 };
 
-// TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
-// let Plotly = require('plotly/plotly.js');
-
 const ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function SessionVisController($http, $window, $scope, title, session) {
     // Use base title until we get some information
     title.useBase();
