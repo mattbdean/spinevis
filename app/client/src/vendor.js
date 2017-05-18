@@ -31,3 +31,4 @@ require('tinycolor2');
 // Others
 require('lru-cache');
 require('uuid');
+require ('watchjs');
