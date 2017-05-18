@@ -9,7 +9,7 @@ const ops = require('ndarray-ops');
 const renderUtil = require('./render-util.js');
 const defaultPlotOptions = require('../core/plotdefaults.js');
 const events = require('../session-vis/events.js');
-const defaultSettings = require('../visual-settings/defaults.js');
+const defaultSettings = require('../visual-settings/defaults.conf.js');
 
 // The amount unique colors in a colorscale
 const N_COLORS = 256;

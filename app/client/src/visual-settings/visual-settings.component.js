@@ -1,5 +1,5 @@
 const events = require('../session-vis/events.js');
-const defaults = require('./defaults.js');
+const defaults = require('./defaults.conf.js');
 
 const INSPECT_TIMEPOINT_PADDING = 50;
 
