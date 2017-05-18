@@ -1,23 +1,12 @@
 const _ = require('lodash');
-const tab64 = require('hughsk/tab64');
+const LRU = require('lru-cache');
 const async = require('async');
 const range = require('../core/range.js');
+const strategy = require('./cache-strategy.conf.js');
 
-// The ideal amount of padding on either side of the requested index. This
-// service will continue to run until this is satisified.
-const IDEAL_PADDING = 50;
-
-// How many tasks will run at a time. See
-// https://caolan.github.io/async/docs.html#queue for more
-const QUEUE_CONCURRENCY = 3;
-
-// The amount of milliseconds to wait after receiving the last request to start
-// buffering more data
-const ENQUEUE_DELAY = 1000;
-
-const def = ['session', function(session) {
+const def = ['session', function IntensityManagerService(session) {
     const self = this;
-    const cache = {};
+    const cache = LRU(strategy.maxCacheLength);
     let queue = null;
 
     let lastRequestTime = null;
@@ -51,30 +40,31 @@ const def = ['session', function(session) {
         queue = async.queue((task, callback) => {
             // Use callback for both then() and catch()
             return fetchNetwork(task).then(callback, callback);
-        }, QUEUE_CONCURRENCY);
+        }, strategy.queueConcurrency);
 
         _init = true;
     };
 
     /** Checks if an index exists in the cache */
-    this.has = index => cache[index] !== undefined;
+    this.has = (index) => cache.has(index);
 
     /** Retrieves the cached value for a given index */
-    this.cached = index => {
-        let x = cache[index];
+    this.cached = (index) => {
+        const x = cache.peek(index);
 
         // Unpack on the fly. If we fetch 200 points and we unpack all of them
         // prematurely and the user never views them, we will have wasted
         // computing power.
         if (!isUnpacked(x)) {
-            cache[index] = unpack(x);
+            cache.set(index, unpack(x));
         }
 
-        return cache[index];
+        // Return the value from the cache so we update its "recently used"-ness
+        return cache.get(index);
     };
 
     this.fetch = (index) => {
-        if (Date.now() - lastRequestTime < ENQUEUE_DELAY && queueTimeout !== null)
+        if (Date.now() - lastRequestTime < strategy.enqueueDelay && queueTimeout !== null)
             clearTimeout(queueTimeout);
 
         lastRequestTime = Date.now();
@@ -91,11 +81,11 @@ const def = ['session', function(session) {
             // In other words, |tasks[i] - index| < |tasks[i + 1] - index|. Push
             // tasks in this order so that we process the data closest to the given
             // index and then spread out from there.
-            for (let t of tasks) queue.push(t);
-        }, ENQUEUE_DELAY);
+            for (const t of tasks) queue.push(t);
+        }, strategy.enqueueDelay);
 
         // Now we actually have to fetch the data
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve) => {
             if (self.has(index)) {
                 // We already have this data cached
                 return resolve(self.cached(index));
@@ -124,17 +114,18 @@ const def = ['session', function(session) {
             throw new Error('You need to init() the intensityManager service first');
         }
 
-        return session.volume(self.sessionId, index).then(data => {
+        return session.volume(self.sessionId, index).then((data) => {
             // data is an XHR response, data.data contains the actual ArrayBuffer
-            cache[index] = new Float32Array(data.data);
-            return cache[index];
+            cache.set(index, new Float32Array(data.data));
+            // Let cached() unpack the data for us
+            return this.cached(index);
         });
     };
 
-    const determineRequestIndicies = function(index) {
+    const determineRequestIndicies = (index) => {
         // Make sure we're not requesting anything out of bounds
-        const min = Math.max(self.indexRange.start, index - IDEAL_PADDING);
-        const max = Math.min(self.indexRange.end, index + IDEAL_PADDING);
+        const min = Math.max(self.indexRange.start, index - strategy.idealPadding);
+        const max = Math.min(self.indexRange.end, index + strategy.idealPadding);
 
         const indicies = [];
         for (let i = min; i < max; i++) {
@@ -157,10 +148,10 @@ const def = ['session', function(session) {
      */
     const createNdArray = function(length) {
         let arr = new Array(length || 0),
-        i = length;
+            i = length;
 
         if (arguments.length > 1) {
-            let args = Array.prototype.slice.call(arguments, 1);
+            const args = Array.prototype.slice.call(arguments, 1);
             while (i--) arr[length - 1 - i] = createNdArray.apply(this, args);
         }
 
@@ -178,7 +169,7 @@ const def = ['session', function(session) {
      */
     const unpack = (flat) => {
         // Create an empty array with the same shape as self.shape
-        let unpacked = createNdArray.apply(null, self.shape);
+        const unpacked = createNdArray.apply(null, self.shape);
 
         let count = 0;
         for (let j = 0; j < self.shape[1]; j++) {

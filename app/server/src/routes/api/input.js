@@ -1,7 +1,7 @@
-let Parameter = require('pinput');
-let validation = require('../validation.js');
+const Parameter = require('pinput');
+const validation = require('../validation.js');
 
-let parseBase10Int = (input) => parseInt(input, 10);
+const parseBase10Int = (input) => parseInt(input, 10);
 
 /**
  * Returns a basic Parameter configuration for an integer input. Will be parsed

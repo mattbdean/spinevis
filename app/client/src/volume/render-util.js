@@ -7,18 +7,15 @@
  *   - Matt
  */
 
-let bits = require('bit-twiddle');
-let pool = require('typedarray-pool');
+const bits = require('bit-twiddle');
+const pool = require('typedarray-pool');
 
-let ndarray = require('ndarray');
-let fill = require('ndarray-fill');
-let gradient = require('ndarray-gradient');
-let homography = require('ndarray-homography');
-let ops = require('ndarray-ops');
-let tinycolor = require('tinycolor2');
-
-const SURFACE_VERTEX_SIZE = 4 * (4 + 3 + 3);
-const MIN_RESOLUTION = 128;
+const ndarray = require('ndarray');
+const fill = require('ndarray-fill');
+const gradient = require('ndarray-gradient');
+const homography = require('ndarray-homography');
+const ops = require('ndarray-ops');
+const tinycolor = require('tinycolor2');
 
 const homographyArray = (scaleF) => [
     scaleF, 0,      0,
@@ -38,22 +35,22 @@ const QUAD = [
 module.exports.QUAD = QUAD;
 
 module.exports.getUpsampled = function(trace, data) {
-    let surface = trace.surface;
-    let z = trace.data.z;
-    let xlen = z[0].length;
-    let ylen = z.length;
-    let scaleF = trace.dataScale;
-    let upsampled = ndarray(new Float32Array(xlen * ylen), [xlen, ylen]);
+    const surface = trace.surface;
+    const z = trace.data.z;
+    const xlen = z[0].length;
+    const ylen = z.length;
+    const scaleF = trace.dataScale;
+    const upsampled = ndarray(new Float32Array(xlen * ylen), [xlen, ylen]);
 
     // Use data.get if possible
-    let fillFn = data.shape ?
+    const fillFn = data.shape ?
             (row, col) => data.get(row, col) :
             (row, col) => data[col][row];
 
     fill(upsampled, fillFn);
 
-    let padImg = padField(upsampled);
-    let scaledImg = ndarray(new Float32Array(surface.intensity.size), surface.intensity.shape);
+    const padImg = padField(upsampled);
+    const scaledImg = ndarray(new Float32Array(surface.intensity.size), surface.intensity.shape);
 
     homography(scaledImg, padImg, homographyArray(scaleF));
 
@@ -61,9 +58,7 @@ module.exports.getUpsampled = function(trace, data) {
 };
 
 module.exports.getParams = function(trace) {
-    let i,
-        scene = trace.scene,
-        surface = trace.surface,
+    const scene = trace.scene,
         data = trace.data,
         sceneLayout = scene.fullSceneLayout,
         alpha = data.opacity,
@@ -83,8 +78,7 @@ module.exports.getParams = function(trace) {
             ndarray(new Float32Array(xlen * ylen), [xlen, ylen])
         ],
         xc = coords[0],
-        yc = coords[1],
-        contourLevels = scene.contourLevels;
+        yc = coords[1];
 
     /*
      * Fill and transpose zdata.
@@ -121,7 +115,7 @@ module.exports.getParams = function(trace) {
         });
     }
 
-    let params = {
+    const params = {
         colormap: colormap,
         levels: [[], [], []],
         showContour: [true, true, true],
@@ -144,7 +138,7 @@ module.exports.getParams = function(trace) {
 
     //Refine if necessary
     if(data.surfacecolor) {
-        let intensity = ndarray(new Float32Array(xlen * ylen), [xlen, ylen]);
+        const intensity = ndarray(new Float32Array(xlen * ylen), [xlen, ylen]);
 
         fill(intensity, function(row, col) {
             return data.surfacecolor[col][row];
@@ -175,19 +169,19 @@ module.exports.getParams = function(trace) {
 };
 
 module.exports.getIntensity = function(trace) {
-    let data = trace.data;
-    let surface = trace.surface;
-    let z = data.z;
-    let xlen = z[0].length;
-    let ylen = z.length;
-    let scaleF = trace.dataScale;
-    let intensity = ndarray(new Float32Array(xlen * ylen), [xlen, ylen]);
+    const data = trace.data;
+    const surface = trace.surface;
+    const z = data.z;
+    const xlen = z[0].length;
+    const ylen = z.length;
+    const scaleF = trace.dataScale;
+    const intensity = ndarray(new Float32Array(xlen * ylen), [xlen, ylen]);
 
     fill(intensity, function(row, col) {
         return data.surfacecolor[col][row];
     });
-    let padImg = padField(intensity);
-    let scaledImg = ndarray(new Float32Array(surface.intensity.size), surface.intensity.shape);
+    const padImg = padField(intensity);
+    const scaledImg = ndarray(new Float32Array(surface.intensity.size), surface.intensity.shape);
     homography(scaledImg, padImg, homographyArray(scaleF));
 
     return scaledImg;
@@ -205,29 +199,29 @@ module.exports.getTverts = function(surface, params) {
         field = surface._field[2].hi(0, 0);
     }
     // Save shape
-    let fields = surface._field;
+    const fields = surface._field;
 
     // Save shape of field
-    let shape = field.shape.slice();
+    const shape = field.shape.slice();
 
-    let count = (shape[0] - 1) * (shape[1] - 1) * 6;
-    let tverts = pool.mallocFloat(bits.nextPow2(10 * count));
+    const count = (shape[0] - 1) * (shape[1] - 1) * 6;
+    const tverts = pool.mallocFloat(bits.nextPow2(10 * count));
 
 
     // Compute surface normals
-    let dfields = ndarray(pool.mallocFloat(fields[2].size * 3 * 2), [3, shape[0] + 2, shape[1] + 2, 2]);
+    const dfields = ndarray(pool.mallocFloat(fields[2].size * 3 * 2), [3, shape[0] + 2, shape[1] + 2, 2]);
     for (i = 0; i < 3; ++i) {
         gradient(dfields.pick(i), fields[i], 'mirror');
     }
-    let normals = ndarray(pool.mallocFloat(fields[2].size * 3), [shape[0] + 2, shape[1] + 2, 3]);
+    const normals = ndarray(pool.mallocFloat(fields[2].size * 3), [shape[0] + 2, shape[1] + 2, 3]);
     for (i = 0; i < shape[0] + 2; ++i) {
         for (j = 0; j < shape[1] + 2; ++j) {
-            let dxdu = dfields.get(0, i, j, 0);
-            let dxdv = dfields.get(0, i, j, 1);
-            let dydu = dfields.get(1, i, j, 0);
-            let dydv = dfields.get(1, i, j, 1);
-            let dzdu = dfields.get(2, i, j, 0);
-            let dzdv = dfields.get(2, i, j, 1);
+            const dxdu = dfields.get(0, i, j, 0);
+            const dxdv = dfields.get(0, i, j, 1);
+            const dydu = dfields.get(1, i, j, 0);
+            const dydv = dfields.get(1, i, j, 1);
+            const dzdu = dfields.get(2, i, j, 0);
+            const dzdv = dfields.get(2, i, j, 1);
 
             let nx = dydu * dzdv - dydv * dzdu;
             let ny = dzdu * dxdv - dzdv * dxdu;
@@ -255,38 +249,37 @@ module.exports.getTverts = function(surface, params) {
     pool.free(dfields.data);
 
     // Initialize surface
-    let lo = [ Infinity, Infinity, Infinity ];
-    let hi = [ -Infinity, -Infinity, -Infinity ];
+    const lo = [ Infinity, Infinity, Infinity ];
+    const hi = [ -Infinity, -Infinity, -Infinity ];
     let lo_intensity = Infinity;
     let hi_intensity = -Infinity;
 
     let tptr = 0;
-    let vertexCount = 0;
-    for (i = 0; i < shape[0] - 1; ++i) {
+    for (let i = 0; i < shape[0] - 1; ++i) {
         j_loop:
         for (j = 0; j < shape[1] - 1; ++j) {
             // Test for NaNs
             for (let dx = 0; dx < 2; ++dx) {
                 for (let dy = 0; dy < 2; ++dy) {
                     for (let k = 0; k < 3; ++k) {
-                        let f = surface._field[k].get(1 + i + dx, 1 + j + dy);
+                        const f = surface._field[k].get(1 + i + dx, 1 + j + dy);
                         if (isNaN(f) || !isFinite(f)) {
                             continue j_loop;
                         }
                     }
                 }
             }
-            for (k = 0; k < 6; ++k) {
-                let r = i + QUAD[k][0];
-                let c = j + QUAD[k][1];
+            for (let k = 0; k < 6; ++k) {
+                const r = i + QUAD[k][0];
+                const c = j + QUAD[k][1];
 
-                let tx = surface._field[0].get(r + 1, c + 1);
-                let ty = surface._field[1].get(r + 1, c + 1);
-                f = surface._field[2].get(r + 1, c + 1);
+                const tx = surface._field[0].get(r + 1, c + 1);
+                const ty = surface._field[1].get(r + 1, c + 1);
+                const f = surface._field[2].get(r + 1, c + 1);
                 let vf = f;
-                nx = normals.get(r + 1, c + 1, 0);
-                ny = normals.get(r + 1, c + 1, 1);
-                nz = normals.get(r + 1, c + 1, 2);
+                const nx = normals.get(r + 1, c + 1, 0);
+                const ny = normals.get(r + 1, c + 1, 1);
+                const nz = normals.get(r + 1, c + 1, 2);
 
                 if (params.intensity) {
                     vf = params.intensity.get(r, c);
@@ -312,8 +305,6 @@ module.exports.getTverts = function(surface, params) {
                 hi[1] = Math.max(hi[1], ty);
                 hi[2] = Math.max(hi[2], f);
                 hi_intensity = Math.max(hi_intensity, vf);
-
-                vertexCount += 1;
             }
         }
     }
@@ -333,10 +324,10 @@ module.exports.getTverts = function(surface, params) {
 };
 
 // Pad coords by +1
-let padField = function(field) {
-    let shape = field.shape;
-    let nshape = [shape[0] + 2, shape[1] + 2];
-    let nfield = ndarray(new Float32Array(nshape[0] * nshape[1]), nshape);
+const padField = function(field) {
+    const shape = field.shape;
+    const nshape = [shape[0] + 2, shape[1] + 2];
+    const nfield = ndarray(new Float32Array(nshape[0] * nshape[1]), nshape);
 
     // Center
     ops.assign(nfield.lo(1, 1).hi(shape[0], shape[1]), field);
@@ -360,13 +351,13 @@ let padField = function(field) {
     return nfield;
 };
 
-let parseColorScale = function(colorscale, alpha) {
+const parseColorScale = function(colorscale, alpha) {
     if (alpha === undefined) alpha = 1;
 
     return colorscale.map(function(elem) {
-        let index = elem[0];
-        let color = tinycolor(elem[1]);
-        let rgb = color.toRgb();
+        const index = elem[0];
+        const color = tinycolor(elem[1]);
+        const rgb = color.toRgb();
         return {
             index: index,
             rgb: [rgb.r, rgb.g, rgb.b, alpha]
@@ -374,25 +365,3 @@ let parseColorScale = function(colorscale, alpha) {
     });
 };
 
-let refine = function(coords) {
-    let minScale = Math.max(coords[0].shape[0], coords[0].shape[1]);
-
-    if (minScale < MIN_RESOLUTION) {
-        let scaleF = MIN_RESOLUTION / minScale;
-        let nshape = [
-            Math.floor((coords[0].shape[0]) * scaleF+1)|0,
-            Math.floor((coords[0].shape[1]) * scaleF+1)|0 ];
-        let nsize = nshape[0] * nshape[1];
-
-        for(let i = 0; i < coords.length; ++i) {
-            let padImg = padField(coords[i]);
-            let scaledImg = ndarray(new Float32Array(nsize), nshape);
-            homography(scaledImg, padImg, homographyArray(scaleF));
-            coords[i] = scaledImg;
-        }
-
-        return scaleF;
-    }
-
-    return 1.0;
-};

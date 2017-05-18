@@ -1,10 +1,22 @@
+# IDE config
+.idea/
+
+# Package directories
 node_modules/
 jspm_packages/
+
+# Error logs
 npm-debug.log
-todo.txt
+yarn-error.log
+
+# Build process
 .cache/
 build/
 app/server/public/
 
+# HTTP/2 credentials
 server.crt
 server.key
+
+# Other
+todo.txt

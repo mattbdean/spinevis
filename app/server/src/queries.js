@@ -4,19 +4,18 @@
  * retrieving data from the database.
  */
 
-let db = require('./database.js');
-let _ = require('lodash');
-let moment = require('moment');
+const db = require('./database.js');
+const _ = require('lodash');
+const moment = require('moment');
+const ObjectID = require('bson').ObjectID;
 
 const COLL_META = 'meta';
 const COLL_BEHAVIOR = 'behavior';
 const COLL_MASK_TIME_COURSE = 'masktc';
 const COLL_VOLUMES = 'volumes';
 
-const RESOLUTION_FULL = 100; // 100% = all data
-
-module.exports.ERROR_MISSING = "missing";
-module.exports.ERROR_PAGINATION = "pagination";
+module.exports.ERROR_MISSING = 'missing';
+module.exports.ERROR_PAGINATION = 'pagination';
 
 function QueryError(msg, data, errType) {
     this.msg = msg;
@@ -24,19 +23,19 @@ function QueryError(msg, data, errType) {
     this.type = errType;
 }
 
-let errorMissing = function(msg, data) {
+const errorMissing = function(msg, data) {
     return new QueryError(msg, data, module.exports.ERROR_MISSING);
 };
 
-let errorPagination = function(msg, start, limit) {
-    let paginationData = {
+const errorPagination = function(msg, start, limit) {
+    const paginationData = {
         start: start,
         limit: limit
     };
     return new QueryError(msg, paginationData, module.exports.ERROR_PAGINATION);
 };
 
-let verifyPaginationData = function(start, limit) {
+const verifyPaginationData = function(start, limit) {
     let err = null;
     if (typeof start !== 'number') err = 'start is not a number, was ' + typeof start;
     if (typeof limit !== 'number') err = 'limit is not a number, was ' + typeof limit;
@@ -52,7 +51,7 @@ let verifyPaginationData = function(start, limit) {
  *
  * @param  {Date} date
  */
-let normalizedMoment = (date) =>
+const normalizedMoment = (date) =>
     moment.utc(date).hours(0).minutes(0).seconds(0).milliseconds(0);
 
 /**
@@ -71,19 +70,19 @@ let normalizedMoment = (date) =>
  * @param {string} animal If provided, will only return sessions for this animal
  */
 module.exports.findAllSessions = function(start, limit, startDate, endDate, animal) {
-    let paginationError = verifyPaginationData(start, limit);
+    const paginationError = verifyPaginationData(start, limit);
     if (paginationError !== null) {
         return Promise.reject(errorPagination(paginationError, start, limit));
     }
 
-    const identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'nSamples', 'volRate'];
+    const identifyingProperties = ['start_time', 'end_time', 'Animal', 'Run', 'name', 'nSamples', 'volRate', 'FOV'];
 
-    let projection = {};
-    for (let prop of identifyingProperties) {
+    const projection = {};
+    for (const prop of identifyingProperties) {
         projection[prop] = 1;
     }
 
-    let query = {};
+    const query = {};
     if (startDate !== undefined || endDate !== undefined) {
         query.start_time = {};
 
@@ -98,7 +97,7 @@ module.exports.findAllSessions = function(start, limit, startDate, endDate, anim
     }
 
     if (animal !== undefined) {
-        query.Animal = animal;
+        query.Animal = new RegExp(animal, 'i');
     }
 
     return db.mongo().collection(COLL_META)
@@ -108,6 +107,20 @@ module.exports.findAllSessions = function(start, limit, startDate, endDate, anim
         .limit(limit)
         .sort({start_time: -1})
         .toArray();
+};
+
+/**
+ * Gets an array of dates that sessions started in ascending order
+ */
+module.exports.getSessionDates = function() {
+    return db.mongo().collection(COLL_META)
+        .find()
+        .project({ _id: 0, start_time: 1 })
+        .sort({ start_time: 1 })
+        .toArray()
+        .then(function(docs) {
+            return _.uniq(_.map(docs, (d) => d.start_time));
+        });
 };
 
 /**
@@ -150,7 +163,7 @@ module.exports.sessionExists = function(id) {
  *                       24 refers to the 24th time the brain was imaged
  */
 module.exports.getBehavior = function(id, types = []) {
-    let query = {srcID: id};
+    const query = {srcID: id};
 
     // $or operators cannot contain an empty array
     if (types.length > 0) {
@@ -164,8 +177,8 @@ module.exports.getBehavior = function(id, types = []) {
         .then(function(behaviorDocs) {
             if (types.length > 0 && behaviorDocs.length !== types.length) {
                 // Identify the types that could not be found
-                let returnedTypes = _.map(behaviorDocs, o => o.evtType);
-                let missing = _.filter(types, t => returnedTypes.indexOf(t) < 0);
+                const returnedTypes = _.map(behaviorDocs, (o) => o.evtType);
+                const missing = _.filter(types, (t) => returnedTypes.indexOf(t) < 0);
                 return Promise.reject(errorMissing('Some behavior types could not be found', {types: missing}));
             }
 
@@ -173,47 +186,64 @@ module.exports.getBehavior = function(id, types = []) {
         });
 };
 
-module.exports.getTimeline = function(sessionId, traceId) {
-    let namesOnly = traceId === undefined;
+/**
+ * Gets a specified mask uniquely identified by the sessionID and maskId
+ * parameters. If maskId is undefined, this function returns the name and _id of
+ * each mask.
+ *
+ * @param {string} sessionId The ID of the session that hosts the mask
+ * @param {string} maskId Optional
+ */
+module.exports.getTimeline = function(sessionId, maskId) {
+    const namesOnly = maskId === undefined;
 
-    let query = {srcID: sessionId};
+    const query = {srcID: sessionId};
     if (!namesOnly) {
-        query.maskNum = traceId;
+        query._id = ObjectID(maskId);
     }
 
     let cursor = db.mongo().collection(COLL_MASK_TIME_COURSE)
-        .find(query);
+        .find(query)
+        .sort({ maskID: 1 });
+
     if (namesOnly) {
-        cursor = cursor.project({_id: 0, maskNum: 1});
+        cursor = cursor.project({_id: 1, maskName: 1});
+    } else {
+        cursor = cursor.limit(1);
     }
 
     return cursor.toArray().then(function(timeCourseDocs) {
         if (namesOnly) {
-            return _.map(timeCourseDocs, doc => doc.maskNum);
+            return timeCourseDocs;
         } else {
             if (timeCourseDocs.length < 1) {
                 // Couldn't find the requested trace
-                return Promise.reject(errorMissing('Couldn\'t find trace', {name: traceId}));
+                return Promise.reject(errorMissing('Couldn\'t find mask', {maskId}));
             }
 
-            return rearrangeByKey(timeCourseDocs, 'maskNum', 'maskF');
+            return timeCourseDocs[0];
         }
     });
 };
 
-module.exports.getVolumes = function(sessionId, start) {
-    let query = {srcID: sessionId, volNum: start};
+/**
+ * Gets a single entry from the volumes collection uniquely identified by the
+ * given session ID and volume index.
+ */
+module.exports.getVolumes = function(sessionId, index) {
+    const query = {srcID: sessionId, volNum: index};
 
     return db.mongo().collection(COLL_VOLUMES)
         .find(query)
+        .limit(1)
         .toArray().then(function(data) {
             return data[0].pixelF.buffer;
         });
 };
 
-let createDynamicQuerySegment = function(key, values) {
-    let segments = [];
-    for (let val of values) {
+const createDynamicQuerySegment = function(key, values) {
+    const segments = [];
+    for (const val of values) {
         segments.push({[key]: val});
     }
 
@@ -224,10 +254,10 @@ let createDynamicQuerySegment = function(key, values) {
  * Transforms an array of objects into a single object such that each property
  * in the object has a key of docs[i][keyName] and a value of docs[i][valueName]
  */
-let rearrangeByKey = function(docs, keyName, valueName) {
-    let transformedData = {};
+const rearrangeByKey = function(docs, keyName, valueName) {
+    const transformedData = {};
 
-    for (let doc of docs) {
+    for (const doc of docs) {
         transformedData[doc[keyName]] = doc[valueName];
     }
 

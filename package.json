@@ -1,211 +1,95 @@
 {
   "name": "spinevis",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "",
-  "main": "spinevis.js",
   "repository": "https://github.com/thatJavaNerd/spinevis",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "build": "grunt build && webpack --config app/client/webpack.config.js --progress",
+    "build:watch": "concurrently --raw \"grunt build watch\" \"webpack --config app/client/webpack.config.js --progress --watch\"",
     "start": "node server --use-strict"
   },
   "author": "Matthew Dean <deanmatthew16@gmail.com>",
   "dependencies": {
+    "angular": "^1.6.4",
+    "angular-bootstrap-toggle": "^0.1.2",
+    "angular-fancy-modal": "github:vesparny/angular-fancy-modal",
+    "angularjs-datepicker": "^2.1.19",
+    "angularjs-slider": "^6.1.2",
+    "async": "^2.4.0",
+    "babel-loader": "^7.0.0",
+    "bit-twiddle": "^1.0.2",
     "body-parser": "^1.15.2",
+    "colormap": "^2.2.0",
     "colors": "^1.1.2",
+    "core-js": "^2.4.1",
     "express": "^4.14.0",
     "express-list-endpoints": "^3.0.0",
     "helmet": "^3.1.0",
-    "jspm": "0.17.0-beta.41",
+    "jquery": "^3.2.1",
+    "karma-sourcemap-loader": "^0.3.7",
     "lodash": "^4.17.4",
+    "lru-cache": "^4.0.2",
     "moment": "^2.18.1",
+    "moment-duration-format": "^1.3.0",
     "mongodb": "^2.2.11",
     "morgan": "^1.7.0",
+    "ndarray": "^1.0.18",
+    "ndarray-fill": "^1.0.2",
+    "ndarray-gradient": "^1.0.0",
+    "ndarray-homography": "^1.0.0",
+    "ndarray-ops": "^1.2.2",
+    "ndarray-pack": "^1.2.1",
+    "ng-infinite-scroll": "^1.3.0",
+    "numeral": "^2.0.6",
     "pinput": "^1.1.1",
+    "plotly.js": "github:plotly/plotly.js",
     "pug": "^2.0.0-beta6",
     "spdy": "^3.4.4",
-    "tinycolor2": "^1.4.1"
+    "tinycolor2": "^1.4.1",
+    "typedarray-pool": "^1.1.0",
+    "uuid": "^3.0.1",
+    "watchjs": "^0.0.0",
+    "webpack-merge": "^4.1.0"
   },
   "devDependencies": {
+    "babel-core": "^6.24.1",
+    "babel-preset-env": "^1.4.0",
     "benchmark": "^2.1.3",
     "chai": "^3.5.0",
+    "concurrently": "^3.4.0",
     "coveralls": "^2.11.15",
+    "css-loader": "^0.28.1",
     "grunt": "^1.0.1",
+    "grunt-babel": "^6.0.0",
     "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-cssmin": "^2.0.0",
-    "grunt-contrib-jshint": "^1.0.0",
     "grunt-contrib-pug": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-coveralls": "^1.0.1",
+    "grunt-eslint": "^19.0.0",
     "grunt-jspm-depcache": "^0.1.0",
     "grunt-karma": "^2.0.0",
     "grunt-lcov-merge": "^1.2.3",
     "grunt-mocha-istanbul": "^5.0.2",
-    "grunt-mocha-test": "^0.13.2",
     "grunt-run": "^0.6.0",
+    "grunt-webpack": "^3.0.0",
+    "ify-loader": "^1.0.4",
+    "istanbul": "^0.4.5",
     "karma": "^1.3.0",
-    "karma-chrome-launcher": "^2.0.0",
-    "karma-coverage": "^1.1.1",
     "karma-firefox-launcher": "^1.0.0",
-    "karma-jspm": "^2.2.2",
     "karma-mocha": "^1.3.0",
+    "karma-mocha-clean-reporter": "^0.0.1",
     "karma-mocha-reporter": "^2.2.2",
+    "karma-webpack": "^2.0.3",
     "mocha": "^3.1.2",
     "mocha-lcov-reporter": "^1.2.0",
-    "supertest": "^3.0.0"
-  },
-  "jspm": {
-    "directories": {
-      "baseURL": "app/client"
-    },
-    "dependencies": {
-      "angular-bootstrap-toggle": "github:ziscloud/angular-bootstrap-toggle@^0.1.2",
-      "angular-fancy-modal": "github:vesparny/angular-fancy-modal@^0.1.4",
-      "angularjs-datepicker": "npm:angularjs-datepicker@^2.1.17",
-      "angularjs-slider": "npm:angularjs-slider@^6.1.1",
-      "async": "npm:async@^2.3.0",
-      "bit-twiddle": "npm:bit-twiddle@^1.0.2",
-      "bootstrap": "github:twbs/bootstrap@^3.3.7",
-      "chai": "npm:chai@^3.5.0",
-      "colormap": "npm:colormap@^2.2.0",
-      "css": "github:systemjs/plugin-css@^0.1.33",
-      "dtype": "npm:dtype@^2.0.0",
-      "hughsk/tab64": "github:hughsk/tab64@^0.0.1",
-      "jquery": "npm:jquery@^3.1.1",
-      "lodash": "npm:lodash@^4.17.4",
-      "lru-cache": "npm:lru-cache@^4.0.2",
-      "moment": "npm:moment@^2.17.1",
-      "moment-duration-format": "npm:moment-duration-format@^1.3.0",
-      "ndarray": "npm:ndarray@^1.0.18",
-      "ndarray-fill": "npm:ndarray-fill@^1.0.2",
-      "ndarray-gradient": "npm:ndarray-gradient@^1.0.0",
-      "ndarray-homography": "npm:ndarray-homography@^1.0.0",
-      "ndarray-ops": "npm:ndarray-ops@^1.2.2",
-      "ndarray-pack": "npm:ndarray-pack@^1.2.1",
-      "ng-infinite-scroll": "npm:ng-infinite-scroll@^1.3.0",
-      "numeral": "npm:numeral@^2.0.4",
-      "param-case": "npm:param-case@^2.1.1",
-      "plugin-babel": "npm:systemjs-plugin-babel@^0.0.21",
-      "tinycolor2": "npm:tinycolor2@^1.4.1",
-      "typedarray-pool": "npm:typedarray-pool@^1.1.0",
-      "uuid": "npm:uuid@^3.0.1",
-      "watchjs": "npm:watchjs@^0.0.0"
-    },
-    "devDependencies": {},
-    "peerDependencies": {
-      "angular": "npm:angular@^1.6.2",
-      "assert": "npm:jspm-nodelibs-assert@^0.2.0",
-      "buffer": "npm:jspm-nodelibs-buffer@^0.2.0",
-      "child_process": "npm:jspm-nodelibs-child_process@^0.2.0",
-      "constants": "npm:jspm-nodelibs-constants@^0.2.0",
-      "crypto": "npm:jspm-nodelibs-crypto@^0.2.0",
-      "events": "npm:jspm-nodelibs-events@^0.2.0",
-      "fs": "npm:jspm-nodelibs-fs@^0.2.0",
-      "module": "npm:jspm-nodelibs-module@^0.2.0",
-      "net": "npm:jspm-nodelibs-net@^0.2.0",
-      "os": "npm:jspm-nodelibs-os@^0.2.0",
-      "path": "npm:jspm-nodelibs-path@^0.2.0",
-      "process": "npm:jspm-nodelibs-process@^0.2.0",
-      "source-map": "npm:source-map@~0.1.33",
-      "stream": "npm:jspm-nodelibs-stream@^0.2.0",
-      "string_decoder": "npm:jspm-nodelibs-string_decoder@^0.2.0",
-      "tls": "npm:jspm-nodelibs-tls@^0.2.0",
-      "tty": "npm:jspm-nodelibs-tty@^0.2.0",
-      "uglify-to-browserify": "npm:uglify-to-browserify@1.0",
-      "util": "npm:jspm-nodelibs-util@^0.2.0",
-      "vm": "npm:jspm-nodelibs-vm@^0.2.0",
-      "zlib": "npm:jspm-nodelibs-zlib@^0.2.0"
-    },
-    "overrides": {
-      "github:twbs/bootstrap@3.3.7": {
-        "main": "js/bootstrap.js",
-        "dependencies": {
-          "jquery": "jspm:jquery@*"
-        },
-        "files": [
-          "dist",
-          "fonts",
-          "js",
-          "css"
-        ],
-        "meta": {
-          "js/bootstrap.js": {
-            "deps": [
-              "jquery"
-            ],
-            "exports": "$",
-            "format": "global"
-          }
-        }
-      },
-      "npm:angular@1.6.3": {
-        "format": "global",
-        "jspmNodeConversion": false,
-        "main": "angular",
-        "meta": {
-          "angular.js": {
-            "exports": "angular",
-            "format": "global"
-          }
-        }
-      },
-      "npm:browserify-zlib@0.1.4": {
-        "dependencies": {
-          "readable-stream": "^2.0.2",
-          "pako": "~0.2.0"
-        },
-        "map": {
-          "_stream_transform": "readable-stream/transform"
-        }
-      },
-      "npm:inherits@2.0.1": {
-        "ignore": [
-          "test.js"
-        ]
-      },
-      "npm:jquery@3.2.1": {
-        "format": "amd"
-      },
-      "npm:lodash@4.17.4": {
-        "map": {
-          "buffer": "@empty",
-          "process": "@empty"
-        }
-      },
-      "npm:moment@2.17.1": {
-        "jspmNodeConversion": false
-      },
-      "npm:readable-stream@1.0.34": {
-        "map": {
-          "stream": "stream-browserify/index"
-        },
-        "systemjs": {
-          "main": "readable.js"
-        },
-        "dependencies": {
-          "core-util-is": "~1.0.0",
-          "isarray": "0.0.1",
-          "string_decoder": "~0.10.0",
-          "inherits": "~2.0.1",
-          "stream-browserify": "~1.0.0"
-        }
-      },
-      "npm:readable-stream@1.1.14": {
-        "map": {
-          "stream": "stream-browserify/index"
-        },
-        "systemjs": {
-          "main": "readable.js"
-        },
-        "dependencies": {
-          "core-util-is": "~1.0.0",
-          "inherits": "~2.0.1",
-          "isarray": "0.0.1",
-          "string_decoder": "~0.10.0",
-          "stream-browserify": "^1.0.0"
-        }
-      }
-    }
+    "pug-html-loader": "^1.1.4",
+    "raw-loader": "^0.5.1",
+    "style-loader": "^0.17.0",
+    "supertest": "^3.0.0",
+    "webpack": "^2.5.1"
   }
 }

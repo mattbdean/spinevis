@@ -1,13 +1,13 @@
-let util = require('../core/util.js');
-let moment = require('moment');
-let numeral = require('numeral');
-let _ = require('lodash');
+const util = require('../core/util.js');
+const moment = require('moment');
+const numeral = require('numeral');
+const _ = require('lodash');
 
-let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
+const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
     // Use base title
     title.useBase();
 
-    let $ctrl = this;
+    const $ctrl = this;
 
     // Format a date like '1 January 1970' with this spec:
     // https://docs.angularjs.org/api/ng/filter/date
@@ -26,17 +26,21 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
 
     // Pagination variables
     let start = 0;
-    const limit = 20;
+    const limitFirst = 50;
+    const limitNext = 20;
     let hasMore = true;
     let loading = false;
 
-    $ctrl.today = () => moment().format();
+    $ctrl.dateBounds = {
+        start: moment().format(),
+        end: moment().format()
+    };
 
-    $scope.$watchCollection('$ctrl.dateRange', (newVal) => {
+    $scope.$watchCollection('$ctrl.dateRange', () => {
         $ctrl.sessions = [];
 
         // Parse dates into moment objects
-        let [startDate, endDate] = parseDateRange($ctrl.dateRange);
+        const [startDate, endDate] = parseDateRange($ctrl.dateRange);
 
         // Swap start and end dates if the start date is before the end date
         if (startDate.isValid() && endDate.isValid() && startDate.isAfter(endDate)) {
@@ -54,25 +58,28 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         resetPagination();
     });
 
-    let parseDateRange = (dateRange) => _.map(
+    const parseDateRange = (dateRange) => _.map(
         [dateRange.start, dateRange.end], parseDate
     );
 
     /**
      * Use moment to strictly parse a date in the format that the date picker uses
      */
-    let parseDate = (str) => moment(str, momentInputFormat, true);
+    const parseDate = (str) => moment(str, momentInputFormat, true);
 
     /**
      * Formats a moment in the format that the API expects. If the moment is
      * not valid, returns undefined.
      */
-    let formatMoment = (m) => m.isValid() ? m.format(momentOutputFormat) : undefined;
+    const formatMoment = (m) => m.isValid() ? m.format(momentOutputFormat) : undefined;
 
-    let formatMetadata = (meta) => ({
+    /** Formats a session metadata object for use in the template */
+    const formatMetadata = (meta) => ({
         id: meta._id,
         animal: meta.Animal,
+        name: meta.name,
         run: meta.Run,
+        fov: meta.FOV,
         // Add new property 'duration', difference between start and end time
         // formatted in the format 'h:mm'
         duration: util.format.duration(meta.start_time, meta.end_time),
@@ -85,31 +92,33 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
         imagingRate: numeral(meta.volRate).format('0.0') + ' Hz'
     });
 
-    let resetPagination = function() {
+    const resetPagination = () => {
         // Reset our pagination variables
         $ctrl.sessions = [];
         start = 0;
         hasMore = true;
         $ctrl.nextPage();
-    }
+    };
 
-    $ctrl.nextPage = function() {
+    $ctrl.nextPage = () => {
         // Don't beat a dead horse
         if (!hasMore || loading) return;
 
         // Format the moments into date strings the API will understand
-        let dateRange = _.map(parseDateRange($ctrl.dateRange));
-        [startDate, endDate] = _.map(dateRange, formatMoment);
+        const dateRange = _.map(parseDateRange($ctrl.dateRange));
+        const [startDate, endDate] = _.map(dateRange, formatMoment);
 
         let animal = $ctrl.animal;
         if (animal === '') animal = undefined;
 
         loading = true;
+
+        const limit = start === 0 ? limitFirst : limitNext;
         // Request the data and add it to the controller sessions
         session.list(start, limit, startDate, endDate, animal)
         .then(function(response) {
-            let sessions = response.data.data;
-            for (let session of response.data.data) {
+            const sessions = response.data.data;
+            for (const session of response.data.data) {
                 $ctrl.sessions.push(formatMetadata(session));
             }
 
@@ -123,13 +132,30 @@ let ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
             console.error('Unable to execute request: ' + response.data.error.msg);
             console.error(response.data.error.data);
         })
-        .finally(function(response) {
+        .finally(function() {
             loading = false;
+        });
+    };
+
+    $ctrl.$onInit = function() {
+        session.dates().then(function(res) {
+            const dates = _.map(res.data.data, (d) => moment(d));
+            $ctrl.dateBounds = {
+                start: dates[0].format(momentInputFormat),
+                // Add 1 day to the end because the `end` API parameter is
+                // exclusive, while the `start` parameter is inclusive
+                end: dates[dates.length - 1].add(1, 'days').format(momentInputFormat)
+            };
+
+            $ctrl.dateRange = {
+                start: dates[0].format(momentInputFormat),
+                end: dates[dates.length - 1].format(momentInputFormat)
+            };
         });
     };
 }];
 
 module.exports = {
-    templateUrl: '/partial/session-list',
+    template: require('./session-list.template.pug'),
     controller: ctrlDef
 };

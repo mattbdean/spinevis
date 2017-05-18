@@ -1,59 +1,37 @@
-let fs = require('fs');
-let path = require('path');
-let bundle = require('jspm/lib/bundle');
+const fs = require('fs');
 
 module.exports = function(grunt) {
-    let pkg = grunt.file.readJSON('package.json');
+    const pkg = grunt.file.readJSON('package.json');
 
-    let clientBase = 'app/client/';
-    let build = clientBase + 'build/';
-    let finalDist = 'app/server/public/';
+    const finalDist = 'app/server/public/';
 
     grunt.initConfig({
         pkg: pkg,
         clean: {
-            buildPrep: [build, finalDist],
-            testPrep: ['build'],
-            jspm: [clientBase + 'jspm_packages']
+            buildPrep: [finalDist],
+            testPrep: ['build']
         },
-        mochaTest: {
-            test: {
-                src: ['app/server/test/**/*.js']
-            }
-        },
-        jshint: {
+        eslint: {
             all: [
                 'Gruntfile.js',
                 'karma.conf.js',
-                'app/client/!(build|jspm_packages)/**/*.js',
+                'app/client/src/**/*.js',
                 'app/server/src/**/*.js'
-            ],
-            options: {
-                jshintrc: true
-            }
+            ]
         },
         karma: {
             unit: {
-                configFile: 'karma.conf.js',
+                configFile: 'app/client/config/karma.conf.js',
                 singleRun: true,
                 browsers: ['Firefox']
             }
         },
         mocha_istanbul: {
-            default: {
-                src: 'app/server/test',
-                options: {
-                    coverageFolder: 'build/reports/coverage/server'
-                }
+            options: {
+                coverageFolder: 'build/reports/coverage/server'
             },
-            noDbMode: {
-                src: [
-                    'app/server/test/validation.js'
-                ],
-                options: {
-                    coverageFolder: 'build/reports/coverage/server'
-                }
-            }
+            default: ['app/server/test'],
+            noDbMode: ['app/server/test/validation.js']
         },
         lcovMerge: {
             options: {
@@ -72,7 +50,11 @@ module.exports = function(grunt) {
             },
             build: {
                 files: [{
-                    // Created dynamically
+                    expand: true,
+                    cwd: 'app/client/assets',
+                    src: ['*.css'],
+                    dest: finalDist + 'style',
+                    ext: '.min.css'
                 }]
             }
         },
@@ -83,73 +65,14 @@ module.exports = function(grunt) {
                 }
             }
         },
-        depcache: {
-            dist: ['src/app.module.js']
-        },
-        copy: {
-            rawAssets: {
-                cwd: 'app/client/_assets/raw',
-                src: '**',
-                dest: finalDist,
-                expand: true
-            },
-            config: {
-                cwd: clientBase,
-                src: 'jspm.config.js',
-                dest: finalDist + 'scripts/',
-                expand: true
-            },
-            scripts: {
-                cwd: clientBase + 'src/',
-                src: ['**/*.js'],
-                dest: finalDist + 'scripts',
-                expand: true
-            },
-            jspm: {
-                cwd: clientBase + 'jspm_packages/',
-                src: '**',
-                dest: finalDist + 'scripts/jspm_packages/',
-                expand: true
-            },
-            style: {
-                cwd: build + 'style',
-                src: ['*.min.css', '*.min.css.map'],
-                dest: finalDist + 'style',
-                expand: true
-            },
-            views: {
-                cwd: build + 'views',
-                src: '**',
-                dest: finalDist + 'views',
-                expand: true
-            },
-            dist: {
-                cwd: build,
-                src: '**', // copy all files and subdirectories
-                dest: finalDist,
-                expand: true
-            }
-        },
         watch: {
-            js: {
-                files: ['app/client/src/**/*.js'],
-                tasks: ['copy:scripts']
-            },
             css: {
-                files: ['./app/client/_assets/style/*.css'],
-                tasks: ['cssmin', 'copy:style']
+                files: ['app/client/assets/**/*.css'],
+                tasks: ['cssmin']
             },
             views: {
                 files: ['app/server/src/views/**/*.pug'],
-                tasks: ['pug', 'copy:views']
-            },
-            raw: {
-                files: ['app/client/_assets/raw/**/*'],
-                tasks: ['copy:rawAssets']
-            },
-            jspmConfig: {
-                files: ['app/client/jspm.config.js'],
-                tasks: ['copy:config', 'copy:jspm']
+                tasks: ['pug']
             }
         },
         run: {
@@ -160,28 +83,15 @@ module.exports = function(grunt) {
         }
     });
 
-    // Created a .min.css file for every CSS file in the style directory
-    let cssFiles = grunt.file.expand('app/client/_assets/style/*.css');
-    let minifyTargets = [];
-
-    // Create cssmin.build.files dynamically
-    for (let cssFile of cssFiles) {
-        minifyTargets.push({
-            src: cssFile,
-            dest: build + `style/${path.basename(cssFile, '.css')}.min.css`
-        });
-    }
-    grunt.config('cssmin.build.files', minifyTargets);
-
-    let walkTree = function(dir) {
+    const walkTree = function(dir) {
         if (dir.endsWith('/'))
             dir = dir.substring(0, dir.length - 1);
 
         let results = [];
-        let files = fs.readdirSync(dir);
-        files.forEach(file => {
+        const files = fs.readdirSync(dir);
+        files.forEach((file) => {
             file = dir + '/' + file;
-            let stat = fs.statSync(file);
+            const stat = fs.statSync(file);
             if (stat && stat.isDirectory())
                 results = results.concat(walkTree(file));
             else
@@ -194,47 +104,45 @@ module.exports = function(grunt) {
     // Dynamically add a key-value-pair to pug.compile.files for every file in
     // app/server/src/views
 
-    let srcDir = 'app/server/src/views/';
-    let outDir = build + 'views/';
-    let filesMap = {};
+    const srcDir = 'app/server/src/views/';
+    const outDir = finalDist + 'views/';
+    const filesMap = {};
 
     // Data to be passed to every template
-    let data = {
-        year: "2016 - " + new Date().getFullYear()
+    const data = {
+        year: '2016 - ' + new Date().getFullYear()
     };
 
-    let excludedTemplates = ["error.pug", "layout.pug", "session.pug"];
+    const excludedTemplates = ['error.pug', 'layout.pug'];
 
     // All views that can't be rendered statically or shouldn't be rendered
     // directly
-    walkTree(srcDir).forEach(view => {
+    walkTree(srcDir).forEach((view) => {
         // Get the file name relative to srcDir
-        let relativeName = view.slice(srcDir.length);
+        const relativeName = view.slice(srcDir.length);
 
         // Ignore dynamic views
         if (excludedTemplates.includes(relativeName)) {
             return;
         }
 
-        let relativeBasename = relativeName.substring(0, relativeName.lastIndexOf('.'));
-        let compiledPath = outDir + relativeBasename + '.html';
+        const relativeBasename = relativeName.substring(0, relativeName.lastIndexOf('.'));
+        const compiledPath = outDir + relativeBasename + '.html';
         filesMap[compiledPath] = view;
     });
     grunt.config('pug.compile.files', filesMap);
     grunt.config('pug.compile.options.data', data);
 
-    let tasks = [
+    const tasks = [
         'contrib-clean',
-        'contrib-copy',
         'contrib-cssmin',
-        'contrib-jshint',
         'contrib-pug',
         'contrib-watch',
         'coveralls',
+        'eslint',
         'jspm-depcache',
         'karma',
         'lcov-merge',
-        'mocha-test',
         'mocha-istanbul',
         'run'
     ];
@@ -244,11 +152,12 @@ module.exports = function(grunt) {
     }
 
     grunt.registerTask('default', ['test']);
-    grunt.registerTask('test', ['mochaTest', 'karma']);
+    grunt.registerTask('test', ['mocha_istanbul:default', 'karma']);
     grunt.registerTask('noDbModeWarn', function() {
         grunt.log.writeln('WARNING: Some tests have been skipped due to no access to a database');
     });
     grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
-    grunt.registerTask('build', ['clean:buildPrep', 'cssmin', 'pug', 'depcache', 'copy']);
+
+    grunt.registerTask('build', ['clean:buildPrep', 'pug', 'cssmin']);
 };

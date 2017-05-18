@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 'use strict';
 
-let fs = require('fs');
-let os = require('os');
-let path = require('path');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
-let spdy = require('spdy');
-let _ = require('lodash');
-let colors = require('colors/safe');
+const spdy = require('spdy');
+const http = require('http');
+const _ = require('lodash');
+const colors = require('colors/safe');
 
-let listEndpoints = require('express-list-endpoints');
-let createApp = require('./app/server/src/server.js');
-let packageJson = require('./package.json');
+const listEndpoints = require('express-list-endpoints');
+const createApp = require('./app/server/src/server.js');
+const packageJson = require('./package.json');
 
 // Catch unhandled Promises
-process.on('unhandledRejection', function(reason, p) {
+process.on('unhandledRejection', function(reason) {
     console.error("Unhandled Promise rejection: ");
     throw reason;
 });
@@ -26,8 +27,10 @@ if (hasArgument('--help')) {
 
 // Gather some information from command line arguments and environmental
 // variables to start the server
+const _port = process.env.PORT || 8080;
 bootstrap({
-    port: process.env.PORT || 8080,
+    port: _port,
+    httpsRedirectPort: process.env.HTTPS_REDIRECT_PORT || _port + 1,
     noHttp2: hasArgument('--no-http2')
 });
 
@@ -35,9 +38,15 @@ async function bootstrap(options) {
     console.log(colors.bold('Starting spinevis v' + packageJson.version));
     let spdyOptions = null;
 
+    if (options.port === options.httpsRedirectPort) {
+        console.log(colors.red('port cannot equal httpsRedirectPort'));
+        process.exit(1);
+    }
+
     if (!options.noHttp2) {
         try {
             spdyOptions = await spdyConf();
+            spdyOptions.httpsRedirectPort = options.httpsRedirectPort;
             console.log(colors.green('HTTP/2 enabled'));
         } catch (ex) {
             console.error(colors.red('WARNING: Starting in non-HTTP/2 mode: ' + ex.message));
@@ -46,7 +55,7 @@ async function bootstrap(options) {
         console.log(colors.blue('HTTP/2 disabled by user (via --no-http2)'));
     }
 
-    let app = await createApp();
+    const app = await createApp();
     logEndpoints(app);
 
     await startServer(app, spdyOptions, options.port);
@@ -57,9 +66,35 @@ async function bootstrap(options) {
 }
 
 function startServer(app, spdyOptions, port) {
+    const promises = [];
     // Use a spdy server if spdyOptions is not null, otherwise use the Express app
     let server = spdyOptions ? spdy.createServer(spdyOptions, app) : app;
-    return server.listen(port);
+    promises.push(server.listen(port));
+
+    if (spdyOptions) {
+        promises.push(createHttpsRedirectServer(port, spdyOptions.httpsRedirectPort));
+    }
+
+    return Promise.all(promises);
+}
+
+function createHttpsRedirectServer(httpsPort, httpPort) {
+    if (httpsPort === undefined) throw new Error('httpsPort was undefined');
+    if (httpPort === undefined) throw new Error('httpPort was undefined');
+
+    // Web browsers connect to HTTPS servers at port 443 by default
+    const DEFAULT_HTTPS_PORT = 443;
+    return http.createServer((req, res) => {
+        const reqHost = req.headers.host;
+        let resHost = reqHost;
+        if (reqHost.indexOf(':') >= 0) {
+            resHost = reqHost.split(':')[0];
+        }
+        // Only specify the port in the URL if necessary
+        const portSegment = httpsPort === DEFAULT_HTTPS_PORT ? '' : ':' + httpsPort;
+        res.writeHead(301, { Location: 'https://' + resHost + portSegment + req.url });
+        res.end();
+    }).listen(httpPort);
 }
 
 /**
@@ -141,7 +176,7 @@ function readFile(file) {
     return new Promise(function(resolve, reject) {
         fs.readFile(file, (err, data) => {
             if (err) reject(err);
-            else resolve(data)
+            else resolve(data);
         });
     });
 }

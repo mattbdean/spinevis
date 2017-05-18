@@ -1,34 +1,31 @@
-let moment = require('moment');
-let $ = require('jquery');
-let tab64 = require('hughsk/tab64');
-let _ = require('lodash');
-let colormap = require('colormap');
-let tinycolor = require('tinycolor2');
+const Plotly = require('../plotly');
+const moment = require('moment');
+const _ = require('lodash');
+const colormap = require('colormap');
 
-let events = require('./events.js');
-let util = require('../core/util.js');
-let defaultPlotOptions = require('../core/plotdefaults.js');
+const events = require('./events.js');
+const util = require('../core/util.js');
+
+const METADATA_LOADING = '(loading)';
 
 const METADATA_DEFAULTS = {
-    Animal: '(loading)',
+    Animal: METADATA_LOADING,
     // start_time and end_time are expected to be an ISO 8601-formatted string,
     // like what the API will return. Set these values to the current date.
     start_time: moment().format(),
     end_time: moment().format(),
-    Run: '(loading)'
+    Run: METADATA_LOADING,
+    name: METADATA_LOADING
 };
 
-// TODO Use JSPM to require plotly. Currently Plotly is added through a <script>
-// let Plotly = require('plotly/plotly.js');
-
-let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function SessionVisController($http, $window, $scope, title, session) {
+const ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function SessionVisController($http, $window, $scope, title, session) {
     // Use base title until we get some information
     title.useBase();
 
-    let $ctrl = this;
+    const $ctrl = this;
 
     // Use a Set to prevent potential excessive calls to Plotly.Plots.resize()
-    let plotNodes = new Set();
+    const plotNodes = new Set();
 
     let totalComponents = 0;
     let initializedComponents = 0;
@@ -65,28 +62,18 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
 
     // Resize the plots when the window resizes
     $window.onresize = function() {
-        let promises = [];
+        const promises = [];
         // I'd normally do this with lodash but it doesn't seem to like Sets
-        for (let p of plotNodes)
+        for (const p of plotNodes)
             promises.push(Plotly.Plots.resize(p));
         return Promise.all(promises);
-    };
-
-    // Handle pressing left and right arrow keys to move backwards or forwards
-    // by one timepoint
-    $window.onkeyup = function(event) {
-        if (event.key === 'ArrowRight') {
-            $scope.$broadcast(events.MOVE_FORWARD);
-        } else if (event.key === 'ArrowLeft') {
-            $scope.$broadcast(events.MOVE_BACKWARD);
-        }
     };
 
     /**
      * Bootstraps this component. Written as a function to minimize clutter in
      * controller function definition. Returns a Promise.
      */
-    let init = function() {
+    const init = function() {
         // Both plots require session metadata, grab that before creating them
         let metadata;
         return initSessionMeta().then(function(meta) {
@@ -95,17 +82,25 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
 
             return session.timeline(meta._id);
         }).then(function(response) {
-            let maskColors = createMaskColors(metadata.masks.Pts.length);
-            // Specifically make the global trace blue
-            maskColors.global = '#1F77B4';
+            const ids = _.map(response.data.data, (d) => d._id);
 
             // Notify all child scopes (e.g. the timeline component) that
             // the session metadata is ready
             $scope.$broadcast(events.META_LOADED, {
                 metadata: metadata,
-                colors: maskColors,
+                colors: createMaskColors(ids),
                 masks: createMasksObject(response.data.data)
             });
+
+            // Wait a half second to clear the loading message if we're
+            // developing and removed any components that listen for META_LOADED
+            // events
+            setTimeout(() => {
+                if (totalComponents === 0) {
+                    $ctrl.loading = false;
+                    setTimeout(() => { $scope.$apply(); }, 0);
+                }
+            }, 500);
         });
     };
 
@@ -114,11 +109,11 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
      *
      * @return {Promise} A Promise with no result to allow for chaining
      */
-    let initSessionMeta = function() {
+    const initSessionMeta = function() {
         return session.get($ctrl.sessionId).then(function(result) {
             // result is an XHR response, result.data is our JSON data, including
             // response metadata, result.data.data is the ACTUAL data
-            let metadata = result.data.data;
+            const metadata = result.data.data;
 
             // Grab specific elements from the session metadata to display at the top
             $ctrl.sessionFormattedMeta = createFormattedMetadata(metadata);
@@ -127,17 +122,20 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
         });
     };
 
+    const formatName = (name) => name === undefined ? '<no name>' : `"${name}"`;
+
     /**
      * Creates an array of formatted metadata. `source` should be an object
      * that is similar to the data returned by `GET /api/v1/session/:id`
      *
      * @param  {object} source Object to pull data from
      */
-    let createFormattedMetadata = (source) => [
+    const createFormattedMetadata = (source) => [
         'Animal ' + source.Animal,
         util.format.dateTime(source.start_time),
         util.format.duration(source.start_time, source.end_time),
-        'Run ' + source.Run
+        'Run ' + source.Run,
+        formatName(source.name)
     ];
 
     $ctrl.sessionFormattedMeta = createFormattedMetadata(METADATA_DEFAULTS);
@@ -146,28 +144,26 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
      * Creates `limit` number of colors using `colormap` in 'rgb' format (e.g.
      * "rgb(0,0,0)").
      */
-    let createMaskColors = function(limit) {
-        if (typeof limit !== "number")
-            throw new Error('limit was not a number (was ' + typeof limit + ')');
-
-        return _.shuffle(colormap({
+    const createMaskColors = function(traceIds) {
+        const colors = _.shuffle(colormap({
             colormap: 'hsv',
-            nshades: limit,
+            nshades: traceIds.length,
             format: 'rgbaString'
         }));
+
+        const mapping = {};
+        for (let i = 0; i < colors.length; i++) {
+            mapping[traceIds[i]] = colors[i];
+        }
+
+        return mapping;
     };
 
-    let createMasksObject = function(codeNames) {
-        return _.map(codeNames, codeName => {
-            let displayName = 'Mask ' + codeName;
-            if (codeName === 'global')
-                displayName = 'Global Fluorescence';
-
-            return {
-                displayName: displayName,
-                codeName: codeName
-            };
-        });
+    const createMasksObject = function(masks) {
+        return _.map(masks, (m) => ({
+            codeName: m._id,
+            displayName: m.maskName
+        }));
     };
 
     this.$onInit = function() {
@@ -188,7 +184,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sessio
 }];
 
 module.exports = {
-    templateUrl: '/partial/session-vis',
+    template: require('./session-vis.template.pug'),
     controller: ctrlDef,
     bindings: {
         sessionId: '@'

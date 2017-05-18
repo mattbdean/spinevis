@@ -1,81 +1,70 @@
-let _ = require('lodash');
-let $ = require('jquery');
+const Plotly = require('../plotly');
+const _ = require('lodash');
+const $ = require('jquery');
 
-let moment = require('moment');
-let WatchJS = require('watchjs');
-let watch = WatchJS.watch;
-let unwatch = WatchJS.unwatch;
+const WatchJS = require('watchjs');
+const watch = WatchJS.watch;
+const unwatch = WatchJS.unwatch;
 
 const behaviorMarkers = require('./markers.js');
-let relTime = require('./relative-time.js');
-let range = require('../core/range.js');
-let timezoneOffsetMillis = relTime.timezoneOffsetMillis;
-let defaultPlotOptions = require('../core/plotdefaults.js');
-let events = require('../session-vis/events.js');
+const relTime = require('./relative-time.js');
+const range = require('../core/range.js');
+const timezoneOffsetMillis = relTime.timezoneOffsetMillis;
+const defaultPlotOptions = require('../core/plotdefaults.js');
+const events = require('../session-vis/events.js');
+const thresholds = require('./thresholds.conf.js');
 
-const PLACEHOLDER_ID = '__placeholder__';
-const PLACEHOLDER_NAME = 'Add a trace';
-
+// The y-value at which the behavior data is plotted.
 const BEHAVIOR_Y = 0;
+
+// The y-value at which to plot all elements of a special trace which shows the
+// index of the current timepoint
+const POINT_RESOLUTION_TRACE_Y = 0;
+
 // A vertical line will be drawn at 50% of the plot
 const DATA_FOCUS_POSITION = 0.5;
 
-// The amount of milliseconds to add to imagingDelay such that when a
-// MOVE_FORWARD or MOVE_BACKWARD event is handled, there is no chance of
-// accidentally focusing on the same point twice.
-const PERIOD_SAFETY_NET = 5;
-
-let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function TimelineController($http, $window, $scope, session, traceManager) {
-    let $ctrl = this;
+const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function TimelineController($http, $window, $scope, session, traceManager) {
+    const $ctrl = this;
 
     // Wait for a parent component (i.e. session-vis) to send the session
     // metadata through an event. Immediately unsubscribe.
-    let unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
+    const unsubscribe = $scope.$on(events.META_LOADED, (event, data) => {
         unsubscribe();
         $scope.$emit(events.META_RECEIVED);
         init(data);
     });
 
-    let plotNode = $('#plot-timeline')[0];
+    const plotNode = $('#plot-timeline')[0];
 
     let sessionId = null;
     let lastFocusIndex = null;
-    // The amount of milliseconds between each imaging event rounded up, plus
-    // PERIOD_SAFETY_NET
-    let imagingDelay = null;
 
-    let init = function(data) {
+    const init = (data) => {
         $ctrl.sessionMeta = data.metadata;
         sessionId = $ctrl.sessionMeta._id;
 
-        // volRate is in Hertz. Convert this frequency to time period by taking
-        // Math.pow(volRate, -1) and convert to milliseconds by multiplying by
-        // 1000
-        imagingDelay = Math.round(
-            ((1 / $ctrl.sessionMeta.volRate) * 1000) + PERIOD_SAFETY_NET
-        );
+        // Tap into the TraceManager's onResolutionChanged callback so we can
+        // notify siblings
+        traceManager.onResolutionChanged = (newRes) => {
+            $scope.$emit(events.SIBLING_NOTIF, {
+                type: events.RESOLUTION_CHANGED,
+                data: newRes
+            });
+        };
 
+        // Initilize the TraceManager
         traceManager.init({
             plotNode: plotNode,
             sessionId: sessionId,
             sessionFrequency: $ctrl.sessionMeta.volRate,
             relTimes: $ctrl.sessionMeta.relTimes,
             colors: data.colors,
-            thresholds: [
-                {
-                    visibleDomain: Infinity,
-                    resolution: 1,
-                    nick: 'all'
-                },
-                {
-                    visibleDomain: 5 * 60 * 1000, // 5 minutes
-                    resolution: 100,
-                    nick: '5min'
-                }
-            ]
+            thresholds: thresholds
         });
 
         return initBehavior()
+        .then(initPointIdentifierTrace)
         .then(registerCallbacks)
         .then(function() {
             // Emit a DATA_FOCUS_CHANGE event with high priority so that volume
@@ -90,14 +79,11 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
     /**
      * Initializes a brand-new plot for the timeline. Returns a Promise.
      */
-    let initPlot = function() {
-        let timeId = 'Create empty timeline';
-        console.time(timeId);
-
-        let fluorGraphStart = 0.25;
+    const initPlot = () => {
+        const fluorGraphStart = 0.25;
 
         // Simple layout data
-        let layout = {
+        const layout = {
             // yaxis is for fluorescence data
             yaxis: {
                 // Goes 25% to 100% of the element (where 0% is the bottom and
@@ -108,7 +94,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             // yaxis2 is for behavior data
             yaxis2: {
                 // Goes from 10% to 20% of the element
-                domain: [0.1, 0.2],
+                domain: [0.1, fluorGraphStart - 0.05],
                 // We don't care about the y-values, only x-values
                 showticklabels: false,
                 // Don't allow the user to accidentally move the data out of
@@ -135,11 +121,39 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                     width: 1.5
                 }
             }],
+            margin: {
+                t: 20,
+                r: 20,
+                b: 80,
+                l: 40
+            },
             showlegend: true
         };
 
-        return Plotly.newPlot(plotNode, [], layout, defaultPlotOptions).then(function() {
-            console.timeEnd(timeId);
+        return Plotly.newPlot(plotNode, [], layout, defaultPlotOptions);
+    };
+
+    /**
+     * Creates a trace whose sole purpose is to show the user the index of the
+     * timepoint their cursor is under.
+     */
+    const initPointIdentifierTrace = () => {
+        return Plotly.addTraces(plotNode, {
+            // Convert every relative time to a Date for the x-axis
+            x: _.map($ctrl.sessionMeta.relTimes, (t) => new Date(relTime.relativeMillis(t))),
+            // This trace is a straight line modeled by the function
+            //     y = POINT_RESOLUTION_TRACE_Y
+            y: _.fill(Array($ctrl.sessionMeta.relTimes.length), POINT_RESOLUTION_TRACE_Y),
+            // Map every index to a string
+            text: _.map(_.range(0, $ctrl.sessionMeta.nSamples - 1), (i) => 'Point ' + i),
+            // Only show the 'text' on hover, which will be the value of the
+            // text array (specified above) at any given index
+            hoverinfo: 'text',
+            // Set the opacity to 0 so the users can't see it, but can still see
+            // the effects of hovering over it
+            opacity: 0,
+            name: 'Point Identifier',
+            line: { color: 'black' }
         });
     };
 
@@ -147,25 +161,20 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
      * Fetches and graphs behavior data from the API
      * @return {Promise} A Promise with no result to allow for chaining
      */
-    let initBehavior = function() {
-        let timeId = 'Create behavior traces and plot';
-        console.time(timeId);
-
+    const initBehavior = () => {
         return session.behavior(sessionId).then(function(behaviorData) {
             behaviorData = behaviorData.data.data;
-            let traces = [];
-
-            let startDelta = Date.now();
+            const traces = [];
 
             // behaviorData is an object mapping event types to the index of the
             // relative position at which the event occurred
-            for (let name of Object.keys(behaviorData)) {
-                let behaviorIndexes = behaviorData[name];
+            for (const name of Object.keys(behaviorData)) {
+                const behaviorIndexes = behaviorData[name];
 
-                let marker = behaviorMarkers[name];
+                const marker = behaviorMarkers[name];
 
                 traces.push({
-                    x: _.map(behaviorIndexes, index => new Date(relTime.relativeMillis($ctrl.sessionMeta.relTimes[index]))),
+                    x: _.map(behaviorIndexes, (index) => new Date(relTime.relativeMillis($ctrl.sessionMeta.relTimes[index]))),
                     y: _.fill(Array(behaviorIndexes.length), BEHAVIOR_Y),
                     name: name,
                     type: 'scatter',
@@ -176,9 +185,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                 });
             }
 
-            return Plotly.addTraces(plotNode, traces).then(function() {
-                console.timeEnd(timeId);
-            });
+            return Plotly.addTraces(plotNode, traces);
         });
     };
 
@@ -186,7 +193,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
      * Registers callbacks on the timeline node that are only available after
      * plotting.
      */
-    let registerCallbacks = function() {
+    const registerCallbacks = () => {
         plotNode.on('plotly_relayout', function(evt) {
             // plotly_relayout events also fired when the pan, zoom, lasso, etc.
             // buttons are clicked as well as when the graph viewport changes
@@ -199,12 +206,18 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                 // (converted to milliseconds)
                 domainMillis = range.create(0,
                     $ctrl.sessionMeta.relTimes[$ctrl.sessionMeta.nSamples - 1] * 1000);
+
+                // Show the middle point again
+                emitDataFocusChange($ctrl.sessionMeta.relTimes.length * DATA_FOCUS_POSITION);
             } else if (evt['xaxis.range[0]']) {
                 // Zooming/panning around gives definitive ranges.
 
                 const startMillis = new Date(evt['xaxis.range[0]']).getTime() - timezoneOffsetMillis;
                 const endMillis = new Date(evt['xaxis.range[1]']).getTime() - timezoneOffsetMillis;
                 domainMillis = range.create(startMillis, endMillis);
+
+                // Update the 3D figure
+                onTimepointSelected(domainMillis.start + DATA_FOCUS_POSITION * (domainMillis.end - domainMillis.start));
             } else if (evt['xaxis.range']) {
                 // Plotly usually sends the range update in two properties,
                 // `xaxis.range[0]` and `xaxis.range[1]`. However, it may be
@@ -212,11 +225,14 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
                 // the 0th and 1st element are a number representing the time
                 // in milliseconds of the start and end of the domain
                 // respectively. These types of events only originate from our
-                // code, specifically from shiftViewportX()
+                // code, specifically from setViewportX()
                 domainMillis = range.create(
-                    evt['xaxis.range'][0],
-                    evt['xaxis.range'][1]
+                    evt['xaxis.range'][0] - relTime.timezoneOffsetMillis,
+                    evt['xaxis.range'][1] - relTime.timezoneOffsetMillis
                 );
+
+                // Update the 3D figure
+                onTimepointSelected(domainMillis.start + DATA_FOCUS_POSITION * (domainMillis.end - domainMillis.start));
             }
 
             if (domainMillis !== undefined) {
@@ -236,23 +252,22 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             else disableTraces(data.masks);
         });
 
-        let onXaxisRangeChange = (prop, action, newValue, oldValue) => {
+        const onXaxisRangeChange = (prop, action, newValue) => {
             // Sometimes we are given an invalid range
             if (typeof newValue === 'string') return;
 
-            let millisecondValue = _.map(newValue, x => new Date(x).getTime() - timezoneOffsetMillis);
-            let middleMillis = millisecondValue[0] +
+            const millisecondValue = _.map(newValue, (x) => new Date(x).getTime() - timezoneOffsetMillis);
+            const middleMillis = millisecondValue[0] +
                 ((millisecondValue[1] - millisecondValue[0]) * DATA_FOCUS_POSITION);
 
-            // When this function is called as a result of plotNode._dragging
-            // being true (the user is dragging around the timeline),
-            // highPriority will always be false.
+            // Let the volume component know that the user chose a different
+            // timepoint
             onTimepointSelected(middleMillis);
         };
 
         // Watch the '_dragging' property of the plot node. When true, the user
         // is dragging the timeline around.
-        watch(plotNode, '_dragging', (prop, action, newValue, oldValue) => {
+        watch(plotNode, '_dragging', (prop, action, newValue) => {
             if (newValue) {
                 // The user has started dragging, watch the xaxis property
                 // maintained by Plotly so that we can emit DATA_FOCUS_CHANGE
@@ -265,31 +280,26 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
             }
         });
 
-        // Move the x-axis viewport by ~1 index when the user presses the left
-        // or right arrow key
-        $scope.$on(events.MOVE_FORWARD, () =>  { shiftViewportX(1);  });
-        $scope.$on(events.MOVE_BACKWARD, () => { shiftViewportX(-1); });
-    };
-
-    let shiftViewportX = function(indexCount) {
-        const shiftMillis = indexCount * imagingDelay;
-
-        // plotNode.(...).range is a date string parsable by the Date function.
-        // Parse these strings with moment and add the shift amount
-        let newDomain = _.map(plotNode._fullLayout.xaxis.range,
-            r => moment(r).add(shiftMillis, 'milliseconds').valueOf());
-
-        return Plotly.relayout(plotNode, {
-            'xaxis.range': newDomain
+        $scope.$on(events.INSPECT_TIMEPOINT, (event, data) => {
+            setViewportX(data.point - data.padding, data.point + data.padding);
         });
     };
 
-    let enableTraces = function(masks) {
+    const setViewportX = (minIndex, maxIndex) => {
+        return Plotly.relayout(plotNode, {
+            'xaxis.range': [
+                relTime.relativeMillis($ctrl.sessionMeta.relTimes[minIndex]),
+                relTime.relativeMillis($ctrl.sessionMeta.relTimes[maxIndex])
+            ]
+        });
+    };
+
+    const enableTraces = (masks) => {
         if (!Array.isArray(masks)) masks = [masks];
         return traceManager.putTraces(masks);
     };
 
-    let disableTraces = function(masks) {
+    const disableTraces = (masks) => {
         if (!Array.isArray(masks)) masks = [masks];
         return traceManager.removeTraces(masks);
     };
@@ -305,7 +315,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
      *                                          whatever component receives this
      *                                          event (e.g. volume)
      */
-    let onTimepointSelected = function(newMillis) {
+    const onTimepointSelected = (newMillis) => {
         let newIndex;
         // Manually set newIndex to 0 when newMillis < 0 because relTime.toIndex
         // returns a minimum of 1
@@ -330,7 +340,7 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
      *
      * @param  {number}  newIndex
      */
-    let emitDataFocusChange = function(newIndex) {
+    const emitDataFocusChange = (newIndex) => {
         // Tell the parent scope (i.e. session-vis) that the user has selected a
         // timepoint to analyze. In this case, that timepoint is at the location
         // at which the vertical line is drawn. Prefer Math.ceil over Math.floor
@@ -355,6 +365,6 @@ let ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', function
 }];
 
 module.exports = {
-    templateUrl: '/partial/timeline',
+    template: '<div id="plot-timeline">',
     controller: ctrlDef
 };

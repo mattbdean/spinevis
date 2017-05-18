@@ -1,12 +1,8 @@
 /**
  * range.js -- simple range operations. An object is considered to be a "range
- * object" if it has two numerical properties called 'start' and 'end'. Note
- * for functions that take an array of ranges, order does matter. For all ranges
- * in the array, range[i].start < range[i].end and range[i].end <
- * range[i + 1].start.
+ * object" if it has four numerical properties: start, end, delta, and middle.
+ * Note that ranges created from range.create() are read-only via Object.freeze()
  */
-
-let _ = require('lodash');
 
 /**
  * Checks if small can be completely encompassed within big, where big and small
@@ -16,6 +12,16 @@ module.exports.contained = function(big, small) {
     return big.start <= small.start && big.end >= small.end;
 };
 
+/**
+ * Returns a range that is bounded by the "limit" range. The resulting range's
+ * start will be the start of the limit range or the start of the original range,
+ * whichever is larger, and similarly for the end.
+ *
+ * @param  {range} range
+ * @param  {range} limit
+ * @return {range}       A new range whose start and end are bounded by the
+ *                       start and end of the limit range
+ */
 module.exports.boundBy = function(range, limit) {
     let start = range.start, end = range.end;
     if (range.start < limit.start)
@@ -26,14 +32,20 @@ module.exports.boundBy = function(range, limit) {
     return module.exports.create(start, end);
 };
 
+/**
+ * Creates a copy of a range
+ * @param  {range} range
+ */
 module.exports.copy = function(range) {
     return module.exports.create(range.start, range.end);
 };
 
-module.exports.fromPadding = function(center, padding) {
-    return module.exports.create(center - padding, center + padding);
-};
-
+/**
+ * Creates a new range. The resulting object will be frozen via Object.freeze()
+ * and have `start`, `end`, `delta`, and `middle` properties
+ * @param  {number} start
+ * @param  {number} end
+ */
 module.exports.create = function(start, end) {
     if (typeof start !== 'number')
         throw new Error('start must be a number, was ' + start);

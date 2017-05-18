@@ -1,10 +1,10 @@
-let bodyParser = require('body-parser');
-let express = require('express');
-let helmet = require('helmet');
-let logger = require('morgan');
-let mongodb = require('mongodb');
-let path = require('path');
-let db = require('./database.js');
+const bodyParser = require('body-parser');
+const express = require('express');
+const helmet = require('helmet');
+const logger = require('morgan');
+const mongodb = require('mongodb');
+const path = require('path');
+const db = require('./database.js');
 
 const app = express();
 
@@ -19,21 +19,21 @@ module.exports = function(logToStdout = true, errorLogger = console.error) {
     app.use(express.static(path.join(__dirname, '../public')));
 
     //////////////////////// ROUTING ////////////////////////
-    let api = require('./routes/api')(errorLogger);
+    const api = require('./routes/api')(errorLogger);
     app.use('/api/v1', api);
     app.use('/', require('./routes/front.js'));
 
     ///////////////////// ERROR HANDLING ////////////////////
     // Catch 404 and forward to error handler
     app.use(function(req, res, next) {
-        let err = new Error('Not Found');
+        const err = new Error('Not Found');
         err.status = 404;
         next(err);
     });
 
     // Development error handler
     if (app.get('env') === 'development') {
-        app.use(function(err, req, res, next) {
+        app.use(function(err, req, res) {
             res.status(err.status || 500);
             res.render('error', {
                 message: err.message,
@@ -43,7 +43,7 @@ module.exports = function(logToStdout = true, errorLogger = console.error) {
     }
 
     // Production error handler, don't show stack traces
-    app.use(function(err, req, res, next) {
+    app.use(function(err, req, res) {
         res.status(err.status || 500);
         res.render('error', {
             message: err.message,

@@ -1,13 +1,16 @@
-let angular = require('angular');
-let component = require('./visual-settings.component.js');
-let importCss = require('../core/util.js').css;
+const angular = require('angular');
+const component = require('./visual-settings.component.js');
 
 // Requiring this module returns its name
-let rzSlider = require('angularjs-slider');
-// Also include the necessary CSS
-require('angularjs-slider/dist/rzslider.min.css!');
+const rzSlider = require('angularjs-slider');
+require('angularjs-slider/dist/rzslider.css');
 
-module.exports = angular.module('visualSettings', [rzSlider])
+// Require angular-fancy-modal and its stylesheet
+require('angular-fancy-modal/dist/angular-fancy-modal');
+require('angular-fancy-modal/dist/angular-fancy-modal.css');
+
+module.exports = angular.module('visualSettings', [rzSlider, 'vesparny.fancyModal'])
     .component('visualSettings', component);
 
-importCss(module.exports);
+// Import the component's stylesheet
+require('./visual-settings.css');

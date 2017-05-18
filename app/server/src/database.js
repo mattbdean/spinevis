@@ -1,15 +1,16 @@
-let MongoClient = require('mongodb').MongoClient;
-let appName = require('../../../package.json').name;
+const MongoClient = require('mongodb').MongoClient;
 
-let state = {
+const dbName = process.env.DB_NAME || 'spinevis';
+
+const state = {
     db: null,
     mode: null
 };
 
 // https://www.terlici.com/2014/09/15/node-testing.html
 
-const TEST_URI = 'mongodb://127.0.0.1:27017/' + appName + '_test';
-const PRODUCTION_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/' + appName;
+const TEST_URI = 'mongodb://127.0.0.1:27017/' + dbName + '_test';
+const PRODUCTION_URI = (process.env.MONGO_URI || 'mongodb://127.0.0.1:27017') + '/' + dbName;
 
 module.exports.MODE_TEST = 'mode_test';
 module.exports.MODE_PRODUCTION = 'mode_production';

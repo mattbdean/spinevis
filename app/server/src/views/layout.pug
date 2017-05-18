@@ -1,5 +1,5 @@
 doctype html
-html
+html(ng-app='spinevis')
     head
         //- These 3 <meta> headers must come first
         meta(charset='utf-8')
@@ -7,35 +7,28 @@ html
         meta(name='viewport', content='width=device-width, initial-scale=1')
 
         block title
-            title(ng-bind='Page.title() ? Page.title() : "no title"')
+            title(ng-bind='Page.title() ? Page.title() : "spinevis"')
 
         block stylesheets
             link(href="https://fonts.googleapis.com/css?family=Roboto|Ubuntu+Mono" rel="stylesheet")
+            link(href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet")
+            link(rel='stylesheet', href='/style/base.min.css')
+            link(rel='stylesheet', href='https://fonts.googleapis.com/icon?family=Material+Icons')
 
         block scripts
-            script(src='/scripts/jspm_packages/system.js')
-            script(src='/scripts/jspm.config.js')
-            script.
-                System.import('bootstrap/dist/css/bootstrap.min.css!');
-
-                // Make sure we import angular directly first because sometimes
-                // importing app.module.js throws an 'angular is not defiend' error
-                System.import('angular').then(function() {
-                    return System.import('/scripts/app.module.js');
-                }).then(function() {
-                    angular.bootstrap(document, ['spinevis']);
-                })
-
+            script(src='/scripts/polyfills.js')
+            script(src='/scripts/vendor.js')
+            script(src='/scripts/app.js')
 
     body
         block header
             header: a.text-center(href='/') spinevis
 
         main
+            noscript: p This site requires JavaScript, please enable it to continue
             block content
 
         block footer
             footer
-              div.container
-                span.text-muted
-                 | Copyright &copy; Svoboda Lab #{year}
+                div.container
+                    p.text-muted Copyright &copy; Svoboda Lab #{year}. Requires Edge 14, Firefox 51, Chrome 56, Safari 9.1 or Opera 42

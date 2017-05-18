@@ -20,8 +20,8 @@ body {
 
 header {
     width: 100%;
-    min-height: 120px;
-    line-height: 120px;
+    min-height: 80px;
+    line-height: 80px;
     text-align: center;
 
     /* Header gradient */

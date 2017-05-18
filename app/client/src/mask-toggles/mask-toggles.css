@@ -1,0 +1,42 @@
+div.filter-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+div.input-container {
+    flex-grow: 3;
+}
+
+div.filter-container button {
+    flex-grow: 1;
+}
+
+div.mask-toggle {
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+div.mask-toggle p {
+    flex-grow: 10;
+    margin-bottom: 0;
+}
+
+div.mask-toggle div.color-preview {
+    flex-grow: 5;
+    margin: 2px 5px 2px 5px;
+}
+
+div.mask-toggle toggle {
+    flex-grow: 1;
+    align-self: flex-end;
+}
+
+div.color-preview {
+    min-width: 5px;
+    max-width: 25px;
+    height: 25px;
+    padding: 0;
+}

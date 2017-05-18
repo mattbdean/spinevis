@@ -1,5 +1,5 @@
-let server = require('../src/server.js');
-let database = require('../src/database.js');
+const server = require('../src/server.js');
+const database = require('../src/database.js');
 
 module.exports = {
     TESTING_PORT: 8081,
@@ -10,6 +10,6 @@ module.exports = {
     closeConnections: function(app, done) {
         database.close().then(function() {
             app.close(done);
-        })
+        });
     }
-}
+};

@@ -17,10 +17,12 @@ const events = [
     'TOGGLE_ALL',
     // A mask was clicked in the volume component
     'MASK_CLICKED',
-    // The user has pressed the right arrow key to move forward by one timepoint
-    'MOVE_FORWARD',
-    // The user has pressed the left arrow key to move backward by one timepoint
-    'MOVE_BACKWARD',
+    // The user has zoomed in or out and the TraceManager is changing the
+    // resolution at which the timeline data is displayed at
+    'RESOLUTION_CHANGED',
+    // The user has requested to view a given timepoint from the visual-settings
+    // component
+    'INSPECT_TIMEPOINT',
 
     ///////////////////////////////////////////////////////////////////////////
     // Visual settings
@@ -30,9 +32,9 @@ const events = [
     'SET_THRESHOLD_RAW_DATA'
 ];
 
-let eventMap = {};
+const eventMap = {};
 
-for (let e of events) {
+for (const e of events) {
     eventMap[e] = e;
 }
 

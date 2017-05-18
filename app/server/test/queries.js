@@ -1,8 +1,7 @@
-let assert = require('assert');
-let expect = require('chai').expect;
-let _ = require('lodash');
-let db = require('../src/database.js');
-let queries = require('../src/queries.js');
+const expect = require('chai').expect;
+const _fail = require('assert').fail;
+const db = require('../src/database.js');
+const queries = require('../src/queries.js');
 
 describe('queries', function() {
     let firstSession = null;
@@ -25,17 +24,18 @@ describe('queries', function() {
         it('should find only appropriate session metadata', function() {
             return queries.findAllSessions(0, 20).then(function(sessions) {
                 // For each document ensure that only specific data is returned
-                let approvedKeys = ['_id', 'start_time', 'end_time', 'Animal', 'Run', 'nSamples', 'volRate'];
+                const approvedKeys = ['_id', 'start_time', 'end_time', 'Animal', 'Run', 'name', 'nSamples', 'volRate', 'FOV'];
 
-                for (let session of sessions) {
+                for (const session of sessions) {
                     // Make sure all keys in the object are in the above array
-                    for (let key of Object.keys(session)) {
-                        assert.ok(approvedKeys.includes(key), `Key '${key}' is unexpected, session ID '${session._id}'`);
+                    for (const key of Object.keys(session)) {
+                        expect(approvedKeys.includes(key)).to.equal(true,
+                            `Key '${key}' is unexpected, session ID '${session._id}'`);
                     }
 
                     // Make sure all expected keys have defined values
-                    for (let key of approvedKeys) {
-                        assert.ok(session[key] !== undefined, `Key '${key}' is undefined`);
+                    for (const key of approvedKeys) {
+                        expect(session[key]).to.exist;
                     }
                 }
             });
@@ -45,26 +45,27 @@ describe('queries', function() {
             return queries.findAllSessions(0, 20).then(function(sessions) {
                 let lastStart = new Date(sessions[0].start_time).getTime();
                 for (let i = 1; i < sessions.length; i++) {
-                    let thisStart = new Date(sessions[i].start_time).getTime();
+                    const thisStart = new Date(sessions[i].start_time).getTime();
                     expect(thisStart).to.be.below(lastStart);
                     lastStart = thisStart;
                 }
             });
         });
 
-        let getMiddleSession = (start = 0, limit = 20) =>
+        const getMiddleSession = (test, start = 0, limit = 20) =>
             queries.findAllSessions(start, limit).then(function(sessions) {
+                if (sessions.length === 1) return test.skip();
                 return sessions[sessions.length / 2];
             });
 
         it('should allow passing only startDate', function() {
             let startDate;
-            return getMiddleSession().then(function(session) {
+            return getMiddleSession(this).then(function(session) {
                 startDate = session.start_time;
 
                 return queries.findAllSessions(0, 20, startDate);
             }).then(function(sessions) {
-                for (let session of sessions) {
+                for (const session of sessions) {
                     expect(session.start_time.getTime()).to.be.at.least(startDate.getTime());
                 }
             });
@@ -72,12 +73,12 @@ describe('queries', function() {
 
         it('should allow passing only endDate', function() {
             let endDate;
-            return getMiddleSession().then(function(session) {
+            return getMiddleSession(this).then(function(session) {
                 endDate = session.start_time;
 
                 return queries.findAllSessions(0, 20, undefined, endDate);
             }).then(function(sessions) {
-                for (let session of sessions) {
+                for (const session of sessions) {
                     expect(session.start_time.getTime()).to.be.below(endDate.getTime());
                 }
             });
@@ -85,7 +86,11 @@ describe('queries', function() {
 
         it('should return entires in only the requested range', function() {
             let unfilteredLength, expectedLength, startDate, endDate;
+            const test = this;
             return queries.findAllSessions(0, 20).then(function(sessions) {
+                if (sessions.length === 1) {
+                    test.skip();
+                }
                 startDate = sessions[sessions.length / 2].start_time;
                 endDate = sessions[0].start_time;
 
@@ -104,8 +109,20 @@ describe('queries', function() {
             return queries.findAllSessions(0, 20, undefined, undefined, animal)
             .then(function(sessions) {
                 expect(sessions.length).to.be.above(0);
-                for (let s of sessions) {
+                for (const s of sessions) {
                     expect(s.Animal).to.equal(animal);
+                }
+            });
+        });
+    });
+
+    describe('getSessionDates()', function() {
+        it('should return an array of dates', function() {
+            return queries.getSessionDates().then(function(result) {
+                expect(Array.isArray(result)).to.be.true;
+
+                for (const r of result) {
+                    expect(r).to.be.an.instanceof(Date);
                 }
             });
         });
@@ -113,16 +130,12 @@ describe('queries', function() {
 
     describe('getSessionMeta()', function() {
         it('should return only one session', function() {
-            let _id = firstSessionId;
+            const _id = firstSessionId;
 
             return queries.getSessionMeta(firstSessionId).then(function(session) {
                 // Make sure the query returns an object with a matching _id
-                assert.equal(typeof session, 'object')
-                assert.equal(session._id, _id);
-
-                // Global fluorescense trace array must be equal in length to
-                // the relative time array
-                assert.equal(session.globalTC.length, session.relTimes.length);
+                expect(session).to.be.an('object');
+                expect(session._id).to.equal(_id);
             });
         });
     });
@@ -130,13 +143,13 @@ describe('queries', function() {
     describe('sessionExists()', function() {
         it('should return true for existing IDs', function() {
             return queries.sessionExists(firstSessionId).then(function(exists) {
-                assert.ok(exists, 'Did not find existing file');
+                expect(exists).to.be.true;
             });
         });
 
         it('should return false for non-existent IDs', function() {
             return queries.sessionExists('i_dont_exist').then(function(exists) {
-                assert.ok(!exists, 'Found non-existent session');
+                expect(exists).to.be.false;
             });
         });
     });
@@ -144,102 +157,80 @@ describe('queries', function() {
     describe('getBehavior()', function() {
         it('should return an object mapping behavior events to timepoint indexes', function() {
             return queries.getBehavior(firstSessionId).then(function(behaviorData) {
-                for (let key of Object.keys(behaviorData)) {
+                for (const key of Object.keys(behaviorData)) {
                     // Make sure we are always returning an array
-                    assert.ok(Array.isArray(behaviorData[key]));
+                    expect(Array.isArray(behaviorData[key])).to.be.true;
                 }
             });
         });
 
         it('should only return events which are asked for', function() {
-            let events = ['lick left', 'lick right'];
+            const events = ['lick left', 'lick right'];
 
             return queries.getBehavior(firstSessionId, events).then(function(behaviorData) {
-                let dataKeys = Object.keys(behaviorData);
+                const dataKeys = Object.keys(behaviorData);
                 // Lengths should be the same
-                assert.ok(dataKeys.length === events.length);
+                expect(dataKeys).to.have.lengthOf(events.length);
 
                 // Make sure that every event that was requested was returned
-                for (let event of events) {
-                    assert.ok(dataKeys.includes(event));
+                for (const event of events) {
+                    expect(dataKeys).to.include(event);
                 }
             });
         });
 
         it('should report missing when one of the behaviors cannot be found', function() {
-            let events = ['lick left', 'something else that doesn\'t exist', 'lick right'];
+            const events = ['lick left', 'something else that doesn\'t exist', 'lick right'];
 
-            return queries.getBehavior(firstSessionId, events).then(function(behaviorData) {
-                assert.fail(undefined, undefined, 'should not have reached here');
+            return queries.getBehavior(firstSessionId, events).then(function() {
+                _fail(undefined, undefined, 'should not have reached here');
             }).catch(function(err) {
-                assert.equal(err.type, queries.ERROR_MISSING);
+                expect(err.type).to.equal(queries.ERROR_MISSING);
                 // events[1] will not have any data, expect that the only
                 // value in the error's 'types' array will be this value
-                assert.deepStrictEqual(err.data, {types: [events[1]]});
+                expect(err.data).to.deep.equal({
+                    types: [events[1]]
+                });
             });
         });
     });
 
     describe('getTimeline()', function() {
-        it('should return only mask names when only provided a session ID', function() {
-            return queries.getTimeline(firstSessionId).then(function(traceNames) {
-                assert.ok(Array.isArray(traceNames));
-                for (let name of traceNames) {
-                    // Should not be an object, either a Number or a string (if
-                    // we ever transition into string-based IDs)
-                    assert.notEqual(typeof name, 'object');
+        it('should return an array of objects containing the ID and name of each mask when given only the session ID', function() {
+            return queries.getTimeline(firstSessionId).then(function(docs) {
+                expect(Array.isArray(docs)).to.be.true;
+                expect(docs).to.have.length.above(0);
+
+                for (const doc of docs) {
+                    expect(doc).to.be.an('object');
+                    expect(doc._id).to.exist;
+                    expect(doc.maskName).to.exist;
                 }
             });
         });
 
-        it('should return an object mapping mask names to fluorescense values otherwise', function() {
-            let requestedName;
-            let sessionId = firstSessionId;
+        it('should return all available data when also given a trace ID', function() {
+            let requestedId;
+            const sessionId = firstSessionId;
 
-            return queries.getTimeline(sessionId).then(function(traceNames) {
-                requestedName = traceNames[0];
-                return queries.getTimeline(sessionId, requestedName);
+            return queries.getTimeline(sessionId).then(function(traces) {
+                requestedId = traces[0]._id;
+                return queries.getTimeline(sessionId, requestedId);
             }).then(function(traceData) {
-                assert.strictEqual(Object.keys(traceData).length, 1);
-                assert.notStrictEqual(traceData[requestedName], undefined);
+                expect(traceData).to.be.an('object');
+                expect(traceData).to.have.all.keys(['_id', 'maskF', 'maskName', 'srcID']);
+                // requestedId and traceData._id are ObjectIDs, convert them to
+                // strings before comparison
+                expect(traceData._id.toString()).to.equal(requestedId.toString());
             });
         });
     });
 
     describe('getVolumes()', function() {
-        let cases = {
-            'should return only the requested range': [100, 150],
-            'should return data when start and end are equal': [100, 100],
-            'should allow the retrieval of only one point': [100, undefined]
-        };
-
-        let caseNames = Object.keys(cases);
-        for (let caseName of caseNames) {
-            it(caseName, function() {
-                let range = cases[caseName];
-                return testVolumeResult(firstSessionId, range[0], range[1]);
+        it('should return a Buffer of data', () => {
+            return queries.getVolumes(firstSessionId, 100).then(function(result) {
+                expect(result instanceof Buffer).to.be.true;
             });
-        }
+        });
     });
 });
-
-let testVolumeResult = function(sessionId, start, end) {
-    return queries.getVolumes(sessionId, start, end).then(function(volumes) {
-        expect(volumes).to.be.defined;
-        expect(Array.isArray(volumes)).to.be.true;
-        let length = end - start;
-        if (end === start || end === undefined) length = 1;
-        expect(volumes.length).to.be.equal(length);
-
-        let vol = volumes[0];
-        let lastVolNum = vol.volNum;
-        expect(lastVolNum).to.be.equal(start);
-
-        for (let i = 1; i < volumes.length; i++) {
-            vol = volumes[i];
-            expect(vol.srcID).to.equal(sessionId);
-            expect(vol.volNum).to.be.equal(lastVolNum + 1);
-            lastVolNum = vol.volNum;
-        }
-    });
-}

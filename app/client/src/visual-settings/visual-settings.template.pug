@@ -1,0 +1,38 @@
+mixin opacityControl(label, model, options)
+    div.control
+        p: strong(ng-bind=label)
+        rzslider(
+            rz-slider-model=model
+            rz-slider-options=options
+        )
+
+div.control
+    div.thresh-edit-wrapper
+        p: strong(ng-bind='$ctrl.controls.threshold.label')
+        i.material-icons(ng-click='$ctrl.editThresholdSettings()') mode_edit
+    rzslider(
+        rz-slider-model='$ctrl.controls.threshold.model.lo'
+        rz-slider-high='$ctrl.controls.threshold.model.hi'
+        rz-slider-options='$ctrl.controls.threshold.options'
+    )
+
++opacityControl(
+    '$ctrl.controls.maskOpacity.label',
+    '$ctrl.controls.maskOpacity.model',
+    '$ctrl.controls.maskOpacity.options'
+)
+
++opacityControl(
+    '$ctrl.controls.rawDataOpacity.label',
+    '$ctrl.controls.rawDataOpacity.model',
+    '$ctrl.controls.rawDataOpacity.options'
+)
+
+div
+    p.no-spacing Current timeline resolution:
+        b {{ ' ' + $ctrl.currentResolution + '%' }}
+
+div.control
+    form.inspect-timepoint(ng-submit='$ctrl.inspect()')
+        input.form-control(type='number' ng-model='$ctrl.currentTimepoint')
+        button.btn.btn-default(type='submit') Inspect
