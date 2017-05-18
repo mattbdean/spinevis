@@ -1,11 +1,6 @@
-// Partial Plotly bundle so we don't have to require the entirety of Plotly.
-// See https://github.com/plotly/plotly.js#modules
-const Plotly = require('plotly.js/lib/core');
-
-Plotly.register([
-    require('plotly.js/lib/scatter'),
-    require('plotly.js/lib/surface'),
-    require('plotly.js/lib/mesh3d')
-]);
-
-module.exports = Plotly;
+// We should be using a partial Plotly build but for whatever reason when using
+// one, Chrome throws a ton of WebGL warnings and we can't set axis titles. For
+// now, we're just going to require the whole thing.
+//
+// https://github.com/plotly/plotly.js/#modules
+module.exports = require('plotly.js/dist/plotly');

@@ -92,7 +92,10 @@ const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function Time
                 l: 0
             },
             scene: {
-                aspectmode: 'data'
+                aspectmode: 'data',
+                xaxis: { title: 'X (μm)' },
+                yaxis: { title: 'Y (μm)' },
+                zaxis: { title: 'Z (μm)' }
             },
             // Manually set in conjunction with session-vis.css
             height: 550
