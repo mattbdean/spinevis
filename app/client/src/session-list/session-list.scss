@@ -1,16 +1,16 @@
 table.session-table a {
     color: #000;
-}
 
-table.session-table a:hover {
-    color: #000;
-    text-decoration: none;
-}
+    &:hover {
+        color: #000;
+        text-decoration: none;
+    }
 
-table.session-table a.full-width-link {
-    display: block;
-    height: 100%;
-    width: 100%;
+    &.full-width-link {
+        display: block;
+        height: 100%;
+        width: 100%;
+    }
 }
 
 .filter {

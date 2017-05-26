@@ -9,11 +9,12 @@ div.subcontrol {
 .inspect-timepoint {
     display: flex;
     flex-direction: row;
+
+    input {
+        flex-grow: 1;
+    }
 }
 
-.inspect-timepoint input {
-    flex-grow: 1;
-}
 
 .no-spacing {
     margin: 0;
@@ -23,15 +24,15 @@ div.thresh-edit-wrapper {
     display: flex;
     flex-direction: row;
     align-items: baseline;
-}
 
-div.thresh-edit-wrapper i.material-icons {
-    font-size: 14px;
-    padding-left: 4px;
-    color: rgba(0, 0, 0, 0.54);
-    cursor: pointer;
-}
+    i.material-icons {
+        font-size: 14px;
+        padding-left: 4px;
+        color: rgba(0, 0, 0, 0.54);
+        cursor: pointer;
 
-div.thresh-edit-wrapper i.material-icons:hover {
-    color: rgba(0, 0, 0, 0.40);
+        &:hover {
+            color: rgba(0, 0, 0, 0.40);
+        }
+    }
 }

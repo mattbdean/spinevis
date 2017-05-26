@@ -9,4 +9,4 @@ require('angularjs-datepicker/dist/angular-datepicker.css');
 module.exports = angular.module('sessionList', [core.name, '720kb.datepicker', ngInfiniteScroll])
     .component('sessionList', sessionListComponent);
 
-require('./session-list.css');
+require('./session-list.scss');
