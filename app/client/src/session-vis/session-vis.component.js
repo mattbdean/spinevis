@@ -2,6 +2,8 @@ const Plotly = require('../plotly');
 const moment = require('moment');
 const _ = require('lodash');
 const colormap = require('colormap');
+const colormapScales = require('colormap/colorScales');
+const tinycolor = require('tinycolor2');
 
 const events = require('./events.js');
 const util = require('../core/util.js');
@@ -140,12 +142,72 @@ const ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sess
 
     $ctrl.sessionFormattedMeta = createFormattedMetadata(METADATA_DEFAULTS);
 
-    /*
+    /**
+     * Calls to colormap() require a value for `spec.nshades` that is greater
+     * than the amount of colors that defines a colormap. For example,
+     *
+     * colormap({
+     *     colormap: 'hsv',
+     *     nshades: 5
+     * });
+     *
+     * will throw an Error because the 'hsv' colormap contains 11 colors:
+     * https://github.com/bpostlethwaite/colormap/blob/281a38e6b476eab81a54dc0abd16473d0dec4f5c/colorScales.js#L4
+     *
+     * This function calls colormap() with a modified version of the given spec
+     * so that this Error never occurs.
+     * @param spec
+     */
+    const createColormap = (spec) => {
+        if (typeof spec !== 'object') throw new Error('expecting spec to be an object');
+
+        let cmapDef = colormapScales[spec.colormap];
+        if (cmapDef === undefined) throw new Error(`unknown colormap: '${spec.colormap}'`);
+        const minShades = cmapDef.length;
+
+        if (spec.nshades < 1) throw new Error('nshades should be at least 1');
+
+        // Having a colormap of length 1 will result in some weird values.
+        // Manually create a colormap via tinycolor
+        if (spec.nshades === 1) {
+            const rgbArray = cmapDef[0].rgb;
+            const color = tinycolor({ r: rgbArray[0], g: rgbArray[1], b: rgbArray[2], a: 1 });
+            let transformed;
+
+            if (spec.format === 'hex') {
+                transformed = color.toHexString();
+            } else if (spec.format === 'rgbaString') {
+                transformed = color.toRgbString();
+            } else {
+                const rgb = color.toRgb();
+                // colormap() returns an array of length-4 arrays, each value
+                // mapping to the red, green, blue, and alpha values respectively
+                transformed = [rgb.r, rgb.g, rgb.b, 1];
+            }
+
+            // colormap() returns an array of produced colors, return the same
+            // for consistency
+            return [transformed];
+        }
+
+        // Create a new colormap that uses colors from indexes
+        // [0, Math.min(spec.nshades, cmapDef.length)]
+        if (spec.nshades < minShades) {
+            cmapDef = cmapDef.slice(0, spec.nshades);
+        }
+
+        // Clone so we don't accidentally overwrite anything
+        const newSpec = _.clone(spec);
+        newSpec.colormap = cmapDef;
+        return colormap(newSpec);
+    };
+
+    /**
      * Creates `limit` number of colors using `colormap` in 'rgb' format (e.g.
      * "rgb(0,0,0)").
      */
     const createMaskColors = function(traceIds) {
-        const colors = _.shuffle(colormap({
+        const colors = _.shuffle(createColormap({
             colormap: 'hsv',
             nshades: traceIds.length,
             format: 'rgbaString'

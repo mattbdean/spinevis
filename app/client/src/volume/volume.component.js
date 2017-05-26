@@ -57,7 +57,14 @@ const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function Time
         }
 
         return initTraces()
-        .then(() => initMasks(data.metadata.masks.Pts, data.metadata.masks.Polys, data.colors, data.masks))
+        .then(() => {
+            // Ensure that the data from the API contains masks
+            const masks = data.metadata.masks;
+            if (masks === undefined) return;
+
+            // Add the masks to the plot
+            return initMasks(masks.Pts, masks.Polys, data.colors, data.masks);
+        })
         .then(processInitialData)
         .then(registerCallbacks)
         .then(() => {
