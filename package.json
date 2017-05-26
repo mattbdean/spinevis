@@ -86,8 +86,10 @@
     "karma-webpack": "^2.0.3",
     "mocha": "^3.1.2",
     "mocha-lcov-reporter": "^1.2.0",
+    "node-sass": "^4.5.3",
     "pug-html-loader": "^1.1.4",
     "raw-loader": "^0.5.1",
+    "sass-loader": "^6.0.5",
     "style-loader": "^0.17.0",
     "supertest": "^3.0.0",
     "webpack": "^2.5.1"

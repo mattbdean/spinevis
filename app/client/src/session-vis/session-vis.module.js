@@ -12,4 +12,4 @@ module.exports = angular.module('sessionVis',
     .component('sessionVis', sessionVisComponent);
 
 // Import the component's stylesheet
-require('./session-vis.css');
+require('./session-vis.scss');

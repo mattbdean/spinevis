@@ -13,4 +13,4 @@ module.exports = angular.module('visualSettings', [rzSlider, 'vesparny.fancyModa
     .component('visualSettings', component);
 
 // Import the component's stylesheet
-require('./visual-settings.css');
+require('./visual-settings.scss');

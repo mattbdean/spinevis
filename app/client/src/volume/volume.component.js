@@ -104,7 +104,7 @@ const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function Time
                 yaxis: { title: 'Y (μm)' },
                 zaxis: { title: 'Z (μm)' }
             },
-            // Manually set in conjunction with session-vis.css
+            // Manually set in conjunction with session-vis.scss
             height: 550
         };
 

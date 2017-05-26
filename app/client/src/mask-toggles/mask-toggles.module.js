@@ -9,4 +9,4 @@ require('angular-bootstrap-toggle/dist/angular-bootstrap-toggle.css');
 module.exports = angular.module('maskToggles', [core.name, 'ui.toggle'])
     .component('maskToggles', component);
 
-require('./mask-toggles.css');
+require('./mask-toggles.scss');
