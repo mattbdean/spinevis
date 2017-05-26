@@ -44,15 +44,16 @@ module.exports = function(grunt) {
                 src: 'build/reports/coverage/lcov.merged.info'
             }
         },
-        cssmin: {
+        sass: {
             options: {
-                sourceMap: true
+                sourceMap: true,
+                outputStyle: 'compressed'
             },
             build: {
                 files: [{
                     expand: true,
                     cwd: 'app/client/assets',
-                    src: ['*.css'],
+                    src: ['*.scss'],
                     dest: finalDist + 'style',
                     ext: '.min.css'
                 }]
@@ -68,7 +69,7 @@ module.exports = function(grunt) {
         watch: {
             css: {
                 files: ['app/client/assets/**/*.css'],
-                tasks: ['cssmin']
+                tasks: ['sass']
             },
             views: {
                 files: ['app/server/src/views/**/*.pug'],
@@ -135,7 +136,6 @@ module.exports = function(grunt) {
 
     const tasks = [
         'contrib-clean',
-        'contrib-cssmin',
         'contrib-pug',
         'contrib-watch',
         'coveralls',
@@ -144,7 +144,8 @@ module.exports = function(grunt) {
         'karma',
         'lcov-merge',
         'mocha-istanbul',
-        'run'
+        'run',
+        'sass'
     ];
 
     for (let i = 0; i < tasks.length; i++) {
@@ -159,5 +160,5 @@ module.exports = function(grunt) {
     grunt.registerTask('testCoverage', ['clean:testPrep', 'mocha_istanbul:noDbMode', 'noDbModeWarn', 'karma']);
     grunt.registerTask('uploadCoverage', ['lcovMerge', 'coveralls']);
 
-    grunt.registerTask('build', ['clean:buildPrep', 'pug', 'cssmin']);
+    grunt.registerTask('build', ['clean:buildPrep', 'pug', 'sass']);
 };
