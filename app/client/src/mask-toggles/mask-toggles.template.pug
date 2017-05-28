@@ -7,4 +7,8 @@ div.filter-container
 div.mask-toggle.row(ng-repeat='mask in $ctrl.masks | filter:{displayName: query} | orderBy: "codeName" track by mask.codeName')
     p(ng-bind='mask.displayName')
     div.color-preview(ng-style='{"background-color": $ctrl.colors[mask.codeName]}')
-    md-switch.md-primary(ng-model='mask.enabled' md-no-ink ng-change='$ctrl.toggled(mask)' aria-label='{{ "Toggle for " + mask.displayName }}')
+    md-switch.md-primary(ng-model='mask.enabled'
+        md-no-ink
+        ng-change='$ctrl.toggled(mask)'
+        aria-label='{{ "Toggle for " + mask.displayName }}'
+    )

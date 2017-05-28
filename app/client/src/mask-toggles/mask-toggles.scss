@@ -27,6 +27,9 @@
     flex-wrap: nowrap;
     align-items: center;
 
+    // Override Bootstrap's grid system margin value
+    margin-left: 0;
+
     p {
         flex-grow: 10;
         margin-bottom: 0;
