@@ -2,7 +2,7 @@ mixin subcontrol(label, ngModel)
     small: strong.text-muted= label
     input.form-control(type='number' ng-model=ngModel)
 
-form(ng-submit='save()' novalidate)
+form.threshold-settings-dialog(ng-submit='save()' novalidate)
     div.row.subcontrol
         div.col-xs-6
             +subcontrol('Absolute Low', 'options.floor')

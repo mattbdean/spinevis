@@ -4,7 +4,7 @@ const defaults = require('./defaults.conf.js');
 
 const INSPECT_TIMEPOINT_PADDING = 50;
 
-const ctrlDef = ['$scope', '$fancyModal', function($scope, $fancyModal) {
+const ctrlDef = ['$scope', '$mdDialog', function($scope, $mdDialog) {
     const $ctrl = this;
 
     // The number of samples in the session minus 1
@@ -54,11 +54,12 @@ const ctrlDef = ['$scope', '$fancyModal', function($scope, $fancyModal) {
     };
 
     /**
-     * Uses the 3rd party $fancyModal service to open a modal dialog to edit the
+     * Uses Angular Material's $mdDialog service to open a dialog to edit the
      * threshold settings
      */
     $ctrl.editThresholdSettings = () => {
-        const modal = $fancyModal.open({
+        $mdDialog.show({
+            clickOutsideToClose: true,
             template: require('./threshold-settings.template.pug'),
             controller: ['$scope', function($scope) {
                 // Make a copy of the current options so we can manually save it later
@@ -76,7 +77,7 @@ const ctrlDef = ['$scope', '$fancyModal', function($scope, $fancyModal) {
                     currentOpts.step = ensureNumber(inputOpts.step, currentOpts.step);
 
                     // Close the dialog
-                    modal.close();
+                    $mdDialog.hide();
                 };
 
                 const ensureNumber = (val, defaultValue) =>
