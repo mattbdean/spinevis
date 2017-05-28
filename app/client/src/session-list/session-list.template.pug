@@ -1,27 +1,21 @@
 div.row
-    datepicker.col-sm-4.filter(
-        date-format='{{$ctrl.dateFormat}}'
-        date-min-limit='{{$ctrl.dateBounds.start}}'
-        date-max-limit='{{$ctrl.dateBounds.end}}'
+    md-datepicker.col-sm-4.filter(
+        ng-model='$ctrl.filters.startDate'
+        md-min-date='$ctrl.dateBounds.start'
+        md-max-date='$ctrl.dateBounds.end'
+        md-placeholder='Start date'
     )
-        input.form-control(
-            ng-model='$ctrl.dateRange.start'
-            placeholder='Date range start'
-        )
 
-    datepicker.col-sm-4.filter(
-        date-format='{{$ctrl.dateFormat}}'
-        date-min-limit='{{$ctrl.dateBounds.start}}'
-        date-max-limit='{{$ctrl.dateBounds.end}}'
+    md-datepicker.col-sm-4.filter(
+        ng-model='$ctrl.filters.endDate'
+        md-min-date='$ctrl.dateBounds.start'
+        md-max-date='$ctrl.dateBounds.end'
+        md-placeholder='End date'
     )
-        input.form-control(
-            ng-model='$ctrl.dateRange.end'
-            placeholder='Date range end'
-        )
 
     div.col-sm-4.filter
         //- Wrap .form-control inputs in a div because .form-control sets width: 100%
-        input.form-control(ng-model='$ctrl.animal' placeholder='Animal name')
+        input.form-control(ng-model='$ctrl.filters.animal' placeholder='Animal name')
 
 table.table.table-hover.table-striped.session-table(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
     tr
@@ -38,7 +32,7 @@ table.table.table-hover.table-striped.session-table(infinite-scroll='$ctrl.nextP
             a(href='/session/{{session.id}}') {{session.animal}}
             a.material-icons.md-dark(
                 href='#'
-                ng-click='$ctrl.animal = session.animal'
+                ng-click='$ctrl.filters.animal = session.animal'
                 ng-attr-title='Show sessions for {{session.animal}}'
             ) search
 

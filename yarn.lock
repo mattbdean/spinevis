@@ -174,10 +174,6 @@ angular@^1.6.4:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.4.tgz#03b7b15c01a0802d7e2cf593240e604054dc77fb"
 
-angularjs-datepicker@^2.1.19:
-  version "2.1.19"
-  resolved "https://registry.yarnpkg.com/angularjs-datepicker/-/angularjs-datepicker-2.1.19.tgz#9051ae32b576a40ef6f073802376c87bbd79e2dc"
-
 angularjs-slider@^6.1.2:
   version "6.1.2"
   resolved "https://registry.yarnpkg.com/angularjs-slider/-/angularjs-slider-6.1.2.tgz#f9c5a7a8b48adc99ad361f99c4226815529d3183"

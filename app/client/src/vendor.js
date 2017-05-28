@@ -7,7 +7,6 @@ require('angular-aria');
 require('angular-messages');
 require('angular-bootstrap-toggle/dist/angular-bootstrap-toggle');
 require('angular-fancy-modal/dist/angular-fancy-modal');
-require('angularjs-datepicker');
 require('angularjs-slider');
 require('ng-infinite-scroll');
 

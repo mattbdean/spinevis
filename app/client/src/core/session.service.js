@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const moment = require('moment');
 
 const serviceDef = ['$http', function($http) {
     this.baseUrl = '/api/v1/session';
@@ -8,8 +9,8 @@ const serviceDef = ['$http', function($http) {
         return sendRequest('', {
             start: start,
             limit: limit,
-            startDate: startDate,
-            endDate: endDate,
+            startDate: formatDate(startDate),
+            endDate: formatDate(endDate),
             animal: animal
         });
     };
@@ -66,7 +67,7 @@ const serviceDef = ['$http', function($http) {
      * @return {Promise}            A Promise that resolves with the response
      *                              data
      */
-    const sendRequest = (relativeUrl, queryParams) => {
+    const sendRequest = (relativeUrl, queryParams = {}) => {
         let relUrl = relativeUrl.trim();
         if (relUrl[0] !== '/') relUrl = '/' + relUrl;
         return $http.get(`${this.baseUrl}${relUrl}${createQuery(queryParams)}`);
@@ -97,6 +98,10 @@ const serviceDef = ['$http', function($http) {
 
         return query;
     };
+
+    /** Date format that the API expects */
+    const momentDateFormat = 'YYYY-MM-DD';
+    const formatDate = (date) => !date ? undefined : moment(date).format(momentDateFormat);
 }];
 
 module.exports = {
