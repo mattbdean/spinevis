@@ -93,8 +93,8 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             },
             // yaxis2 is for behavior data
             yaxis2: {
-                // Goes from 10% to 20% of the element
-                domain: [0.1, fluorGraphStart - 0.05],
+                // Goes from 15% to 20% of the element
+                domain: [0.15, fluorGraphStart - 0.05],
                 // We don't care about the y-values, only x-values
                 showticklabels: false,
                 // Don't allow the user to accidentally move the data out of
@@ -125,7 +125,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             margin: {
                 t: 20,
                 r: 20,
-                b: 80,
+                b: 0,
                 l: 40
             },
             showlegend: true
