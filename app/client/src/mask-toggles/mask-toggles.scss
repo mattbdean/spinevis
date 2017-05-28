@@ -36,6 +36,9 @@
     .color-preview {
         flex-grow: 3;
         min-width: 10px;
+
+        border-radius: 3px;
+        border: 0.5px rgba(0, 0, 0, 0.28) solid;
     }
 
     md-switch {
