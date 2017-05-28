@@ -11,9 +11,18 @@ div.subcontrol {
 .inspect-timepoint {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
 
-    input {
+    md-input-container {
         flex-grow: 1;
+        margin-bottom: -10px;
+    }
+
+    button {
+        margin-top: 0;
+        margin-bottom: 0;
+        height: 36px;
     }
 }
 

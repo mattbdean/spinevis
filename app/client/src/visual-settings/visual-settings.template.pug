@@ -34,5 +34,7 @@ div
 
 div.control
     form.inspect-timepoint(ng-submit='$ctrl.inspect()')
-        input.form-control(type='number' ng-model='$ctrl.currentTimepoint')
-        button.btn.btn-default(type='submit') Inspect
+        md-input-container
+            label Timepoint
+            input(type='number' ng-model='$ctrl.currentTimepoint')
+        md-button.md-raised(type='submit') Inspect
