@@ -106,7 +106,8 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
                 tickformat: '%-Hh %-Mm %-S.%3fs' // 0h 4m 3.241s
             },
             font: {
-                family: 'Roboto, sans-serif'
+                // Copied from assets/base.scss
+                family: 'Roboto, "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif'
             },
             shapes: [{
                 type: 'line',
