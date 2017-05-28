@@ -29,7 +29,11 @@ html(ng-app='spinevis')
             md-content
                 block content
 
-        block footer
-            footer
-                div.container
-                    p.text-muted Copyright &copy; Svoboda Lab #{year}. Requires Edge 14, Firefox 51, Chrome 56, Safari 9.1 or Opera 42
+        footer
+            div.app-credit
+                span Made with&nbsp;
+                md-icon favorite
+                span by Matthew Dean for Svoboda Lab
+            div.footer-meta
+                span#version
+                a(href='https://github.com/thatJavaNerd/spinevis') GitHub

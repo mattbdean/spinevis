@@ -14,3 +14,9 @@ angular.module('spinevis', [
     sessionList.name,
     ngMaterial
 ]).config(theme);
+
+
+// Insert the current version defined by the Webpack DefinePlugin
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('version').innerHTML = 'Version ' + VERSION;
+});
