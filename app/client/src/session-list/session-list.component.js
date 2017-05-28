@@ -1,9 +1,11 @@
-const util = require('../core/util.js');
+const angular = require('angular');
 const moment = require('moment');
 const numeral = require('numeral');
 const _ = require('lodash');
 
-const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) {
+const util = require('../core/util.js');
+
+const ctrlDef = ['$scope', 'title', 'session', 'animal', function($scope, title, session, animal) {
     // Use base title
     title.useBase();
 
@@ -24,6 +26,8 @@ const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) 
     let hasMore = true;
     let loading = false;
 
+    let allAnimals = [];
+
     $ctrl.dateBounds = {
         start: new Date(),
         end: new Date()
@@ -31,6 +35,9 @@ const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) 
 
     $ctrl.$onInit = () => {
         initDateBounds().catch(console.error);
+        animal.list().then((res) => {
+            allAnimals = res.data.data;
+        })
     };
 
     $scope.$watchCollection('$ctrl.filters', () => {
@@ -105,6 +112,13 @@ const ctrlDef = ['$scope', 'title', 'session', function($scope, title, session) 
         .finally(() => {
             loading = false;
         });
+    };
+
+    $ctrl.animalSearch = (query) => {
+        // Filter out all animals that don't start with the given query (case
+        // insensitive)
+        const regex = new RegExp('^' + query, 'i');
+        return query ? _.filter(allAnimals, (a) => regex.test(a)) : allAnimals;
     };
 
     const resetPagination = () => {

@@ -14,9 +14,16 @@ div.row
     )
 
     div.col-sm-4.filter
-        //- Wrap .form-control inputs in a div because .form-control sets width: 100%
-        input.form-control(ng-model='$ctrl.filters.animal' placeholder='Animal name')
-
+        md-autocomplete(
+            md-search-text='$ctrl.animalSearchText'
+            md-items='item in $ctrl.animalSearch($ctrl.animalSearchText)'
+            md-selected-item='$ctrl.filters.animal'
+            placeholder='Animal'
+        )
+            md-item-template
+                span(md-highlight-text='$ctrl.animalSearchText' md-highlight-flags='^i')  {{ item }}
+            md-not-found
+                p No animals matching "{{ $ctrl.animalSearchText }}" were found
 table.table.table-hover.table-striped.session-table(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
     tr
         th Animal
