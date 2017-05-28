@@ -1,31 +1,33 @@
 md-content: md-card
-    div.container
-        div.row
-            md-datepicker.col-sm-4.filter(
-                ng-model='$ctrl.filters.startDate'
-                md-min-date='$ctrl.dateBounds.start'
-                md-max-date='$ctrl.dateBounds.end'
-                md-placeholder='Start date'
-            )
-
-            md-datepicker.col-sm-4.filter(
-                ng-model='$ctrl.filters.endDate'
-                md-min-date='$ctrl.dateBounds.start'
-                md-max-date='$ctrl.dateBounds.end'
-                md-placeholder='End date'
-            )
-
-            div.col-sm-4.filter
-                md-autocomplete(
-                    md-search-text='$ctrl.animalSearchText'
-                    md-items='item in $ctrl.animalSearch($ctrl.animalSearchText)'
-                    md-selected-item='$ctrl.filters.animal'
-                    placeholder='Animal'
+    md-toolbar.md-menu-toolbar
+        div.md-toolbar-tools.session-toolbar-wrapper(layout='row')
+            h2 Sessions
+            div.filter-container
+                md-datepicker.filter(
+                    ng-model='$ctrl.filters.startDate'
+                    md-min-date='$ctrl.dateBounds.start'
+                    md-max-date='$ctrl.dateBounds.end'
+                    md-placeholder='Start date'
                 )
-                    md-item-template
-                        span(md-highlight-text='$ctrl.animalSearchText' md-highlight-flags='^i')  {{ item }}
-                    md-not-found
-                        p No animals matching "{{ $ctrl.animalSearchText }}" were found
+
+                md-datepicker.filter(
+                    ng-model='$ctrl.filters.endDate'
+                    md-min-date='$ctrl.dateBounds.start'
+                    md-max-date='$ctrl.dateBounds.end'
+                    md-placeholder='End date'
+                )
+
+                div.filter
+                    md-autocomplete(
+                        md-search-text='$ctrl.animalSearchText'
+                        md-items='item in $ctrl.animalSearch($ctrl.animalSearchText)'
+                        md-selected-item='$ctrl.filters.animal'
+                        placeholder='Animal'
+                    )
+                        md-item-template
+                            span(md-highlight-text='$ctrl.animalSearchText' md-highlight-flags='^i')  {{ item }}
+                        md-not-found
+                            p No animals matching "{{ $ctrl.animalSearchText }}" were found
 
     table.md-data-table.session-table(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
         thead
