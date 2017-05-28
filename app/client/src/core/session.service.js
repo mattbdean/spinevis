@@ -3,7 +3,8 @@ const moment = require('moment');
 const HttpHelper = require('./http-helper');
 
 const serviceDef = ['$http', function($http) {
-    const httpHelper = new HttpHelper($http, '/api/v1/session');
+    this.baseUrl = '/api/v1/session';
+    const httpHelper = new HttpHelper($http, this.baseUrl);
 
     // /api/v1/session
     this.list = (start = 0, limit = 20, startDate = undefined, endDate = undefined, animal = undefined) => {
