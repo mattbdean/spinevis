@@ -2,9 +2,17 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    align-items: center;
 
     button {
         flex-grow: 1;
+        height: 40px;
+    }
+
+    md-input-container {
+        // Remove all bottom margin because it looks silly
+        margin-bottom: 0;
+        flex-grow: 3;
     }
 }
 
