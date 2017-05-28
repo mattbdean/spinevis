@@ -18,7 +18,8 @@ const ctrlDef = ['$scope', '$mdDialog', function($scope, $mdDialog) {
             floor: 0,
             ceil: 99,
             step: 1,
-            translate: (value) => value + '%'
+            translate: (value) => value + '%',
+            showSelectionBar: true
         }
     });
 
