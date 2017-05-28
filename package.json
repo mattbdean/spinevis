@@ -15,7 +15,6 @@
     "angular": "^1.6.4",
     "angular-animate": "^1.6.4",
     "angular-aria": "^1.6.4",
-    "angular-bootstrap-toggle": "^0.1.2",
     "angular-fancy-modal": "github:vesparny/angular-fancy-modal",
     "angular-material": "^1.1.4",
     "angular-messages": "^1.6.4",

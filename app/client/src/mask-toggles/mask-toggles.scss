@@ -1,45 +1,46 @@
-div {
-    .filter-container {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
+.filter-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 
-    .input-container {
-        flex-grow: 3;
-    }
-
-    .filter-container button {
+    button {
         flex-grow: 1;
     }
+}
 
-    .mask-toggle {
-        padding: 5px;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-    }
+.input-container {
+    flex-grow: 3;
+}
 
-    .mask-toggle p {
+.mask-toggle {
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+
+    p {
         flex-grow: 10;
         margin-bottom: 0;
-    }
-
-    .mask-toggle .color-preview {
-        flex-grow: 5;
-        margin: 2px 5px 2px 5px;
-    }
-
-    .mask-toggle toggle {
-        flex-grow: 1;
-        align-self: flex-end;
+        margin-right: 5px;
     }
 
     .color-preview {
-        min-width: 5px;
-        max-width: 25px;
-        height: 25px;
-        padding: 0;
+        flex-grow: 3;
+        min-width: 10px;
     }
+
+    md-switch {
+        flex-grow: 1;
+        align-self: flex-end;
+        margin: 0 0 0 16px !important;
+    }
+}
+
+.color-preview {
+    min-width: 5px;
+    max-width: 25px;
+    height: 25px;
+    padding: 0;
 }
 
