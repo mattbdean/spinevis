@@ -1,49 +1,51 @@
-div.row
-    md-datepicker.col-sm-4.filter(
-        ng-model='$ctrl.filters.startDate'
-        md-min-date='$ctrl.dateBounds.start'
-        md-max-date='$ctrl.dateBounds.end'
-        md-placeholder='Start date'
-    )
+md-content: md-card
+    div.container
+        div.row
+            md-datepicker.col-sm-4.filter(
+                ng-model='$ctrl.filters.startDate'
+                md-min-date='$ctrl.dateBounds.start'
+                md-max-date='$ctrl.dateBounds.end'
+                md-placeholder='Start date'
+            )
 
-    md-datepicker.col-sm-4.filter(
-        ng-model='$ctrl.filters.endDate'
-        md-min-date='$ctrl.dateBounds.start'
-        md-max-date='$ctrl.dateBounds.end'
-        md-placeholder='End date'
-    )
+            md-datepicker.col-sm-4.filter(
+                ng-model='$ctrl.filters.endDate'
+                md-min-date='$ctrl.dateBounds.start'
+                md-max-date='$ctrl.dateBounds.end'
+                md-placeholder='End date'
+            )
 
-    div.col-sm-4.filter
-        md-autocomplete(
-            md-search-text='$ctrl.animalSearchText'
-            md-items='item in $ctrl.animalSearch($ctrl.animalSearchText)'
-            md-selected-item='$ctrl.filters.animal'
-            placeholder='Animal'
-        )
-            md-item-template
-                span(md-highlight-text='$ctrl.animalSearchText' md-highlight-flags='^i')  {{ item }}
-            md-not-found
-                p No animals matching "{{ $ctrl.animalSearchText }}" were found
-table.table.table-hover.table-striped.session-table(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
-    tr
-        th Animal
-        th Name
-        th Start Date
-        th Run
-        th Field of View
-        th Duration
-        th Samples
-        th Imaging Rate
-    tr(ng-repeat="session in $ctrl.sessions")
-        td
-            a(href='/session/{{session.id}}') {{session.animal}}
-            a.material-icons.md-dark(
-                href='#'
-                ng-click='$ctrl.filters.animal = session.animal'
-                ng-attr-title='Show sessions for {{session.animal}}'
-            ) search
+            div.col-sm-4.filter
+                md-autocomplete(
+                    md-search-text='$ctrl.animalSearchText'
+                    md-items='item in $ctrl.animalSearch($ctrl.animalSearchText)'
+                    md-selected-item='$ctrl.filters.animal'
+                    placeholder='Animal'
+                )
+                    md-item-template
+                        span(md-highlight-text='$ctrl.animalSearchText' md-highlight-flags='^i')  {{ item }}
+                    md-not-found
+                        p No animals matching "{{ $ctrl.animalSearchText }}" were found
 
-        //- Nest an <a> in each <td> so that the row will be clickable when
-        //- combined with some CSS magic
-        td(ng-repeat="key in ['name', 'startTime', 'run', 'fov', 'duration', 'sampleCount', 'imagingRate']")
-            a.full-width-link(href='/session/{{session.id}}') {{session[key]}}
+    table.md-data-table.session-table(infinite-scroll='$ctrl.nextPage()' infinite-scroll-distance='1')
+        thead
+            tr
+                th Animal
+                th Name
+                th.sorted-column
+                    md-icon arrow_upward
+                    span Start Date
+                th Run
+                th Field of View
+                th Duration
+                th Samples
+                th Imaging Rate
+        tbody
+            tr(ng-repeat="session in $ctrl.sessions")
+                td
+                    a(href='/session/{{session.id}}') {{session.animal}}
+
+                //- Nest an <a> in each <td> so that the row will be clickable when
+                //- combined with some CSS magic
+                td(ng-repeat="key in ['name', 'startTime', 'run', 'fov', 'duration', 'sampleCount', 'imagingRate']")
+                    a(href='/session/{{session.id}}') {{session[key]}}
