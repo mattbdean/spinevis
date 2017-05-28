@@ -1,9 +1,7 @@
 const angular = require('angular');
 const component = require('./help.component.js');
 
-// Import angular-fancy-modal and its accompanying stylesheet
-require('angular-fancy-modal/dist/angular-fancy-modal');
-require('angular-fancy-modal/dist/angular-fancy-modal.css');
+const ngMaterial = require('angular-material');
 
-module.exports = angular.module('help', ['vesparny.fancyModal'])
+module.exports = angular.module('help', [ngMaterial])
     .component('help', component);
