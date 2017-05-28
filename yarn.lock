@@ -146,6 +146,14 @@ amdefine@>=0.0.4:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
 
+angular-animate@^1.6.4:
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/angular-animate/-/angular-animate-1.6.4.tgz#d3eb906d39834f2dfbdd982e6b8d7a3b4d9001d2"
+
+angular-aria@^1.6.4:
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/angular-aria/-/angular-aria-1.6.4.tgz#c8683666ace196668f68e7220811bdcfc9e106e4"
+
 angular-bootstrap-toggle@^0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/angular-bootstrap-toggle/-/angular-bootstrap-toggle-0.1.2.tgz#93767f3056d5330ab6c6ced3ac4e645b741a4d6b"
@@ -153,6 +161,14 @@ angular-bootstrap-toggle@^0.1.2:
 "angular-fancy-modal@github:vesparny/angular-fancy-modal":
   version "0.1.4"
   resolved "https://codeload.github.com/vesparny/angular-fancy-modal/tar.gz/3c61a5f1944f9a92c0da222f0b7f7d86dbf5ca02"
+
+angular-material@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/angular-material/-/angular-material-1.1.4.tgz#27de35646f54ccd320080af0c708e1b438af87f6"
+
+angular-messages@^1.6.4:
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/angular-messages/-/angular-messages-1.6.4.tgz#9ec9c1393293b14de54161d2f849776489e980fe"
 
 angular@^1.6.4:
   version "1.6.4"
@@ -6727,7 +6743,7 @@ replace-ext@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-0.0.1.tgz#29bbd92078a739f0bcce2b4ee41e837953522924"
 
-request@2, request@2.79.0, request@^2.58.0, request@^2.67.0, request@^2.74.0, request@^2.79.0:
+request@2, request@2.79.0, request@^2.39.0, request@^2.58.0, request@^2.67.0, request@^2.74.0, request@^2.79.0:
   version "2.79.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.79.0.tgz#4dfe5bf6be8b8cdc37fcf93e04b65577722710de"
   dependencies:
@@ -6752,7 +6768,7 @@ request@2, request@2.79.0, request@^2.58.0, request@^2.67.0, request@^2.74.0, re
     tunnel-agent "~0.4.1"
     uuid "^3.0.0"
 
-request@^2.39.0, request@^2.81.0:
+request@^2.81.0:
   version "2.81.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.81.0.tgz#c6928946a0e06c5f8d6f8a9333469ffda46298a0"
   dependencies:
