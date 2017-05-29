@@ -208,7 +208,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'title', 'session', function Sess
      */
     const createMaskColors = function(traceIds) {
         const colors = _.shuffle(createColormap({
-            colormap: 'hsv',
+            colormap: 'rainbow-soft',
             nshades: traceIds.length,
             format: 'rgbaString'
         }));
