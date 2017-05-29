@@ -123,6 +123,17 @@ module.exports.getSessionDates = function() {
         });
 };
 
+module.exports.getAllAnimals = function() {
+    return db.mongo().collection(COLL_META)
+        .find()
+        .project({ _id: 0, Animal: 1 })
+        .sort({ Animal: 1 })
+        .toArray()
+        .then((docs) =>
+            _.uniq(_.map(docs, (d) => d.Animal))
+        );
+};
+
 /**
  * Get all metadata, both 'light' and 'heavy', for a specific session.
  *

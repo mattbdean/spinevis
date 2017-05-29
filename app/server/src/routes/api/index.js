@@ -14,7 +14,7 @@ const router = express.Router();
 module.exports = function(errorLogger = () => {}) {
     // Define a list of API modules to load into the router. All modules will be
     // mounted at the API root and will be require'd from this directory.
-    const apiModules = ['session'];
+    const apiModules = ['session', 'animal'];
     for (const mod of apiModules) {
         router.use(`/${mod}`, require(`./${mod}.js`));
     }

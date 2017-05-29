@@ -20,12 +20,6 @@ switched to db spinevis
 { srcID: 1 }
 ```
 
-## `meta`
-
-```js
-{ start_time: -1 }
-```
-
 ## `masktc`
 
 ```js
@@ -33,6 +27,13 @@ switched to db spinevis
     srcID: 1,
     maskID: 1
 }
+```
+
+## `meta`
+
+```js
+{ start_time: -1 },
+{ Animal: 1 }
 ```
 
 ## `volumes`

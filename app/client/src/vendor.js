@@ -2,9 +2,9 @@
 
 // AngularJS
 require('angular');
-require('angular-bootstrap-toggle/dist/angular-bootstrap-toggle');
-require('angular-fancy-modal/dist/angular-fancy-modal');
-require('angularjs-datepicker');
+require('angular-animate');
+require('angular-aria');
+require('angular-messages');
 require('angularjs-slider');
 require('ng-infinite-scroll');
 

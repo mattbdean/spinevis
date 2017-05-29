@@ -1,7 +1,7 @@
 mixin opacityControl(label, model, options)
     div.control
         p: strong(ng-bind=label)
-        rzslider(
+        rzslider.custom-md-slider(
             rz-slider-model=model
             rz-slider-options=options
         )
@@ -10,7 +10,7 @@ div.control
     div.thresh-edit-wrapper
         p: strong(ng-bind='$ctrl.controls.threshold.label')
         i.material-icons(ng-click='$ctrl.editThresholdSettings()') mode_edit
-    rzslider(
+    rzslider.custom-md-slider(
         rz-slider-model='$ctrl.controls.threshold.model.lo'
         rz-slider-high='$ctrl.controls.threshold.model.hi'
         rz-slider-options='$ctrl.controls.threshold.options'
@@ -34,5 +34,7 @@ div
 
 div.control
     form.inspect-timepoint(ng-submit='$ctrl.inspect()')
-        input.form-control(type='number' ng-model='$ctrl.currentTimepoint')
-        button.btn.btn-default(type='submit') Inspect
+        md-input-container
+            label Timepoint
+            input(type='number' ng-model='$ctrl.currentTimepoint')
+        md-button.md-raised(type='submit') Inspect

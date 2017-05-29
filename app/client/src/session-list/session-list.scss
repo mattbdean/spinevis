@@ -5,20 +5,29 @@ table.session-table a {
         color: #000;
         text-decoration: none;
     }
-
-    &.full-width-link {
-        display: block;
-        height: 100%;
-        width: 100%;
-    }
 }
 
 .filter {
-    padding: 10px;
+    padding: 50px;
 }
 
 a.material-icons {
     font-size: 18px;
     margin-left: 8px;
     color: rgba(0, 0, 0, 0.75);
+}
+
+.session-toolbar-wrapper {
+    display: flex;
+    flex-direction: row;
+
+    div.filter-container {
+        flex-grow: 1;
+    }
+}
+
+.filter-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
 }

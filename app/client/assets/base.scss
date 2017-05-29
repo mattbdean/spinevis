@@ -1,0 +1,114 @@
+@import 'palette';
+
+$font-stack: Roboto, "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+
+html {
+    position: relative;
+    min-height: 100%;
+    background-color: #FFF;
+}
+
+main {
+    background-color: #FFF;
+    /* Give the main content priority for the flex layout. Enables sticky footer. */
+    flex-grow: 1;
+}
+
+body {
+    /* Set margins to 0 to avoid drastic changes when Bootstrap loads */
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: $font-stack;
+}
+
+header {
+    width: 100%;
+    min-height: 80px;
+    line-height: 80px;
+    text-align: center;
+    background: $primary-color;
+
+}
+
+header > a {
+    color: #FFF;
+    font-family: "Roboto Mono", "Ubuntu Mono", monospace;
+    font-size: 3.5rem;
+}
+
+header > a:hover {
+    color: #FFF;
+    text-decoration: none;
+}
+
+footer {
+    padding-left: 60px;
+    width: 100%;
+    min-height: 64px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    color: rgba(0, 0, 0, 0.54);
+
+    .footer-meta * {
+        margin-left: 24px;
+    }
+
+    // <3 icon
+    .material-icons {
+        font-size: 18px;
+    }
+}
+
+// Material data table, adapted from
+// https://material.io/guidelines/components/data-tables.html#
+table.md-data-table {
+    font-size: 13px;
+    color: rgba(0, 0, 0, .87);
+    font-weight: 500;
+    width: 100%;
+
+    tr {
+        height: 48px;
+        transition: background-color 0.2s;
+    }
+
+    tbody tr:hover {
+        background-color: #eeeeee;
+    }
+
+    td {
+        font-size: 13px;
+        border-top: 1px rgba(0, 0, 0, 0.12) solid;
+    }
+
+    th {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.54);
+        font-weight: bold;
+
+        // Align the icon manually because for whatever reason it doesn't like
+        // being aligned
+        position: relative;
+        top: 2px;
+    }
+
+    th.sorted-column {
+        color: rgba(0, 0, 0, 0.87);
+
+        md-icon.material-icons {
+            font-size: 16px;
+            color: rgba(0, 0, 0, 0.87);
+            height: 16px;
+            width: 16px;
+        }
+    }
+
+    th, td {
+        padding: 0 24px;
+    }
+}

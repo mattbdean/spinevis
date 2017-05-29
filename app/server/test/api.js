@@ -260,6 +260,23 @@ describe('API v1', function() {
             });
         });
     });
+
+    describe('animal', () => {
+        describe(`GET ${routePrefix}/animal`, () => {
+            it('should return an array of unique animals', () => {
+                return request(app)
+                    .get(`${routePrefix}/animal`)
+                    .expect(200)
+                    .expect('Content-Type', /json/)
+                    .expect((res) => {
+                        const data = res.body.data;
+                        expect(Array.isArray(data)).to.be.true;
+                        // Data should be unique
+                        expect(_.uniq(data)).to.deep.equal(data);
+                    });
+            });
+        });
+    });
 });
 
 const binaryParser = function(res, callback) {

@@ -90,7 +90,8 @@ const ctrlDef = ['$http', '$scope', 'session', 'intensityManager', function Time
                 showgrid: false
             },
             font: {
-                family: 'Roboto, sans-serif'
+                // Copied from assets/base.scss
+                family: 'Roboto, "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif'
             },
             margin: {
                 r: 0,

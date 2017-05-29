@@ -1,17 +1,16 @@
-mixin subcontrol(label, ngModel)
-    small: strong.text-muted= label
-    input.form-control(type='number' ng-model=ngModel)
 
-form(ng-submit='save()' novalidate)
-    div.row.subcontrol
-        div.col-xs-6
-            +subcontrol('Absolute Low', 'options.floor')
-        div.col-xs-6
-            +subcontrol('Absolute High', 'options.ceil')
-    div.row.subcontrol
-        div.col-xs-12
-            +subcontrol('Step', 'options.step')
-    div.row.subcontrol
-        div.col-xs-12
-            button.btn.btn-primary(ng-click='save()') Save
+form.threshold-settings-dialog(ng-submit='save()' novalidate)
+    div(layout='row')
+        md-input-container(flex='50')
+            label Absolute low
+            input(required type='number' ng-model='options.floor')
+        md-input-container(flex='50')
+            label Absolute high
+            input(required type='number' ng-model='options.ceil')
+
+    md-input-container
+        label Step
+        input(required type='number' ng-model='options.step')
+
+    md-button(type='submit') Save
 
