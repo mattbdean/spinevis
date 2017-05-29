@@ -43,25 +43,25 @@ module.exports.runQuery = function(parameters, queryFn, res, next, paginated = f
             }
             res.json(response);
         }).catch(function(err) {
-        // Handle errors. If the error has a type property, we know it was
-        // from a function in the queries module.
-        if (err.type) {
-            let status;
-            if (err.type === queries.ERROR_MISSING)
-                status = 404;
-            else if (err.type === queries.ERROR_PAGINATION)
-            // Send 400 Bad Request because the client sent bad data
-                status = 400;
+            // Handle errors. If the error has a type property, we know it was
+            // from a function in the queries module.
+            if (err.type) {
+                let status;
+                if (err.type === queries.ERROR_MISSING)
+                    status = 404;
+                else if (err.type === queries.ERROR_PAGINATION)
+                    // Send 400 Bad Request because the client sent bad data
+                    status = 400;
 
-            // Make sure the type was one of the errors already checked for
-            if (status !== undefined) {
-                return next(responses.error(err.message, err.data, status));
+                // Make sure the type was one of the errors already checked for
+                if (status !== undefined) {
+                    return next(responses.error(err.message, err.data, status));
+                }
             }
-        }
 
-        // We don't know how to handle this kind of error, send a 500 Internal
-        // Server Error.
-        return next(responses.error());
-    });
+            // We don't know how to handle this kind of error, send a 500 Internal
+            // Server Error.
+            return res.status(500).render('error', { error: err });
+        });
 };
 
