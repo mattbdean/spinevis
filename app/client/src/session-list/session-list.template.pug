@@ -37,6 +37,7 @@ md-card
                 th.sorted-column
                     md-icon arrow_upward
                     span Start Date
+                th Inserted time
                 th Run
                 th Field of View
                 th Duration
@@ -49,5 +50,5 @@ md-card
 
                 //- Nest an <a> in each <td> so that the row will be clickable when
                 //- combined with some CSS magic
-                td(ng-repeat="key in ['name', 'startTime', 'run', 'fov', 'duration', 'sampleCount', 'imagingRate']")
+                td(ng-repeat="key in ['name', 'startTime', 'insertedTime', 'run', 'fov', 'duration', 'sampleCount', 'imagingRate']")
                     a(href='/session/{{session.id}}') {{session[key]}}

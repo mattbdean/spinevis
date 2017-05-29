@@ -83,7 +83,8 @@ const ctrlDef = ['$scope', 'title', 'session', 'animal', function($scope, title,
         // at end. "54645" => "55k"
         sampleCount: numeral(meta.nSamples).format('0a'),
         // Reduce to one decimal place and add units
-        imagingRate: numeral(meta.volRate).format('0.0') + ' Hz'
+        imagingRate: numeral(meta.volRate).format('0.0') + ' Hz',
+        insertedTime: meta.insertedTime ? util.format.dateTime(meta.insertedTime) : ''
     });
 
     $ctrl.nextPage = () => {

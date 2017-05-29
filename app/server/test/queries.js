@@ -24,7 +24,7 @@ describe('queries', function() {
         it('should find only appropriate session metadata', function() {
             return queries.findAllSessions(0, 20).then(function(sessions) {
                 // For each document ensure that only specific data is returned
-                const approvedKeys = ['_id', 'start_time', 'end_time', 'Animal', 'Run', 'name', 'nSamples', 'volRate', 'FOV'];
+                const approvedKeys = ['_id', 'start_time', 'end_time', 'Animal', 'Run', 'name', 'nSamples', 'volRate', 'FOV', 'insertedTime'];
 
                 for (const session of sessions) {
                     // Make sure all keys in the object are in the above array
