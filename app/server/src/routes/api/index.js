@@ -7,11 +7,8 @@ const router = express.Router();
 
 /**
  * Instantiates an Express Router that handles API endpoints.
- *
- * @param errorLogger Optional logging function that is called when an API error
- *                    is received.
  */
-module.exports = function(errorLogger = () => {}) {
+module.exports = function() {
     // Define a list of API modules to load into the router. All modules will be
     // mounted at the API root and will be require'd from this directory.
     const apiModules = ['session', 'animal'];
@@ -27,7 +24,7 @@ module.exports = function(errorLogger = () => {}) {
 
         // 4XX errors are to be expected, 5XX we need to see
         if (status === 500)
-            errorLogger(err);
+            console.error(err);
     });
 
     return router;

@@ -69,7 +69,7 @@ const normalizedMoment = (date) =>
  *                       included.
  * @param {string} animal If provided, will only return sessions for this animal
  */
-module.exports.findAllSessions = function(start, limit, startDate, endDate, animal) {
+module.exports.findAllSessions = function(start, limit, startDate = undefined, endDate = undefined, animal = undefined) {
     const paginationError = verifyPaginationData(start, limit);
     if (paginationError !== null) {
         return Promise.reject(errorPagination(paginationError, start, limit));
@@ -205,7 +205,7 @@ module.exports.getBehavior = function(id, types = []) {
  * @param {string} sessionId The ID of the session that hosts the mask
  * @param {string} maskId Optional
  */
-module.exports.getTimeline = function(sessionId, maskId) {
+module.exports.getTimeline = function(sessionId, maskId = undefined) {
     const namesOnly = maskId === undefined;
 
     const query = {srcID: sessionId};

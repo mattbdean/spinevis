@@ -16,14 +16,16 @@ module.exports.runQuery = function(parameters, queryFn, res, next, paginated = f
     // If any parameter is invalid, reject
     for (const p of parameters) {
         if (p.valid === false) {
-            return next(responses.errorObj(p.error));
+            const error = responses.errorObj(p.error);
+            return res.status(error.status).json(error);
         }
     }
 
     for (const contract of contracts) {
         contract.check(parameters);
         if (contract.valid === false) {
-            return next(responses.errorObj(contract.error));
+            const error = responses.errorObj(contract.error);
+            return res.status(error.status).json(error);
         }
     }
 

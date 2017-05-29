@@ -8,18 +8,18 @@ const db = require('./database.js');
 
 const app = express();
 
-module.exports = function(logToStdout = true, errorLogger = console.error) {
+module.exports = function createServer() {
     ///////////////////// CONFIGURATION /////////////////////
     app.set('views', path.join(__dirname, './views'));
     app.set('view engine', 'pug');
     app.use(helmet());
-    if (logToStdout) app.use(logger('dev'));
+    app.use(logger('dev'));
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json());
     app.use(express.static(path.join(__dirname, '../public')));
 
     //////////////////////// ROUTING ////////////////////////
-    const api = require('./routes/api')(errorLogger);
+    const api = require('./routes/api')();
     app.use('/api/v1', api);
     app.use('/', require('./routes/front.js'));
 
