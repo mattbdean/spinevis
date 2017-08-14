@@ -155,42 +155,9 @@ describe('queries', function() {
     });
 
     describe('getBehavior()', function() {
-        it('should return an object mapping behavior events to timepoint indexes', function() {
+        it('should return an array of behavior data', function() {
             return queries.getBehavior(firstSessionId).then(function(behaviorData) {
-                for (const key of Object.keys(behaviorData)) {
-                    // Make sure we are always returning an array
-                    expect(Array.isArray(behaviorData[key])).to.be.true;
-                }
-            });
-        });
-
-        it('should only return events which are asked for', function() {
-            const events = ['lick left', 'lick right'];
-
-            return queries.getBehavior(firstSessionId, events).then(function(behaviorData) {
-                const dataKeys = Object.keys(behaviorData);
-                // Lengths should be the same
-                expect(dataKeys).to.have.lengthOf(events.length);
-
-                // Make sure that every event that was requested was returned
-                for (const event of events) {
-                    expect(dataKeys).to.include(event);
-                }
-            });
-        });
-
-        it('should report missing when one of the behaviors cannot be found', function() {
-            const events = ['lick left', 'something else that doesn\'t exist', 'lick right'];
-
-            return queries.getBehavior(firstSessionId, events).then(function() {
-                _fail(undefined, undefined, 'should not have reached here');
-            }).catch(function(err) {
-                expect(err.type).to.equal(queries.ERROR_MISSING);
-                // events[1] will not have any data, expect that the only
-                // value in the error's 'types' array will be this value
-                expect(err.data).to.deep.equal({
-                    types: [events[1]]
-                });
+                expect(Array.isArray(behaviorData)).to.be.true;
             });
         });
     });

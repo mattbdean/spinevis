@@ -6,7 +6,6 @@ const WatchJS = require('watchjs');
 const watch = WatchJS.watch;
 const unwatch = WatchJS.unwatch;
 
-const behaviorMarkers = require('./markers.js');
 const relTime = require('./relative-time.js');
 const range = require('../core/range.js');
 const timezoneOffsetMillis = relTime.timezoneOffsetMillis;
@@ -144,7 +143,7 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             x: _.map($ctrl.sessionMeta.relTimes, (t) => new Date(relTime.relativeMillis(t))),
             // This trace is a straight line modeled by the function
             //     y = POINT_RESOLUTION_TRACE_Y
-            y: _.fill(Array($ctrl.sessionMeta.relTimes.length), POINT_RESOLUTION_TRACE_Y),
+            y: _.fill(new Array($ctrl.sessionMeta.relTimes.length), POINT_RESOLUTION_TRACE_Y),
             // Map every index to a string
             text: _.map(_.range(0, $ctrl.sessionMeta.nSamples - 1), (i) => 'Point ' + i),
             // Only show the 'text' on hover, which will be the value of the
@@ -167,22 +166,17 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
             behaviorData = behaviorData.data.data;
             const traces = [];
 
-            // behaviorData is an object mapping event types to the index of the
-            // relative position at which the event occurred
-            for (const name of Object.keys(behaviorData)) {
-                const behaviorIndexes = behaviorData[name];
-
-                const marker = behaviorMarkers[name];
-
+            for (const behavior of behaviorData) {
+                const behaviorIndexes = behavior.volNums;
                 traces.push({
                     x: _.map(behaviorIndexes, (index) => new Date(relTime.relativeMillis($ctrl.sessionMeta.relTimes[index]))),
-                    y: _.fill(Array(behaviorIndexes.length), BEHAVIOR_Y),
-                    name: name,
+                    y: _.fill(new Array(behaviorIndexes.length), BEHAVIOR_Y),
+                    name: behavior.evtType,
                     type: 'scatter',
                     mode: 'markers',
                     yaxis: 'y2', // Plot this on y-axis 2 (bottom subplot)
                     hoverinfo: 'skip', // change to 'none' if hover events become necessary
-                    marker: marker
+                    marker: behavior.marker
                 });
             }
 
@@ -310,11 +304,6 @@ const ctrlDef = ['$http', '$window', '$scope', 'session', 'traceManager', functi
      * that index.
      *
      * @param  {number}  newMillis
-     * @param  {Boolean} [isHighPriority=false] If this event should be treated
-     *                                          with high priority. What that
-     *                                          actually means is really up to
-     *                                          whatever component receives this
-     *                                          event (e.g. volume)
      */
     const onTimepointSelected = (newMillis) => {
         let newIndex;

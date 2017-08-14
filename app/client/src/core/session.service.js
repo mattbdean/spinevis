@@ -29,11 +29,9 @@ const serviceDef = ['$http', function($http) {
     };
 
     // /api/v1/session/:id/behavior
-    this.behavior = (id, types) => {
+    this.behavior = (id) => {
         ensureId(id);
-        return httpHelper.sendRequest(`/${id}/behavior`, {
-            types: types === undefined ? undefined : _.join(types, ',')
-        });
+        return httpHelper.sendRequest(`/${id}/behavior`);
     };
 
     // /api/v1/session/:id/timeline

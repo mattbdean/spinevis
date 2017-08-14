@@ -106,21 +106,26 @@ Sample `data` contents:
 
 ### `GET /api/v1/session/:id/behavior`
 
-Gets behavior events. The key for each property is the name of an event, while the value for each property is an array of the indexes at which that event happened.
-
-To fetch only certain behaviors, specify their names in the `types` query parameter:
-
 ```
-GET /api/v1/session/BMWR34:20160106:1:1/behavior?types=lick left,lick right
+GET /api/v1/session/BMWR34:20160106:1:1/behavior
 ```
 
 ```json
 {
     ...
-    "data": {
-        "lick right": [55, 57, 58, ...],
-        "lick left": [483, 699, 701],
-    }
+    "data": [
+        {
+            "_id": "5915b7cea8fdfea8c9c403ae",
+            "evtType": "lick right",
+            "volNums": [],
+            "srcID": "BMWR30:20151123:2:1:Testing",
+            "marker": {
+                "symbol": "triangle-down",
+                "color": "blue"
+            }
+        },
+        ...
+    ]
 }
 ```
 

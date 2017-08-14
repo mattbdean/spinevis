@@ -159,42 +159,18 @@ module.exports.sessionExists = function(id) {
         .limit(1)
         .toArray()
         .then(function(results) {
-            if (results.length === 0)
-                return false;
-            return true;
+            return results.length !== 0;
         });
 };
 
 /**
  * Gets behavior data for a specific session
  * @param  {string} id   Session ID, e.g. "BMWR34:20160106:1:1"
- * @param  {array} types Array of types of behavior to look for, e.g. ["lick left", "lick correct"]
- * @return {object}      An object mapping behavior types to the imaging index
- *                       at which the event occurred. For example, an index of
- *                       24 refers to the 24th time the brain was imaged
  */
-module.exports.getBehavior = function(id, types = []) {
-    const query = {srcID: id};
-
-    // $or operators cannot contain an empty array
-    if (types.length > 0) {
-        // Generate an $or query based on the event types given
-        query.$or = createDynamicQuerySegment('evtType', types);
-    }
-
+module.exports.getBehavior = function(id) {
     return db.mongo().collection(COLL_BEHAVIOR)
-        .find(query)
-        .toArray()
-        .then(function(behaviorDocs) {
-            if (types.length > 0 && behaviorDocs.length !== types.length) {
-                // Identify the types that could not be found
-                const returnedTypes = _.map(behaviorDocs, (o) => o.evtType);
-                const missing = _.filter(types, (t) => returnedTypes.indexOf(t) < 0);
-                return Promise.reject(errorMissing('Some behavior types could not be found', {types: missing}));
-            }
-
-            return rearrangeByKey(behaviorDocs, 'evtType', 'volNums');
-        });
+        .find({ srcID: id })
+        .toArray();
 };
 
 /**

@@ -153,62 +153,7 @@ describe('API v1', function() {
                         .get(`${routePrefix}/session/${id}/behavior`)
                         .expect(expectedStatus)
                         .expect(function(res) {
-                            expect(res.body.data).to.be.an('object');
-                        });
-                });
-            });
-            it('should respond with only the requested event types', function() {
-                const expectedStatus = 200;
-                // Space before 'lick left' is intentional, test trimming
-                const eventTypes = [' lick left', 'lick right'];
-                const eventTypesCsv = _.join(eventTypes, ',');
-
-                // Retrieve the very first session and test the API using that ID
-                return queries.findAllSessions(0, 1).then(function(sessions) {
-                    const id = sessions[0]._id;
-                    return request(app)
-                        .get(`${routePrefix}/session/${id}/behavior?types=${eventTypesCsv}`)
-                        .expect(expectedStatus)
-                        .expect(function(res) {
-                            expect(res.body.data).to.be.an('object');
-                            expect(Object.keys(res.body.data)).to.have.lengthOf(eventTypes.length);
-                        });
-                });
-            });
-            it('should 400 with an invalid behaviors', function() {
-                const expectedStatus = 400;
-                // Space before 'lick left' is intentional, test trimming
-                const eventTypes = ['!something_invalid!', '__other$@#'];
-                const eventTypesCsv = _.join(eventTypes, ',');
-
-                // Retrieve the very first session and test the API using that ID
-                return queries.findAllSessions(0, 1).then(function(sessions) {
-                    const id = sessions[0]._id;
-                    return request(app)
-                        .get(`${routePrefix}/session/${id}/behavior?types=${eventTypesCsv}`)
-                        .expect(expectedStatus)
-                        .expect(function(res) {
-                            expect(res.body.data).to.be.undefined;
-                            expect(res.body.error).to.not.be.undefined;
-                        });
-                });
-            });
-            it('should 404 with valid, but non-existent behaviors', function() {
-                const expectedStatus = 404;
-
-                // One exists, one doesn't
-                const eventTypes = ['lick left', 'something else'];
-                const eventTypesCsv = _.join(eventTypes, ',');
-
-                // Retrieve the very first session and test the API using that ID
-                return queries.findAllSessions(0, 1).then(function(sessions) {
-                    const id = sessions[0]._id;
-                    return request(app)
-                        .get(`${routePrefix}/session/${id}/behavior?types=${eventTypesCsv}`)
-                        .expect(expectedStatus)
-                        .expect(function(res) {
-                            expect(res.body.data).to.be.undefined;
-                            expect(res.body.error).to.exist;
+                            expect(Array.isArray(res.body.data)).to.be.true;
                         });
                 });
             });

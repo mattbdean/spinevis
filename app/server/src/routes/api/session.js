@@ -80,15 +80,7 @@ router.get('/:id', function(req, res, next) {
 
 router.get('/:id/behavior', function(req, res, next) {
     const parameters = [
-        input.sessionId(req.params.id),
-        new Parameter({
-            name: 'types',
-            rawInput: req.query.types,
-            array: true,
-            optional: true,
-            validate: validation.alphabeticWords,
-            errorMessage: 'Invalid event types'
-        })
+        input.sessionId(req.params.id)
     ];
 
     runQuery(parameters, queries.getBehavior, res, next);
