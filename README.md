@@ -1,15 +1,15 @@
 # SpineVis
 
-[![Travis](https://img.shields.io/travis/thatJavaNerd/spinevis.svg)](https://travis-ci.org/thatJavaNerd/spinevis)
-[![Known Vulnerabilities](https://snyk.io/test/github/thatjavanerd/spinevis/badge.svg)](https://snyk.io/test/github/thatjavanerd/spinevis)
-[![GitHub tag](https://img.shields.io/github/tag/thatJavaNerd/spinevis.svg)](https://github.com/thatJavaNerd/spinevis/tags)
-<!-- [![Coveralls](https://img.shields.io/coveralls/thatJavaNerd/spinevis.svg)](https://coveralls.io/github/thatJavaNerd/spinevis) -->
+[![Travis](https://img.shields.io/travis/mattbdean/spinevis.svg)](https://travis-ci.org/mattbdean/spinevis)
+[![Known Vulnerabilities](https://snyk.io/test/github/mattbdean/spinevis/badge.svg)](https://snyk.io/test/github/thatjavanerd/spinevis)
+[![GitHub tag](https://img.shields.io/github/tag/mattbdean/spinevis.svg)](https://github.com/mattbdean/spinevis/tags)
+<!-- [![Coveralls](https://img.shields.io/coveralls/mattbdean/spinevis.svg)](https://coveralls.io/github/mattbdean/spinevis) -->
 
 Analyze dendritic activity in the web browser. Requires Node.js v7.6+.
 
 ## Getting Started
 
-Getting the website up and running is simple. Make sure to install [jspm](http://jspm.io/) globally (`npm i jspm --global`).
+Getting the website up and running is simple:
 
 ```sh
 $ yarn install && yarn build
